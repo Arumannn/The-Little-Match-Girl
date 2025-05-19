@@ -37,7 +37,7 @@ typedef struct {
 
 typedef struct {
     address_Scene Head;
-} List_Scene
+} List_Scene;
 
 
 #endif
