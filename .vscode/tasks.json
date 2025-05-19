@@ -6,7 +6,7 @@
       "type": "shell",
       "command": "gcc",
       "args": [
-        "main.c",
+        "main.c", "src/mainmenu.c", "minigame.c", "story.c",
         "-o",
         "main",
         "-lraylib",
