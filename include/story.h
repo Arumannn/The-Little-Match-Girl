@@ -1,5 +1,5 @@
-#ifndef HEADER_H
-#define HEADER_H
+#ifndef STORY_H
+#define STORY_H
 #include <raylib.h>
 
 typedef struct Scene *address_Scene;
@@ -37,7 +37,7 @@ typedef struct {
 
 typedef struct {
     address_Scene Head;
-} List_Scene
+} List_Scene;
 
 
 #endif
