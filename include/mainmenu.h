@@ -18,7 +18,8 @@ int GetSelectedMenu();
 
 bool CheckMenuClick(int index);
 void InitMenuAssets();           
-void UnloadMenuAssets();         
+void UnloadMenuAssets();
+void DrawDebugGrid(int gridSize);         
 
 
 #endif
