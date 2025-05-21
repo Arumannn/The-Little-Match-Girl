@@ -1,5 +1,5 @@
-#ifndef STORY_H
-#define STORY_H
+#ifndef CUSTOMSTORY_H
+#define CUSTOMSTORY_H
 #include <raylib.h>
 #include <stdlib.h>
 

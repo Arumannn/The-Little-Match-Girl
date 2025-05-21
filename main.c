@@ -25,7 +25,7 @@ int main(void) {
         BeginDrawing();
         ClearBackground(BLACK);
 
-        if (showStoryCreator) 
+        if (showStoryCreator)
         {
             StoryCreator(&root, assets, 2);
         } 
