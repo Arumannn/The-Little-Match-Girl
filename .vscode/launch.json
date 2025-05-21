@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/ThinkPad/Desktop/Productive/Kuliah/Struktur Data dan Algoritma/Tugas Besar/File",
-      "program": "c:/Users/ThinkPad/Desktop/Productive/Kuliah/Struktur Data dan Algoritma/Tugas Besar/File/build/Debug/outDebug",
+      "cwd": "d:/The-Little-Match-Girl",
+      "program": "d:/The-Little-Match-Girl/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [

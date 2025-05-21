@@ -1,25 +1,27 @@
-#ifndef MAINMENU_H
-#define MAINMENU_H
+#ifndef MAIN_H
+#define MAIN_H
+
 #include <raylib.h>
+
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
-#define GRID_SIZE 50  // Jarak antar garis grid
 
-extern Rectangle menuButtons[5];
-extern Texture2D backgroundMenu;
-extern Texture2D buttonStart, buttonAbout, buttonExit, buttonBack, buttonNewGame, buttonLoadGame;
+#define MAX_MENU 17
 
 
-
-
+// Fungsi utama menu
+void InitAssets();
+void InitButtonRects();
 void DrawMainMenu();
 void UpdateMainMenu();
-int GetSelectedMenu();            
-
 bool CheckMenuClick(int index);
-void InitMenuAssets();           
-void UnloadMenuAssets();
-void DrawDebugGrid(int gridSize);         
+void UnloadAssets();
+void DrawDebugGrid(int gridSize);
 
-
-#endif
+// Variabel global yang digunakan di mainmenu.c
+extern Texture2D MenuButtons[MAX_MENU];
+extern Rectangle buttonRects[MAX_MENU];
+extern int selectedMenu;
+extern int MenuState;
+extern Music BGMusic;
+#endif 
