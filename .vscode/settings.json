@@ -69,6 +69,7 @@
     "raylib.h": "c",
     "story.h": "c",
     "stdio.h": "c",
-    "stdlib.h": "c"
+    "mainmenu.h": "c",
+    "customstory.h": "c"
   }
 }

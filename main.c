@@ -9,10 +9,8 @@
 #define SCREEN_HEIGHT 1080
 #define GRID_SIZE 50  // Jarak antar garis grid
 
-int main() {
-    
-    InitWindow(1920, 1080, "The Little Match Girls");
-    
+int main(void) {
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Grid Coordinate Debug");
     SetTargetFPS(60);
 
     AssetLibraryArr assets;
@@ -27,7 +25,7 @@ int main() {
         BeginDrawing();
         ClearBackground(BLACK);
 
-        if (showStoryCreator) 
+        if (showStoryCreator)
         {
             StoryCreator(&root, assets, 2);
         } 
@@ -42,7 +40,7 @@ int main() {
 
         EndDrawing();
     }
-    UnloadTexture(LoadTexture("img/background.png"));
+
     CloseWindow();
     UnloadAssetsSimple(assets);
     return 0;
