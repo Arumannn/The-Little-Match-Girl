@@ -1,7 +1,12 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
 #include <raylib.h>
 #include "mainmenu.h"
 
 Texture2D backgroundMenu, buttonStart, buttonAbout, buttonExit, buttonNewGame, buttonLoadGame, buttonBack;
+
 void InitMenuAssets(){
     // Load menu background texture
     backgroundMenu = LoadTexture("img/background/background_cadangan.png");
@@ -35,3 +40,5 @@ void DrawDebugGrid(int gridSize) {
         DrawText(TextFormat("%d", y), 0, y + 2, 10, GRAY);
     }
 }
+
+

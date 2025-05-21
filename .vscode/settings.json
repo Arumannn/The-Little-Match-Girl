@@ -58,6 +58,8 @@
   "C_Cpp_Runner.msvcSecureNoWarnings": false,
   "files.associations": {
     "raylib.h": "c",
-    "story.h": "c"
+    "story.h": "c",
+    "stdio.h": "c",
+    "stdlib.h": "c"
   }
 }

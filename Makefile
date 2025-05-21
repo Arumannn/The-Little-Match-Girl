@@ -1,3 +1,5 @@
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 #**************************************************************************************************
 #
 #   raylib makefile for Desktop platforms, Raspberry Pi, Android and HTML5
@@ -403,3 +405,47 @@ ifeq ($(PLATFORM),PLATFORM_WEB)
 endif
 	@echo Cleaning done
 
+=======
+=======
+>>>>>>> Stashed changes
+# Project: Project3
+# Makefile created by Embarcadero Dev-C++ 6.3
+
+CPP      = g++.exe
+CC       = gcc.exe
+WINDRES  = windres.exe
+OBJ      = main.o src/mainmenu.o src/minigame.o src/story.o
+LINKOBJ  = main.o src/mainmenu.o src/minigame.o src/story.o
+LIBS     = -L"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/lib" -L"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/x86_64-w64-mingw32/lib" -static-libgcc -lraylib -lopengl32 -lgdi32 -lwinmm
+INCS     = -I"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/include" -I"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/x86_64-w64-mingw32/include" -I"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/x86_64-w64-mingw32/include" -I"C:/Users/ThinkPad/Desktop/Productive/Kuliah/Struktur Data dan Algoritma/Tugas Besar/The Little Match Girls/include"
+CXXINCS  = -I"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/include" -I"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/x86_64-w64-mingw32/include" -I"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/9.2.0/include" -I"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/9.2.0/include/c++"
+BIN      = "The Little Match.exe"
+CXXFLAGS = $(CXXINCS) 
+CFLAGS   = $(INCS) 
+DEL      = C:\Program Files (x86)\Embarcadero\Dev-Cpp\devcpp.exe INTERNAL_DEL
+
+.PHONY: all all-before all-after clean clean-custom
+
+all: all-before $(BIN) all-after
+
+clean: clean-custom
+	${DEL} $(OBJ) $(BIN)
+
+$(BIN): $(OBJ)
+	$(CC) $(LINKOBJ) -o $(BIN) $(LIBS)
+
+main.o: main.c
+	$(CC) -c main.c -o main.o $(CFLAGS)
+
+src/mainmenu.o: src/mainmenu.c
+	$(CC) -c src/mainmenu.c -o src/mainmenu.o $(CFLAGS)
+
+src/minigame.o: src/minigame.c
+	$(CC) -c src/minigame.c -o src/minigame.o $(CFLAGS)
+
+src/story.o: src/story.c
+	$(CC) -c src/story.c -o src/story.o $(CFLAGS)
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
