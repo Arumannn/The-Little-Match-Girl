@@ -15,16 +15,26 @@ int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Grid Coordinate Debug");
     SetTargetFPS(60);
     InitAssets();
+    InitAudioDevice();
     InitButtonRects();
+    Music Pusic = LoadMusicStream("Assets/music/Jingle Bells.mp3");
+    SetMusicVolume(Pusic, 1.0f);
+    
+    PlayMusicStream(Pusic); 
+   
 
     while (!WindowShouldClose()) {
         if (IsKeyPressed(KEY_ESCAPE)) break;
+        
         UpdateMainMenu();
+        UpdateMusicStream(Pusic);
 
         BeginDrawing();
         ClearBackground(WHITE);
         DrawMainMenu();
         DrawDebugGrid(GRID_SIZE);  
+        
+
         
         Vector2 mouse = GetMousePosition();
         DrawText(TextFormat("Mouse: [%.0f, %.0f]", mouse.x, mouse.y), 100, 100, 50, BLACK);

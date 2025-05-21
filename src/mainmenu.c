@@ -13,10 +13,7 @@ int MenuState = 0;
 
 void InitAssets(){
 
-    InitAudioDevice();
-    BGMusic = LoadMusicStream("Assets/music/Jingle Bells.mp3");
-    PlayMusicStream(BGMusic); 
-    SetMusicVolume(BGMusic, 1.0f);
+    
     // =================================== MENU STATE 0 ===================================
     MenuButtons[0] = LoadTexture("Assets/mainmenu/background_starter.jpeg");
     MenuButtons[1] = LoadTexture("Assets/mainmenu/Start.png");
@@ -25,7 +22,7 @@ void InitAssets(){
     MenuButtons[4] = LoadTexture("Assets/mainmenu/Exit.png");
     // =================================== MENU STATE 1 ===================================
     MenuButtons[5] = LoadTexture("Assets/mainmenu/Play_Game.png");
-    MenuButtons[6] = LoadTexture("Assets/mainmenu/Costum_Game.png");
+    MenuButtons[6] = LoadTexture("Assets/mainmenu/Custom_Game.png");
     // =================================== MENU STATE 2 ===================================
     MenuButtons[7] = LoadTexture("Assets/mainmenu/New_Game.png");
     MenuButtons[8] = LoadTexture("Assets/mainmenu/Continue.png");
@@ -39,6 +36,8 @@ void InitAssets(){
     MenuButtons[14] = LoadTexture("Assets/mainmenu/Slot_3.png");
     MenuButtons[15] = LoadTexture("Assets/mainmenu/Back.png");
     
+    MenuButtons[0].height = SCREEN_HEIGHT;
+    MenuButtons[0].width = SCREEN_WIDTH;
     
     for (int i = 1; i < MAX_MENU; i++)
     {
@@ -47,91 +46,65 @@ void InitAssets(){
     }   
 }           
 
+void SetButtonRect(int id, int x, int y) {
+    buttonRects[id].x = x;
+    buttonRects[id].y = y;
+    buttonRects[id].width = (float)MenuButtons[id].width;
+    buttonRects[id].height = (float)MenuButtons[id].height;
+}
+
 void InitButtonRects() {
     int startX = 100;
     int startY = 300;
     int gapY = 150;
-    
-// =================================== MENU STATE 0 ===================================
-    switch (MenuState)
-    {
-    case 0:
-        printf("MENUSTATE 0\n");
-        for (int i = 1; i <= 4; i++) {
-            buttonRects[i].x = startX;
-            buttonRects[i].y = startY + i * gapY;
-            buttonRects[i].width = (float)MenuButtons[i].width;
-            buttonRects[i].height = (float)MenuButtons[i].height;
-        } 
-        break;
-// =================================== MENU STATE 1 ===================================
-    case 1:
-        printf("MENUSTATE 1\n");
-        for (int i = 5; i <= 6; i++) {
-            buttonRects[i].x = startX;
-            buttonRects[i].y = startY + (i-5) * gapY;
-            buttonRects[i].width = (float)MenuButtons[i].width;
-            buttonRects[i].height = (float)MenuButtons[i].height;
-        }
-            buttonRects[15].x = startX;
-            buttonRects[15].y = startY + 2 * gapY;
-            buttonRects[15].width = (float)MenuButtons[15].width;
-            buttonRects[15].height = (float)MenuButtons[15].height;
-            
-        break;
-// =================================== MENU STATE 2 ===================================
 
-    case 2:
-        printf("MENUSTATE 2\n");
-        for (int i = 7; i <= 8; i++) {
-            buttonRects[i].x = startX;
-            buttonRects[i].y = startY + (i-6) * gapY;
-            buttonRects[i].width = (float)MenuButtons[i].width;
-            buttonRects[i].height = (float)MenuButtons[i].height;
-        }
-            buttonRects[15].x = startX;
-            buttonRects[15].y = startY + 3 * gapY;
-            buttonRects[15].width = (float)MenuButtons[15].width;
-            buttonRects[15].height = (float)MenuButtons[15].height;
-        break;
-// =================================== MENU STATE 3 ===================================
+    switch (MenuState) {
+        case 0:
+            printf("MENUSTATE 0\n");
+            for (int i = 1, idx = 0; i <= 4; i++, idx++) {
+                SetButtonRect(i, startX, startY + idx * gapY);
+            }
+            break;
 
-    case 3:
-        printf("MENUSTATE 3\n");
-        for (int i = 9; i <= 11; i++) {
-            buttonRects[i].x = startX;
-            buttonRects[i].y = startY + (i-9) * gapY;
-            buttonRects[i].width = (float)MenuButtons[i].width;
-            buttonRects[i].height = (float)MenuButtons[i].height;
-        }
-            buttonRects[15].x = startX;
-            buttonRects[15].y = startY + 3 * gapY;
-            buttonRects[15].width = (float)MenuButtons[15].width;
-            buttonRects[15].height = (float)MenuButtons[15].height;
-        break;
-    case 4:
-// =================================== MENU STATE 4 ===================================
-        printf("MENUSTATE 4\n");
-        for (int i = 12; i <= 14; i++) {
-            buttonRects[i].x = startX;
-            buttonRects[i].y = startY + (i-13) * gapY;
-            buttonRects[i].width = (float)MenuButtons[i].width;
-            buttonRects[i].height = (float)MenuButtons[i].height;
-        }
-            buttonRects[15].x = startX;
-            buttonRects[15].y = startY + 3 * gapY;
-            buttonRects[15].width = (float)MenuButtons[15].width;
-            buttonRects[15].height = (float)MenuButtons[15].height;
-        break;
-    case 5:
-    // =================================== MENU STATE 5 ===================================
-    printf("MENUSTATE 5\n");
-        buttonRects[15].x = 950;
-        buttonRects[15].y = 930;
-        buttonRects[15].width = (float)MenuButtons[15].width;
-        buttonRects[15].height = (float)MenuButtons[15].height;
-    default:
-        break;
+        case 1:
+            printf("MENUSTATE 1\n");
+            for (int i = 5, idx = 0; i <= 6; i++, idx++) {
+                SetButtonRect(i, startX, startY + idx * gapY);
+            }
+            SetButtonRect(15, startX, startY + 2 * gapY);
+            break;
+
+        case 2:
+            printf("MENUSTATE 2\n");
+            for (int i = 7, idx = 0; i <= 8; i++, idx++) {
+                SetButtonRect(i, startX, startY + idx * gapY);
+            }
+            SetButtonRect(15, startX, startY + 2 * gapY);
+            break;
+
+        case 3:
+            printf("MENUSTATE 3\n");
+            for (int i = 9, idx = 0; i <= 11; i++, idx++) {
+                SetButtonRect(i, startX, startY + idx * gapY);
+            }
+            SetButtonRect(15, startX, startY + 3 * gapY);
+            break;
+
+        case 4:
+            printf("MENUSTATE 4\n");
+            for (int i = 12, idx = 0; i <= 14; i++, idx++) {
+                SetButtonRect(i, startX, startY + idx * gapY);
+            }
+            SetButtonRect(15, startX, startY + 3 * gapY);
+            break;
+
+        case 5:
+            printf("MENUSTATE 5\n");
+            SetButtonRect(15, SCREEN_WIDTH / 2, SCREEN_HEIGHT - 500);
+            break;
+
+        default:
+            break;
     }
 }
 
@@ -157,7 +130,6 @@ void DrawMainMenu(){
                 DrawTexture(MenuButtons[i], (int)buttonRects[i].x, (int)buttonRects[i].y, WHITE);
             }
             DrawTexture(MenuButtons[15], (int)buttonRects[15].x, (int)buttonRects[15].y, WHITE);
-            DrawText("About this game: Visual Novel by Hans Christian Andersen", SCREEN_WIDTH / 2 - 200, 100, 20, BLACK);
             break;
         case 3:
             for (int i = 9; i <= 11; i++) {
@@ -169,6 +141,10 @@ void DrawMainMenu(){
             for (int i = 12; i <= 14; i++) {
                 DrawTexture(MenuButtons[i], (int)buttonRects[i].x, (int)buttonRects[i].y, WHITE);
             }
+            DrawTexture(MenuButtons[15], (int)buttonRects[15].x, (int)buttonRects[15].y, WHITE);
+            break;
+        case 5:
+        printf("DRAWING MENU STATE 5\n");
             DrawTexture(MenuButtons[15], (int)buttonRects[15].x, (int)buttonRects[15].y, WHITE);
             break;
     }
@@ -190,6 +166,7 @@ void UpdateMainMenu() {
         case 2: startIndex = 7; endIndex = 8; break;
         case 3: startIndex = 9; endIndex = 11; break;
         case 4: startIndex = 12; endIndex = 14; break;
+        case 5: startIndex = 15; endIndex = 15; break;
     }
 
     for (int i = startIndex; i <= endIndex; i++) {
@@ -219,6 +196,7 @@ bool CheckMenuClick(int index) {
             case 1: MenuState = 1; InitButtonRects(); return true;
             case 2: MenuState = 3; InitButtonRects(); return true;
             case 3: MenuState = 5; InitButtonRects(); return true;
+            case 4: CloseWindow();
         }
     } else if (MenuState == 1) {
         switch (index) {
@@ -234,7 +212,7 @@ bool CheckMenuClick(int index) {
             case 15: MenuState = 0; InitButtonRects(); return true;
 
         }
-    } else if (MenuState == 1 || MenuState == 2 || MenuState == 4 || MenuState == 3) {
+    } else if (MenuState == 1 || MenuState == 2 || MenuState == 3 || MenuState == 4 || MenuState == 5) {
         if (index == 15) {
             MenuState = 0;
             InitButtonRects();
