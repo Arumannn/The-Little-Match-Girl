@@ -1,4 +1,5 @@
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 #**************************************************************************************************
 #
 #   raylib makefile for Desktop platforms, Raspberry Pi, Android and HTML5
@@ -405,6 +406,8 @@ endif
 	@echo Cleaning done
 
 =======
+=======
+>>>>>>> Stashed changes
 # Project: Project3
 # Makefile created by Embarcadero Dev-C++ 6.3
 
@@ -442,4 +445,7 @@ src/minigame.o: src/minigame.c
 
 src/story.o: src/story.c
 	$(CC) -c src/story.c -o src/story.o $(CFLAGS)
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes

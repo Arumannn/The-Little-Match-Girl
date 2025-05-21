@@ -1,5 +1,3 @@
-<<<<<<< Updated upstream
-=======
 #ifndef MAINMENU_H
 #define MAINMENU_H
 #include <raylib.h>
@@ -26,4 +24,3 @@ void DrawDebugGrid(int gridSize);
 
 
 #endif
->>>>>>> Stashed changes

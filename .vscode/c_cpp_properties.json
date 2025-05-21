@@ -15,7 +15,6 @@
       "compilerPath": "D:/MinGw/bin/gcc.exe",
       "cStandard": "${default}",
       "cppStandard": "${default}",
-<<<<<<< Updated upstream
       "intelliSenseMode": "windows-gcc-x86"
     },
     {
@@ -56,12 +55,10 @@
       "cStandard": "c11",
       "cppStandard": "c++14",
       "intelliSenseMode": "clang-x64"
-=======
       "intelliSenseMode": "windows-gcc-x64",
       "compilerArgs": [
         ""
       ]
->>>>>>> Stashed changes
     }
   ],
   "version": 4
