@@ -60,8 +60,13 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
+<<<<<<< Updated upstream
       "cwd": "d:/Proyek2_CrossingTheRoad",
       "program": "d:/Proyek2_CrossingTheRoad/build/Debug/outDebug",
+=======
+      "cwd": "d:/The-Little-Match-Girl",
+      "program": "d:/The-Little-Match-Girl/build/Debug/outDebug",
+>>>>>>> Stashed changes
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [

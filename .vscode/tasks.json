@@ -1,4 +1,5 @@
 {
+<<<<<<< Updated upstream
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
     "version": "2.0.0",
@@ -64,6 +65,34 @@
             },
             "group": "build",
             "problemMatcher": [
+=======
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build raylib simple",
+      "type": "shell",
+      "command": "gcc",
+      "args": [
+        "-Iinclude",
+        "main.c", "src/mainmenu.c", "src/minigame.c", "src/story.c", "src/customstory.c",
+        "-o",
+        "main",
+        "-lraylib",
+        "-lopengl32",
+        "-lgdi32",
+        "-lwinmm"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$gcc"],
+      "detail": "Simplified raylib build task"
+    }
+  ]
+}
+atcher": [
+>>>>>>> Stashed changes
                 "$gcc"
             ]
         }

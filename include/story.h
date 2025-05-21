@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 #ifndef HEADER_H
 #define HEADER_H
 #include <raylib.h>
@@ -41,3 +42,5 @@ typedef struct {
 
 
 #endif
+=======
+>>>>>>> Stashed changes
