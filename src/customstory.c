@@ -14,7 +14,6 @@ void StoryCreator(VNTreeNode *currentNode, AssetLibraryArr assets, int assetCoun
 
     static SceneNode *lastScene = NULL; // track last scene for linking
 
-    BeginDrawing();
     ClearBackground(BLACK);
 
     if (state == 0) {
@@ -137,8 +136,6 @@ void StoryCreator(VNTreeNode *currentNode, AssetLibraryArr assets, int assetCoun
             state = 0;
         }
     }
-
-    EndDrawing();
 }
 
 
