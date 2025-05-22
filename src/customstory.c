@@ -4,7 +4,7 @@
 #include <string.h>
 #include "customstory.h"
 
-void StoryCreator(VNTreeNode *currentNode, AssetLibraryArr assets, int assetCount) {
+void StoryCreator(VNTreeNode **currentNodePtr, AssetLibraryArr assets, int assetCount) {
     static int state = 0;
     static int assetSelectState = 0; // 0 = bg, 1 = char
     static int bgIndex = 0;
@@ -14,9 +14,10 @@ void StoryCreator(VNTreeNode *currentNode, AssetLibraryArr assets, int assetCoun
 
     static SceneNode *lastScene = NULL; // track last scene for linking
 
-    ClearBackground(BLACK);
+    VNTreeNode *currentNode = *currentNodePtr;
 
     if (state == 0) {
+        MenuBackground = LoadTexture("Assets/BackSprites/customstorymenu.png");
         // === Asset Selection (Background / Character) ===
         Texture2D currentTex = (assetSelectState == 0)
             ? assets[bgIndex].background
@@ -85,7 +86,7 @@ void StoryCreator(VNTreeNode *currentNode, AssetLibraryArr assets, int assetCoun
         }
 
         if (IsKeyPressed(KEY_ENTER) && dialogueCharCount > 0) {
-            SceneNode *scene = (SceneNode *)malloc(sizeof(SceneNode));
+            SceneNode *scene = (SceneNode*)malloc(sizeof(SceneNode));
             scene->backgroundTex = assets[bgIndex].background;
             scene->characterTex = assets[spriteIndex].sprite;
             scene->dialogue = strdup(dialogue);
@@ -121,7 +122,7 @@ void StoryCreator(VNTreeNode *currentNode, AssetLibraryArr assets, int assetCoun
                 currentNode->leftChoice = (VNTreeNode *)calloc(1, sizeof(VNTreeNode));
                 currentNode->leftChoice->id = currentNode->id * 2;
             }
-            currentNode = currentNode->leftChoice;
+            *currentNodePtr = currentNode->leftChoice;
             lastScene = NULL;
             state = 0;
         }
@@ -131,12 +132,13 @@ void StoryCreator(VNTreeNode *currentNode, AssetLibraryArr assets, int assetCoun
                 currentNode->rightChoice = (VNTreeNode *)calloc(1, sizeof(VNTreeNode));
                 currentNode->rightChoice->id = currentNode->id * 2 + 1;
             }
-            currentNode = currentNode->rightChoice;
+            *currentNodePtr = currentNode->rightChoice;
             lastScene = NULL;
             state = 0;
         }
     }
 }
+
 
 
 
@@ -169,5 +171,42 @@ void UnloadAssetsSimple(AssetLibraryArr assets) {
 
         UnloadTexture(assets[i].background);
         UnloadTexture(assets[i].sprite);
+    }
+}
+
+void PrintTree(VNTreeNode *node) {
+    if (node == NULL) return;
+
+    printf("Node ID: %d\n", node->id);
+
+    SceneNode *scene = node->sceneList;
+    int sceneIndex = 1;
+
+    while (scene != NULL) {
+        printf("  Scene %d:\n", sceneIndex++);
+        
+        if (scene->backgroundPath != NULL)
+            printf("    Background: %s\n", scene->backgroundPath);
+        else
+            printf("    Background: [Texture loaded, no path stored]\n");
+
+        printf("    Dialogue: %s\n", scene->dialogue);
+
+        if (scene->characterPath != NULL)
+            printf("    Character: %s\n", scene->characterPath);
+        else
+            printf("    Character: [Texture loaded, no path stored]\n");
+
+        scene = scene->next;
+    }
+
+    if (node->leftChoice != NULL) {
+        printf("  Branch LEFT:\n");
+        PrintTree(node->leftChoice);
+    }
+
+    if (node->rightChoice != NULL) {
+        printf("  Branch RIGHT:\n");
+        PrintTree(node->rightChoice);
     }
 }

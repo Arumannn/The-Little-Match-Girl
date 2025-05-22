@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <raylib.h>
+#include <math.h>
+#include <unistd.h>
 #include "story.h"
 #include "customstory.h"
 #include "mainmenu.h"
@@ -11,23 +13,30 @@
 
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Grid Coordinate Debug");
+    
     SetTargetFPS(60);
 
     AssetLibraryArr assets;
     LoadAssetsSimple(assets);
 
     VNTreeNode root = {0};
+    VNTreeNode *currentNode = &root;
     root.id = 1;
 
     bool showStoryCreator = true;
+    MenuBackground = LoadTexture("Assets/BackSprites/customstorymenu.png");
 
     while (!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(BLACK);
+        DrawTextureEx(MenuBackground, (Vector2){0, 0}, 0.0f,
+              fminf((float)GetScreenWidth() / MenuBackground.width,
+                    (float)GetScreenHeight() / MenuBackground.height),
+              WHITE);
 
         if (showStoryCreator)
         {
-            StoryCreator(&root, assets, 2);
+            StoryCreator(&currentNode, assets, 2);
         } 
         else
         {
@@ -43,5 +52,7 @@ int main(void) {
 
     CloseWindow();
     UnloadAssetsSimple(assets);
+    PrintTree(&root);
+    sleep(100);
     return 0;
 }

@@ -74,9 +74,12 @@ typedef struct {
 } AssetLibrarySimple;
 typedef AssetLibrarySimple AssetLibraryArr[2];
 
+static Texture2D MenuBackground;
 
-void StoryCreator(VNTreeNode *currentNode, AssetLibrarySimple *assets, int assetCount);
+
+void StoryCreator(VNTreeNode **currentNodePtr, AssetLibraryArr assets, int assetCount);
 void LoadAssetsSimple(AssetLibraryArr assets);
 void UnloadAssetsSimple(AssetLibraryArr assets);
+void PrintTree(VNTreeNode *node);
 
 #endif
