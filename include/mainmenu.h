@@ -1,5 +1,5 @@
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef MAINMENU_H
+#define MAINMENU_H
 
 #include <raylib.h>
 
@@ -22,6 +22,6 @@ void DrawDebugGrid(int gridSize);
 extern Texture2D MenuButtons[MAX_MENU];
 extern Rectangle buttonRects[MAX_MENU];
 extern int selectedMenu;
-extern int MenuState;
+extern int GameState;
 extern Music BGMusic;
 #endif 

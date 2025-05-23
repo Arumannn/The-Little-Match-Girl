@@ -4,12 +4,19 @@
 #include <string.h>
 #include <raylib.h>
 #include "mainmenu.h"
+#include "story.h"
+
+#define GAME_STATE_MAIN_MENU 0
+#define GAME_STATE_PLAY_GAME 1          // Sub-menu setelah Start
+#define GAME_STATE_CUSTOM_GAME_MENU 3   // Sub-menu Studio Game
+#define GAME_STATE_ABOUT 5              // Sub-menu About
+#define GAME_STATE_STORY 6              // GameState khusus untuk menjalankan cerita
 
 Texture2D MenuButtons[MAX_MENU];
 Rectangle buttonRects[MAX_MENU];
 Music BGMusic;
 int selectedMenu = -1;
-int MenuState = 0;
+int GameState = 0;
 
 void InitAssets(){
 
@@ -58,16 +65,16 @@ void InitButtonRects() {
     int startY = 300;
     int gapY = 150;
 
-    switch (MenuState) {
-        case 0:
-            printf("MENUSTATE 0\n");
+    switch (GameState) {
+        case GAME_STATE_MAIN_MENU:
+            printf("GameState 0\n");
             for (int i = 1, idx = 0; i <= 4; i++, idx++) {
                 SetButtonRect(i, startX, startY + idx * gapY);
             }
             break;
 
-        case 1:
-            printf("MENUSTATE 1\n");
+        case GAME_STATE_PLAY_GAME:
+            printf("GameState 1\n");
             for (int i = 5, idx = 0; i <= 6; i++, idx++) {
                 SetButtonRect(i, startX, startY + idx * gapY);
             }
@@ -75,15 +82,15 @@ void InitButtonRects() {
             break;
 
         case 2:
-            printf("MENUSTATE 2\n");
+            printf("GameState 2\n");
             for (int i = 7, idx = 0; i <= 8; i++, idx++) {
                 SetButtonRect(i, startX, startY + idx * gapY);
             }
             SetButtonRect(15, startX, startY + 2 * gapY);
             break;
 
-        case 3:
-            printf("MENUSTATE 3\n");
+        case GAME_STATE_CUSTOM_GAME_MENU:
+            printf("GameState 3\n");
             for (int i = 9, idx = 0; i <= 11; i++, idx++) {
                 SetButtonRect(i, startX, startY + idx * gapY);
             }
@@ -91,18 +98,19 @@ void InitButtonRects() {
             break;
 
         case 4:
-            printf("MENUSTATE 4\n");
+            printf("GameState 4\n");
             for (int i = 12, idx = 0; i <= 14; i++, idx++) {
                 SetButtonRect(i, startX, startY + idx * gapY);
             }
             SetButtonRect(15, startX, startY + 3 * gapY);
             break;
 
-        case 5:
-            printf("MENUSTATE 5\n");
+        case GAME_STATE_ABOUT:
+            printf("GameState 5\n");
             SetButtonRect(15, SCREEN_WIDTH / 2, SCREEN_HEIGHT - 500);
             break;
-
+        case GAME_STATE_STORY:
+            printf("GameState STORY\n");
         default:
             break;
     }
@@ -111,13 +119,13 @@ void InitButtonRects() {
 void DrawMainMenu(){
     PlayMusicStream(BGMusic);
     DrawTexture(MenuButtons[0], 0, 0, WHITE);
-    switch (MenuState) {
-        case 0:
+    switch (GameState) {
+        case GAME_STATE_MAIN_MENU:
             for (int i = 1; i <= 4; i++) {
                 DrawTexture(MenuButtons[i], (int)buttonRects[i].x, (int)buttonRects[i].y, WHITE);
             }
             break;
-        case 1:
+        case GAME_STATE_PLAY_GAME:
             printf("DRAWING MENU STATE 1\n");
             for (int i = 5; i <= 6; i++) {
                 DrawTexture(MenuButtons[i], (int)buttonRects[i].x, (int)buttonRects[i].y, WHITE);
@@ -131,7 +139,7 @@ void DrawMainMenu(){
             }
             DrawTexture(MenuButtons[15], (int)buttonRects[15].x, (int)buttonRects[15].y, WHITE);
             break;
-        case 3:
+        case GAME_STATE_CUSTOM_GAME_MENU:
             for (int i = 9; i <= 11; i++) {
                 DrawTexture(MenuButtons[i], (int)buttonRects[i].x, (int)buttonRects[i].y, WHITE);
             }
@@ -143,9 +151,14 @@ void DrawMainMenu(){
             }
             DrawTexture(MenuButtons[15], (int)buttonRects[15].x, (int)buttonRects[15].y, WHITE);
             break;
-        case 5:
-        printf("DRAWING MENU STATE 5\n");
+        case GAME_STATE_ABOUT:
+            printf("DRAWING MENU STATE 5\n");
             DrawTexture(MenuButtons[15], (int)buttonRects[15].x, (int)buttonRects[15].y, WHITE);
+            break;
+        case GAME_STATE_STORY:
+            printf("DRAWING MENU STATE 6\n");
+            break;
+        default:
             break;
     }
 
@@ -158,13 +171,18 @@ void UpdateMainMenu() {
     Vector2 mousePos = GetMousePosition();
     selectedMenu = -1;
 
+    if (GameState == GAME_STATE_STORY)
+    {
+        return;
+    }
+    
     int startIndex = 0, endIndex = 0;
 
-    switch (MenuState) {
-        case 0: startIndex = 1; endIndex = 4; break;
-        case 1: startIndex = 5; endIndex = 6; break;
+    switch (GameState) {
+        case GAME_STATE_MAIN_MENU: startIndex = 1; endIndex = 4; break;
+        case GAME_STATE_PLAY_GAME: startIndex = 5; endIndex = 6; break;
         case 2: startIndex = 7; endIndex = 8; break;
-        case 3: startIndex = 9; endIndex = 11; break;
+        case GAME_STATE_CUSTOM_GAME_MENU: startIndex = 9; endIndex = 11; break;
         case 4: startIndex = 12; endIndex = 14; break;
         case 5: startIndex = 15; endIndex = 15; break;
     }
@@ -179,7 +197,7 @@ void UpdateMainMenu() {
         }
     }
 
-    if (MenuState >= 1 && MenuState <= 4) {
+    if (GameState >= GAME_STATE_PLAY_GAME && GameState <= GAME_STATE_ABOUT) {
         if (CheckCollisionPointRec(mousePos, buttonRects[15])) {
             selectedMenu = 15;
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
@@ -191,30 +209,47 @@ void UpdateMainMenu() {
 
 bool CheckMenuClick(int index) {
     printf("Tombol tertekan\n");
-    if (MenuState == 0) {
+    if (GameState == GAME_STATE_MAIN_MENU) {
         switch (index) {
-            case 1: MenuState = 1; InitButtonRects(); return true;
-            case 2: MenuState = 3; InitButtonRects(); return true;
-            case 3: MenuState = 5; InitButtonRects(); return true;
+            case 1: GameState = GAME_STATE_PLAY_GAME; InitButtonRects(); return true;
+            case 2: GameState = GAME_STATE_CUSTOM_GAME_MENU; InitButtonRects(); return true;
+            case 3: GameState = GAME_STATE_ABOUT; InitButtonRects(); return true;
             case 4: CloseWindow();
         }
-    } else if (MenuState == 1) {
+    } else if (GameState == GAME_STATE_PLAY_GAME) {
         switch (index) {
-            case 5: MenuState = 2; InitButtonRects(); return true;
-            case 6: MenuState = 2; InitButtonRects(); return true;
-            case 15: MenuState = 0; InitButtonRects(); return true;
+            case 5: GameState = GAME_STATE_STORY; 
+                InitButtonRects(); 
+                LoadNodeAssets(currentScene);
+                currentFrameIndex = 0;
+                return true;
+            case 6: GameState = 2; InitButtonRects(); return true;
+            case 15: GameState = GAME_STATE_MAIN_MENU; InitButtonRects(); return true;
         }
-    } else if (MenuState == 3){
+    } else if(GameState == 2){
+        switch(index){
+            case 7:
+                printf("Masuk ke New Game\n");
+                return true;
+            case 8:
+                printf("Masuk ke Load Game\n");
+                return true;
+            case 15:
+                GameState = GAME_STATE_MAIN_MENU;
+                InitButtonRects();
+                return true;
+        }
+    } else if (GameState == GAME_STATE_CUSTOM_GAME_MENU){
         switch (index) {
-            case 9: MenuState = 4; InitButtonRects(); return true;
-            case 10: MenuState = 4; InitButtonRects(); return true;
-            case 11: MenuState = 4; InitButtonRects(); return true;
-            case 15: MenuState = 0; InitButtonRects(); return true;
+            case 9: GameState = 4; InitButtonRects(); return true;
+            case 10: GameState = 4; InitButtonRects(); return true;
+            case 11: GameState = 4; InitButtonRects(); return true;
+            case 15: GameState = 0; InitButtonRects(); return true;
 
         }
-    } else if (MenuState == 1 || MenuState == 2 || MenuState == 3 || MenuState == 4 || MenuState == 5) {
+    } else if (GameState == 1 || GameState == 2 || GameState == 3 || GameState == 4 || GameState == 5) {
         if (index == 15) {
-            MenuState = 0;
+            GameState = 0;
             InitButtonRects();
             return true;
         }
