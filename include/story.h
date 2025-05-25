@@ -32,6 +32,8 @@ typedef struct{
     Scene Frame[MAX_SCENE];
     char *choiceLeftSon;
     char *choiceRightSon;
+    int IdRightSon;
+    int IdLeftSon;
     int TotalScene;
     int numChoices;
 }Tree;
@@ -39,14 +41,14 @@ typedef struct{
 
 extern Tree SceneTree[MAX_NODE_TREE];
 extern int currentScene;
-extern int currentFrameIndex;
+extern int currentFrame;
 
-void InitDataCerita();
-void LoadNodeAssets(int nodeIndex);
-void UnloadNodeAssets(int nodeIndex);
-void DrawCurrentNodeScreen();
-void UpdateCerita(int *gameState);
-void ProsesChoice(int choice);
+void InitDataCerita(Tree SceneTree[]);
+void LoadNodeAssets(Tree SceneTree[], int nodeIndex);
+void UnloadNodeAssets(Tree SceneTree[], int nodeIndex);
+void DrawCurrentNodeScreen(Tree SceneTree[]);
+void UpdateCerita(Tree SceneTree[], GameState * gameState);
+void ProsesChoice(Tree SceneTree[], int choice);
 void PlayBackgroundMusic(const char *musicPath);
 void UnloadStoryAudio();
 #endif
