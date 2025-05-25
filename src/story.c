@@ -27,28 +27,28 @@ void InitDataCerita(Tree * SceneTree){
     SceneTree[0].Frame[0].backgroundPath = "Assets/BackgroundSprites/background4.png";
     SceneTree[0].Frame[0].characterPath = NULL;
     SceneTree[0].Frame[0].backgroundSound = NULL; 
-    SceneTree[0].Frame[0].dialogue = "......";
+    SceneTree[0].Frame[0].dialogue = "Girl : ......";
 
     SceneTree[0].Frame[1].backgroundPath = "Assets/BackgroundSprites/background3.png";
     SceneTree[0].Frame[1].characterPath = "Assets/CharaSprites/chara3.png";
     SceneTree[0].Frame[1].backgroundSound = NULL; 
-    SceneTree[0].Frame[1].dialogue = "It is so cold here, but i have to sell all these matches";
+    SceneTree[0].Frame[1].dialogue = "Girl : It is so cold here, but i have to sell all these matches";
     SceneTree[0].Frame[1].CharPosition = CHAR_POS_CENTER;
 
     SceneTree[0].Frame[2].backgroundPath = "Assets/BackgroundSprites/background6.png";
     SceneTree[0].Frame[2].characterPath = "Asssets/CharaSprites/chara3.png";
     SceneTree[0].Frame[2].backgroundSound = NULL; 
     SceneTree[0].Frame[2].CharPosition = CHAR_POS_CENTER;
-    SceneTree[0].Frame[2].dialogue = "What should i go, Alleway?";
+    SceneTree[0].Frame[2].dialogue = "Girl : What should i go, Alleway?";
 
     SceneTree[0].Frame[3].backgroundPath = "Assets/BackgroundSprites/background7.png";
     SceneTree[0].Frame[3].characterPath = "Asssets/CharaSprites/chara3.png";
     SceneTree[0].Frame[3].backgroundSound = NULL; 
     SceneTree[0].Frame[3].CharPosition = CHAR_POS_CENTER;
-    SceneTree[0].Frame[3].dialogue = "Or the Street?";
+    SceneTree[0].Frame[3].dialogue = "Girl : Or the Street?";
 
     SceneTree[1].id = 1;
-    SceneTree[1].TotalScene = 1;
+    SceneTree[1].TotalScene = 2;
     SceneTree[1].numChoices = 2;
     SceneTree[1].choiceLeftSon = "Light on a few matches";
     SceneTree[1].choiceRightSon = "Ignore it, Keep Walking";
@@ -56,31 +56,125 @@ void InitDataCerita(Tree * SceneTree){
     SceneTree[1].IdRightSon = 4;
 
     SceneTree[1].Frame[0].backgroundPath = "Assets/BackgroundSprites/background6.png";
-    SceneTree[1].Frame[0].characterPath = "Assets/CharaSprites/chara3.png";
+    SceneTree[1].Frame[0].characterPath = "Assets/CharaSprites/chara5.png";
     SceneTree[1].Frame[0].backgroundSound = NULL; 
     SceneTree[1].Frame[0].CharPosition = CHAR_POS_LEFT;
-    SceneTree[1].Frame[0].dialogue = "I'm Think that guy is feel cold, should i help him?";
+    SceneTree[1].Frame[0].dialogue = " Girl : I'm Think that guy is feel cold, should i help him?";
 
+    SceneTree[1].Frame[1].backgroundPath = "Assets/BackgroundSprites/background6.png";
+    SceneTree[1].Frame[1].characterPath = "Assets/CharaSprites/chara5.png";
+    SceneTree[1].Frame[1].backgroundSound = NULL; 
+    SceneTree[1].Frame[1].CharPosition = CHAR_POS_LEFT;
+    SceneTree[1].Frame[1].dialogue = "";
 
-    //ENDING
-    SceneTree[2].id = 4;
-    SceneTree[2].TotalScene = 1;
-    SceneTree[2].numChoices = 0;
+    SceneTree[2].id = 2;
+    SceneTree[2].TotalScene = 2;
+    SceneTree[2].numChoices = 2;
+    SceneTree[2].choiceLeftSon = "Walk crosing the street";
+    SceneTree[2].choiceRightSon = "Walk along the sidewalks";
+    SceneTree[2].IdLeftSon = 5;
+    SceneTree[2].IdRightSon = 6;
 
-    SceneTree[2].Frame[1].backgroundPath = "Assets/BackgroundSprites/background5.png";
+    SceneTree[2].Frame[0].backgroundPath = "Assets/BackgroundSprites/background8.png";
+    SceneTree[2].Frame[0].characterPath = NULL;
+    SceneTree[2].Frame[0].backgroundSound = NULL; 
+    SceneTree[2].Frame[0].CharPosition = CHAR_POS_NONE;
+    SceneTree[2].Frame[0].dialogue = "";
+
+    SceneTree[2].Frame[1].backgroundPath = "Assets/BackgroundSprites/background8.png";
+    SceneTree[2].Frame[1].characterPath = "Assets/CharaSprites/chara5.png";
     SceneTree[2].Frame[1].backgroundSound = NULL; 
-    SceneTree[2].Frame[1].dialogue = "I'm Think that guy is feel cold, should i help him?";
+    SceneTree[2].Frame[1].CharPosition = CHAR_POS_LEFT;
+    SceneTree[2].Frame[1].dialogue = "Girl : Would these people be in need of matches?";
 
-    SceneTree[2].Frame[2].backgroundPath = "Assets/BackgroundSprites/background5.png";
-    SceneTree[2].Frame[2].backgroundSound = NULL; 
-    SceneTree[2].Frame[2].dialogue = "No, I can handle it";
+    
+    SceneTree[3].id = 3;
+    SceneTree[3].TotalScene = 5;
+    SceneTree[3].numChoices = 2;
+    SceneTree[3].choiceLeftSon = "Give up all the match";
+    SceneTree[3].choiceRightSon = "Protect the match";
+    SceneTree[3].IdLeftSon = 7;
+    SceneTree[3].IdRightSon = 8;
 
-    SceneTree[2].Frame[3].backgroundPath = "Assets/BackgroundSprites/background5.png";
-    SceneTree[2].Frame[3].backgroundSound = NULL; 
-    SceneTree[2].Frame[3].dialogue = ".....";
+    SceneTree[3].Frame[0].backgroundPath = "Assets/BackgroundSprites/background6.png";
+    SceneTree[3].Frame[0].characterPath = "Assets/CharaSprites/chara2.png";
+    SceneTree[3].Frame[0].backgroundSound = NULL; 
+    SceneTree[3].Frame[0].CharPosition = CHAR_POS_RIGHT;
+    SceneTree[3].Frame[0].dialogue = "Homeless man: Thank you kid, here's 2 dollars for the match";
 
+    SceneTree[3].Frame[1].backgroundPath = "Assets/BackgroundSprites/background6.png";
+    SceneTree[3].Frame[1].characterPath = "Assets/CharaSprites/chara4.png";
+    SceneTree[3].Frame[1].backgroundSound = NULL; 
+    SceneTree[3].Frame[1].CharPosition = CHAR_POS_RIGHT;
+    SceneTree[3].Frame[1].dialogue = "Homeless man: Yeah, thank you so much";
 
-}
+    SceneTree[3].Frame[2].backgroundPath = "Assets/BackgroundSprites/background6.png";
+    SceneTree[3].Frame[2].characterPath = "Assets/CharaSprites/chara2.png";
+    SceneTree[3].Frame[2].backgroundSound = NULL; 
+    SceneTree[3].Frame[2].CharPosition = CHAR_POS_RIGHT;
+    SceneTree[3].Frame[2].dialogue = "Homeless man: Give me the match too";
+
+    SceneTree[3].Frame[3].backgroundPath = "Assets/BackgroundSprites/background6.png";
+    SceneTree[3].Frame[3].characterPath = "Assets/CharaSprites/chara4.png";
+    SceneTree[3].Frame[3].backgroundSound = NULL; 
+    SceneTree[3].Frame[3].CharPosition = CHAR_POS_RIGHT;
+    SceneTree[3].Frame[3].dialogue = "Homeless man: Hey I want too";
+
+    SceneTree[3].Frame[4].backgroundPath = "Assets/BackgroundSprites/background6.png";
+    SceneTree[3].Frame[4].characterPath = "Assets/CharaSprites/chara5.png";
+    SceneTree[3].Frame[4].backgroundSound = NULL; 
+    SceneTree[3].Frame[4].CharPosition = CHAR_POS_LEFT;
+    SceneTree[3].Frame[4].dialogue = "Girl : I'm Scared, please don't hurt me";
+    
+    SceneTree[3].Frame[5].backgroundPath = "Assets/BackgroundSprites/background6.png";
+    SceneTree[3].Frame[5].characterPath = "Assets/CharaSprites/chara5.png";
+    SceneTree[3].Frame[5].backgroundSound = NULL; 
+    SceneTree[3].Frame[5].CharPosition = CHAR_POS_LEFT;
+    SceneTree[3].Frame[5].dialogue = "";
+    
+
+    // NODE 4 dan 5 ENDING SCENE, nanti
+
+    //========================================
+    SceneTree[6].id = 6;
+    SceneTree[6].TotalScene = 5;
+    SceneTree[6].numChoices = 2;
+    SceneTree[6].choiceLeftSon = "Try to pickpocket";
+    SceneTree[6].choiceRightSon = "Offering the match";
+    SceneTree[6].IdLeftSon = 9;
+    SceneTree[6].IdRightSon = 10;
+
+    SceneTree[6].Frame[0].backgroundPath = "Assets/BackgroundSprites/background10.png";
+    SceneTree[6].Frame[0].characterPath = "Assets/CharaSprites/chara3.png";
+    SceneTree[6].Frame[0].backgroundSound = NULL; 
+    SceneTree[6].Frame[0].CharPosition = CHAR_POS_CENTER;
+    SceneTree[6].Frame[0].dialogue = "Walking....";
+
+    SceneTree[6].Frame[1].backgroundPath = "Assets/BackgroundSprites/background11.png";
+    SceneTree[6].Frame[1].characterPath = "Assets/CharaSprites/chara5.png";
+    SceneTree[6].Frame[1].backgroundSound = NULL; 
+    SceneTree[6].Frame[1].CharPosition = CHAR_POS_LEFT;
+    SceneTree[6].Frame[1].dialogue = "Girl: Anyone, need a box match?";
+
+    SceneTree[6].Frame[2].backgroundPath = "Assets/BackgroundSprites/background12.png";
+    SceneTree[6].Frame[2].characterPath = "Assets/CharaSprites/chara5.png";
+    SceneTree[6].Frame[2].backgroundSound = NULL; 
+    SceneTree[6].Frame[2].CharPosition = CHAR_POS_LEFT;
+    SceneTree[6].Frame[2].dialogue = "Girl: Just only 5$ a box?";
+
+    SceneTree[6].Frame[3].backgroundPath = "Assets/BackgroundSprites/background9.png";
+    SceneTree[6].Frame[3].characterPath = "Assets/CharaSprites/chara3.png";
+    SceneTree[6].Frame[3].backgroundSound = NULL; 
+    SceneTree[6].Frame[3].CharPosition = CHAR_POS_LEFT;
+    SceneTree[6].Frame[3].dialogue = "Girl : 5$ for a box matach will keep you warm";
+
+    SceneTree[6].Frame[4].backgroundPath = "Assets/BackgroundSprites/background13.png";
+    SceneTree[6].Frame[4].characterPath = "Assets/CharaSprites/chara5.png";
+    SceneTree[6].Frame[4].backgroundSound = NULL; 
+    SceneTree[6].Frame[4].CharPosition = CHAR_POS_LEFT;
+    SceneTree[6].Frame[4].dialogue = "Girl : Should i offer one to that man?";
+    
+}  
 
 //Menentukan posisi karakter ketika digambar
 void DrawCharacterAtPosition(Texture2D tex, CharacterPosition pos) {
@@ -164,7 +258,7 @@ void DrawCurrentNodeScreen(Tree SceneTree[]){
     Tree *NodeCur = &SceneTree[currentScene];
     if (NodeCur->numChoices == 0 || NodeCur->TotalScene == 0) {
         ClearBackground(BLACK);
-        //EACH ENDING
+        
     }
 
     Scene *SceneDataCur = &NodeCur->Frame[currentFrame];
@@ -176,8 +270,8 @@ void DrawCurrentNodeScreen(Tree SceneTree[]){
     }
     DrawCharacterAtPosition(SceneDataCur->characterTex, SceneDataCur->CharPosition);
 
-    DrawRectangle(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 150, Fade(BLACK, 0.7f));
-    DrawRectangleLines(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 150, WHITE);
+    DrawRectangle(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, BLACK);
+    DrawRectangleLines(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, WHITE);
 
     if (SceneDataCur->dialogue != NULL) {
         DrawText(SceneDataCur->dialogue, 70, SCREEN_HEIGHT - 180, 30, WHITE);
@@ -186,31 +280,31 @@ void DrawCurrentNodeScreen(Tree SceneTree[]){
     if (currentFrame== NodeCur->TotalScene - 1 && NodeCur->numChoices > 0) {
         int choiceButtonWidth = 400;
         int choiceButtonHeight = 60;
-        int choiceStartY = SCREEN_HEIGHT - 400;
+        int yButton = SCREEN_HEIGHT / 2 + 275;
 
         if (NodeCur->numChoices >= 1) {
             Rectangle choiceRectLeft = {
-                SCREEN_WIDTH / 2 - choiceButtonWidth / 2,
-                choiceStartY,
+                SCREEN_WIDTH / 2 - choiceButtonWidth / 2 - 715,
+                yButton,
                 (float)choiceButtonWidth,
                 (float)choiceButtonHeight
             };
-            DrawRectangleRec(choiceRectLeft, Fade(BLUE, 0.8f));
+            DrawRectangleRec(choiceRectLeft, Fade(GRAY, 0.8f));
             DrawRectangleLinesEx(choiceRectLeft, 2, WHITE);
             DrawText(NodeCur->choiceLeftSon,
-                     (int)(choiceRectLeft.x + choiceButtonWidth / 2 - MeasureText(NodeCur->choiceLeftSon, 25) / 2),
+                     (int)(choiceRectLeft.x + choiceButtonWidth / 2 - MeasureText(NodeCur->choiceLeftSon, 30) / 2),
                      (int)(choiceRectLeft.y + choiceButtonHeight / 2 - 25 / 2),
                      25, WHITE);
         }
 
         if (NodeCur->numChoices == 2) {
             Rectangle choiceRectRight = {
-                SCREEN_WIDTH / 2 - choiceButtonWidth / 2,
-                choiceStartY + choiceButtonHeight + 10,
+                SCREEN_WIDTH / 2 - choiceButtonWidth / 2 + 715,
+                yButton,
                 (float)choiceButtonWidth,
                 (float)choiceButtonHeight
             };
-            DrawRectangleRec(choiceRectRight, Fade(BLUE, 0.8f));
+            DrawRectangleRec(choiceRectRight, Fade(GRAY, 0.8f));
             DrawRectangleLinesEx(choiceRectRight, 2, WHITE);
             DrawText(NodeCur->choiceRightSon,
                      (int)(choiceRectRight.x + choiceButtonWidth / 2 - MeasureText(NodeCur->choiceRightSon, 25) / 2),
@@ -236,16 +330,16 @@ void UpdateCerita(Tree SceneTree[], GameState *GameState){
         return;        
     }
 
-    if (currentFrame== NodeCur.TotalScene - 1 && NodeCur.numChoices > 0)
+    if (currentFrame == NodeCur.TotalScene - 1 && NodeCur.numChoices > 0)
     {
         Vector2 mousePos = GetMousePosition();
 
         int choiceButtonWidth = 400;
         int choiceButtonHeight = 60;
-        int choiceStartY = SCREEN_HEIGHT - 400;
+        int choiceStartY = SCREEN_HEIGHT / 2 + 275;
 
         Rectangle choiceRectLeft = {
-            SCREEN_WIDTH / 2 - choiceButtonWidth / 2,
+            SCREEN_WIDTH / 2 - choiceButtonWidth / 2 - 715,
             choiceStartY,
             (float)choiceButtonWidth,
             (float)choiceButtonHeight
@@ -256,13 +350,15 @@ void UpdateCerita(Tree SceneTree[], GameState *GameState){
             return;
         }
         
-        if (currentFrame== NodeCur.TotalScene - 1)
+        if (currentFrame == NodeCur.TotalScene - 1)
         {
             Rectangle choiceRectRight = {
-                SCREEN_WIDTH / 2 - choiceButtonWidth / 2,
-                choiceStartY + choiceButtonHeight + 10,
+                SCREEN_WIDTH / 2 - choiceButtonWidth / 2 + 715,
+                choiceStartY,
                 (float)choiceButtonWidth,
                 (float)choiceButtonHeight
+
+                
             };
             if (CheckCollisionPointRec(mousePos, choiceRectRight) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
             {
@@ -298,7 +394,33 @@ void ProsesChoice(Tree SceneTree[], int choice){
     
     if (nextNodeIndex < 0 || nextNodeIndex > MAX_NODE_TREE || SceneTree[nextNodeIndex].TotalScene == 0)
     {
-        printf("Ending Cerita or invalid cerita\n");
+        switch (currentGameState)
+        {
+        case END_GAME_ALONE:
+            break;
+        case END_GAME_DIE_BECAUSE_HOMELESS:
+            break;
+        case END_GAME_FOOD_FROM_HOMELESS:
+            break;
+        case END_GAME_DIE_FAILED_ESCAPE:
+            break;
+        case END_GAME_NEW_FAMILY:
+            break;
+        case END_GAME_ALONE_IN_FEAR:
+            break;
+        case END_GAME_CRUSHED_BY_CAR:
+            break;
+        case END_GAME_AFFORD_HOT_SOUP:
+            break;
+        case END_GAME_GET_STAB_BY_HOMELESS:
+            break;
+        case END_GAME_DIE_ALONE_UNDER_CHRISTMAS_TREE:
+            break;
+        case END_GAME_LOST_MATCH_THEN_DIE:
+            break;
+        default:
+            break;
+        }
     }
     
     UnloadNodeAssets(SceneTree, currentScene);
