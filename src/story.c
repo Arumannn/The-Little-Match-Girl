@@ -160,7 +160,7 @@ void InitDataCerita(Tree * SceneTree){
     SceneTree[6].Frame[2].characterPath = "Assets/CharaSprites/chara5.png";
     SceneTree[6].Frame[2].backgroundSound = NULL; 
     SceneTree[6].Frame[2].CharPosition = CHAR_POS_LEFT;
-    SceneTree[6].Frame[2].dialogue = "Girl: Just only 5$ a box?";
+    SceneTree[6].Frame[2].dialogue = "Girl: Just only 5$ a box!";
 
     SceneTree[6].Frame[3].backgroundPath = "Assets/BackgroundSprites/background9.png";
     SceneTree[6].Frame[3].characterPath = "Assets/CharaSprites/chara3.png";
