@@ -4,6 +4,50 @@
 #include <string.h>
 #include "customstory.h"
 
+void CustomStoryGUI(int state)
+{
+    DrawTexture(MenuBackground, GetScreenWidth()/2, GetScreenHeight()/2);
+    switch (state)
+    {
+        case 1:
+        DrawTextEx();
+        break;
+        case 2:
+        break;
+    }
+}
+
+void InitiateAssets()
+{
+    char *Link;
+    MenuBackground = LoadTexture("Assets/BackSprites/customstorymenu.png");
+    for (int i = 0; i < BACKGROUND_AMMOUNT; i++)
+    {
+        sprintf(Link, "Assets/BackgroundSprites/background%d.png", i + 1);
+        FileBackground[i] = LoadTexture(Link);
+    }
+    for (int i = 0; i < CHARA_AMMOUNT; i++)
+    {
+        sprintf(Link, "Assets/CharaSprites/chara%d.png", i + 1);
+        FileBackground[i] = LoadTexture(Link);
+    }
+}
+
+void SaveSlot(CustomSceneTree *ThisSlot)
+{
+
+}
+
+void MakeCustomStory(CustomSceneTree *ThisSlot)
+{
+
+}
+
+void LoadSlot(CustomSceneTree *ThisSlot)
+{
+
+}
+
 void StoryCreator(VNTreeNode *currentNodePtr, AssetLibraryArr assets) {
     static int state = 0; // pilih background & character, masukan dialog, kemudian pemilihan branch
     static int assetSelectState = 0; // 0 = bg, 1 = char
