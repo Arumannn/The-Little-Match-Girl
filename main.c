@@ -12,7 +12,7 @@
 
 Tree Mytree[MAX_NODE_TREE];
 GameState currentGameState = GAME_STATE_MAIN_MENU;
-VNTree Slot_1, *Slot_2, *Slot_3;
+VNTreeNode Slot_1, *Slot_2, *Slot_3;
 AssetLibraryArr Assets;
 
 int main() {
@@ -56,23 +56,8 @@ int main() {
             UpdateCerita(Mytree, &currentGameState); 
             DrawCurrentNodeScreen(Mytree);
 
-        } else if (currentGameState == END_GAME_ALONE ||
-                   currentGameState == END_GAME_DIE_BECAUSE_HOMELESS ||
-                   currentGameState == END_GAME_FOOD_FROM_HOMELESS ||
-                   currentGameState == END_GAME_DIE_FAILED_ESCAPE ||
-                   currentGameState == END_GAME_NEW_FAMILY ||
-                   currentGameState == END_GAME_ALONE_IN_FEAR ||
-                   currentGameState == END_GAME_CRUSHED_BY_CAR ||
-                   currentGameState == END_GAME_AFFORD_HOT_SOUP ||
-                   currentGameState == END_GAME_GET_STAB_BY_HOMELESS ||
-                   currentGameState == END_GAME_DIE_ALONE_UNDER_CHRISTMAS_TREE ||
-                   currentGameState == END_GAME_LOST_MATCH_THEN_DIE) {
-            
-            UpdateCerita(Mytree, &currentGameState); 
-            DrawCurrentNodeScreen(Mytree); 
-
         }else if(GAME_STATE_CREATE_SLOT_1){
-            StoryCreator(*Slot_1, Assets);
+            StoryCreator(&Slot_1, Assets);
             currentGameState = GAME_STATE_MAIN_MENU;
         }else if (GAME_STATE_CREATE_SLOT_2){
             currentGameState = GAME_STATE_MAIN_MENU;

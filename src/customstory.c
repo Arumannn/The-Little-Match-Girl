@@ -16,7 +16,7 @@ void StoryCreator(VNTreeNode *currentNodePtr, AssetLibraryArr assets) {
 
     VNTreeNode currentNode = *currentNodePtr;
 
-    CustomLoadAssetsSimple(assets);
+    LoadAssetsSimple(assets);
 
     if (state == 0) {
         MenuBackground = LoadTexture("Assets/BackSprites/customstorymenu.png");
