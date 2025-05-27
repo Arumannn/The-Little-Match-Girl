@@ -1,5 +1,6 @@
 #ifndef STORY_H
 #define STORY_H
+#include "raylib.h"
 
 #define MAX_SCENE 10
 #define MAX_NODE_TREE 28
@@ -24,8 +25,7 @@ typedef struct{
 }Tree;
 
 
-Tree SceneTree[MAX_NODE_TREE];
-int currentScene = 0;
-
+extern Tree SceneTree[MAX_NODE_TREE];
+extern int currentScene;
 
 #endif

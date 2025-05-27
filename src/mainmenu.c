@@ -4,18 +4,22 @@
 #include <string.h>
 #include <raylib.h>
 #include "mainmenu.h"
+#include "customstory.h"
 
 Texture2D MenuButtons[MAX_MENU];
 Rectangle buttonRects[MAX_MENU];
 Music BGMusic;
 int selectedMenu = -1;
 int MenuState = 0;
+bool showStoryCreator = false;
+
 
 void InitAssets(){
 
     
     // =================================== MENU STATE 0 ===================================
-    MenuButtons[0] = LoadTexture("Assets/mainmenu/background_starter.jpeg");
+    
+    MenuButtons[0] = LoadTexture("Assets/BackSprites/customstorymenu.png");
     MenuButtons[1] = LoadTexture("Assets/mainmenu/Start.png");
     MenuButtons[2] = LoadTexture("Assets/mainmenu/Studio Game.png");
     MenuButtons[3] = LoadTexture("Assets/mainmenu/About.png");
@@ -154,7 +158,7 @@ void DrawMainMenu(){
     }
 }
 
-void UpdateMainMenu() {
+void UpdateMainMenu(VNTreeNode **currentNodePtr, AssetLibraryArr assets) {
     Vector2 mousePos = GetMousePosition();
     selectedMenu = -1;
 
@@ -173,7 +177,7 @@ void UpdateMainMenu() {
         if (CheckCollisionPointRec(mousePos, buttonRects[i])) {
             selectedMenu = i;
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-                CheckMenuClick(i);
+                CheckMenuClick(i, currentNodePtr, assets);
             }
             return; 
         }
@@ -183,13 +187,13 @@ void UpdateMainMenu() {
         if (CheckCollisionPointRec(mousePos, buttonRects[15])) {
             selectedMenu = 15;
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-                CheckMenuClick(15);
+                CheckMenuClick(15, currentNodePtr, assets);
             }
         }
     }
 }
 
-bool CheckMenuClick(int index) {
+bool CheckMenuClick(int index, VNTreeNode **currentNodePtr, AssetLibraryArr assets) {
     printf("Tombol tertekan\n");
     if (MenuState == 0) {
         switch (index) {
@@ -212,7 +216,25 @@ bool CheckMenuClick(int index) {
             case 15: MenuState = 0; InitButtonRects(); return true;
 
         }
-    } else if (MenuState == 1 || MenuState == 2 || MenuState == 3 || MenuState == 4 || MenuState == 5) {
+    } 
+    else if( MenuState = 4) {
+        switch ((index))
+        {
+        case 1:
+        StoryCreator(currentNodePtr, assets);
+            break;
+        case 2:
+            break;
+        case 3: 
+            break;
+        case 4:
+            break;
+        default:
+            break;
+        }
+    }
+    
+    else if (MenuState == 1 || MenuState == 2 || MenuState == 3 || MenuState == 4 || MenuState == 5) {
         if (index == 15) {
             MenuState = 0;
             InitButtonRects();

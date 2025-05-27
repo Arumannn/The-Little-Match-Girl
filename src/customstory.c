@@ -4,8 +4,8 @@
 #include <string.h>
 #include "customstory.h"
 
-void StoryCreator(VNTreeNode **currentNodePtr, AssetLibraryArr assets, int assetCount) {
-    static int state = 0;
+void StoryCreator(VNTreeNode **currentNodePtr, AssetLibraryArr assets) {
+    static int state = 0; // pilih background & character, masukan dialog, kemudian pemilihan branch
     static int assetSelectState = 0; // 0 = bg, 1 = char
     static int bgIndex = 0;
     static int spriteIndex = 0;
@@ -146,7 +146,6 @@ void StoryCreator(VNTreeNode **currentNodePtr, AssetLibraryArr assets, int asset
 void LoadAssetsSimple(AssetLibraryArr assets) {
     char bgPath[128];
     char spritePath[128];
-
 
     for (int i = 0; i < 2; i++)
     {

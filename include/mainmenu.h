@@ -2,6 +2,7 @@
 #define MAIN_H
 
 #include <raylib.h>
+#include "customstory.h"
 
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
@@ -13,8 +14,8 @@
 void InitAssets();
 void InitButtonRects();
 void DrawMainMenu();
-void UpdateMainMenu();
-bool CheckMenuClick(int index);
+void UpdateMainMenu(VNTreeNode **currentNode, AssetLibraryArr assets);
+bool CheckMenuClick(int index, VNTreeNode **currentNodePtr, AssetLibraryArr assets);
 void UnloadAssets();
 void DrawDebugGrid(int gridSize);
 
