@@ -10,6 +10,10 @@
 #define GRID_SIZE 50  // Jarak antar garis grid
 
 
+Tree Mytree[MAX_NODE_TREE];
+GameState currentGameState = GAME_STATE_MAIN_MENU;
+VNTree Slot_1, *Slot_2, *Slot_3;
+AssetLibraryArr Assets;
 
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Grid Coordinate Debug");
@@ -25,21 +29,11 @@ int main() {
 
     assetCount = 2;
     
-    PlayMusicStream(Pusic); 
-    AssetLibraryArr assets;
-    LoadAssetsSimple(assets);
-
-    VNTreeNode root = {0};
-    VNTreeNode *currentNode = &root;
-    root.id = 1;
-   
-
+    
+    
     while (!WindowShouldClose()) {
         if (IsKeyPressed(KEY_ESCAPE)) break;
         
-        UpdateMainMenu(&currentNode, assets);
-        UpdateMusicStream(Pusic);
-
         BeginDrawing();
         
         if (currentGameState == GAME_STATE_MAIN_MENU ||
@@ -77,6 +71,25 @@ int main() {
             UpdateCerita(Mytree, &currentGameState); 
             DrawCurrentNodeScreen(Mytree); 
 
+        }else if(GAME_STATE_CREATE_SLOT_1){
+            StoryCreator(*Slot_1, Assets);
+            currentGameState = GAME_STATE_MAIN_MENU;
+        }else if (GAME_STATE_CREATE_SLOT_2){
+            currentGameState = GAME_STATE_MAIN_MENU;
+        }else if (GAME_STATE_CREATE_SLOT_3){
+            currentGameState = GAME_STATE_MAIN_MENU;
+        }else if(GAME_STATE_EDIT_SLOT_1){
+            currentGameState = GAME_STATE_MAIN_MENU;
+        }else if (GAME_STATE_EDIT_SLOT_2){
+            currentGameState = GAME_STATE_MAIN_MENU;
+        }else if (GAME_STATE_EDIT_SLOT_3){
+            currentGameState = GAME_STATE_MAIN_MENU;
+        }else if(GAME_STATE_DELETE_SLOT_1){
+            currentGameState = GAME_STATE_MAIN_MENU;
+        }else if (GAME_STATE_DELETE_SLOT_2){
+            currentGameState = GAME_STATE_MAIN_MENU;
+        }else if (GAME_STATE_DELETE_SLOT_3){
+            currentGameState = GAME_STATE_MAIN_MENU;
         } else {
             currentGameState = GAME_STATE_MAIN_MENU;
             InitButtonRects(currentGameState); 
@@ -97,7 +110,7 @@ int main() {
     CloseWindow();
     CloseAudioDevice();
     UnloadAssets();
-    PrintTree(&root);
+    //PrintTree(&root);
 
     // UnloadAssetsSimple(assets);
     return 0;

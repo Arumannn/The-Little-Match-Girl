@@ -4,9 +4,10 @@
 #include <stdlib.h>
 
 
-
+typedef struct VNTreeNode *addressTree;
+typedef struct SceneNode *addressScene;
 typedef struct SceneNode {
-    char *backgroundSound;
+    //char *backgroundSound;
     char *dialogue;
 
     char *backgroundPath;
@@ -16,21 +17,19 @@ typedef struct SceneNode {
     Texture2D characterTex;
     Texture2D particle;
 
-    float delay;
-
-    struct SceneNode *next;
+    addressScene next;
 } SceneNode;
 
 typedef struct VNTreeNode {
     int id;
-    SceneNode *sceneList;             // Head of this node's scene linked list
-    struct VNTreeNode *leftChoice;    // Left child node (e.g., first choice)
-    struct VNTreeNode *rightChoice;   // Right child node (e.g., second choice)
+    addressScene sceneList;             // Head of this node's scene linked list
+    addressTree leftChoice;    // Left child node (e.g., first choice)
+    addressTree rightChoice;   // Right child node (e.g., second choice)
     char choices[2];                  // Descriptions or labels for left/right choices
 } VNTreeNode;
 
 typedef struct {
-    VNTreeNode *root;
+    addressTree root;
 } VNTree;
 
 typedef struct {
@@ -44,9 +43,9 @@ static Texture2D MenuBackground;
 static int assetCount;
 
 
-void StoryCreator(VNTreeNode **currentNodePtr, AssetLibraryArr assets);
+void StoryCreator(VNTreeNode *currentNodePtr, AssetLibraryArr assets);
 void LoadAssetsSimple(AssetLibraryArr assets);
 void UnloadAssetsSimple(AssetLibraryArr assets);
-void PrintTree(VNTreeNode *node);
+void CustomPrintTree(VNTreeNode *node);
 
 #endif

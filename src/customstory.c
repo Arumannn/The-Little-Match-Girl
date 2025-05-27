@@ -4,7 +4,7 @@
 #include <string.h>
 #include "customstory.h"
 
-void StoryCreator(VNTreeNode **currentNodePtr, AssetLibraryArr assets) {
+void StoryCreator(VNTreeNode *currentNodePtr, AssetLibraryArr assets) {
     static int state = 0; // pilih background & character, masukan dialog, kemudian pemilihan branch
     static int assetSelectState = 0; // 0 = bg, 1 = char
     static int bgIndex = 0;
@@ -14,7 +14,9 @@ void StoryCreator(VNTreeNode **currentNodePtr, AssetLibraryArr assets) {
 
     static SceneNode *lastScene = NULL; // track last scene for linking
 
-    VNTreeNode *currentNode = *currentNodePtr;
+    VNTreeNode currentNode = *currentNodePtr;
+
+    CustomLoadAssetsSimple(assets);
 
     if (state == 0) {
         MenuBackground = LoadTexture("Assets/BackSprites/customstorymenu.png");
@@ -95,8 +97,8 @@ void StoryCreator(VNTreeNode **currentNodePtr, AssetLibraryArr assets) {
             scene->next = NULL;
 
             // Append to list
-            if (currentNode->sceneList == NULL) {
-                currentNode->sceneList = scene;
+            if (currentNode.sceneList == NULL) {
+                currentNode.sceneList = scene;
                 lastScene = scene;
             } else {
                 lastScene->next = scene;
@@ -118,25 +120,26 @@ void StoryCreator(VNTreeNode **currentNodePtr, AssetLibraryArr assets) {
         }
 
         if (IsKeyPressed(KEY_A)) {
-            if (!currentNode->leftChoice) {
-                currentNode->leftChoice = (VNTreeNode *)calloc(1, sizeof(VNTreeNode));
-                currentNode->leftChoice->id = currentNode->id * 2;
+            if (!currentNode.leftChoice) {
+                currentNode.leftChoice = (VNTreeNode *)calloc(1, sizeof(VNTreeNode));
+                currentNode.leftChoice->id = currentNode.id * 2;
             }
-            *currentNodePtr = currentNode->leftChoice;
+            *currentNodePtr = *currentNode.leftChoice;
             lastScene = NULL;
             state = 0;
         }
 
         if (IsKeyPressed(KEY_D)) {
-            if (!currentNode->rightChoice) {
-                currentNode->rightChoice = (VNTreeNode *)calloc(1, sizeof(VNTreeNode));
-                currentNode->rightChoice->id = currentNode->id * 2 + 1;
+            if (!currentNode.rightChoice) {
+                currentNode.rightChoice = (VNTreeNode *)calloc(1, sizeof(VNTreeNode));
+                currentNode.rightChoice->id = currentNode.id * 2 + 1;
             }
-            *currentNodePtr = currentNode->rightChoice;
+            *currentNodePtr = *currentNode.rightChoice;
             lastScene = NULL;
             state = 0;
         }
     }
+    UnloadAssetsSimple(assets);
 }
 
 

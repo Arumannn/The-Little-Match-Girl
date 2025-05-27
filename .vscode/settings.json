@@ -70,6 +70,7 @@
     "story.h": "c",
     "stdio.h": "c",
     "mainmenu.h": "c",
-    "customstory.h": "c"
+    "customstory.h": "c",
+    "stdlib.h": "c"
   }
 }
