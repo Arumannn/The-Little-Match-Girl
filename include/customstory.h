@@ -43,8 +43,15 @@
 
 typedef enum
 {
-    CHOOSING,
-    CONFIRMATION
+    CHOOSINGBACKGROUND,
+    CHOOSINGCHARA,
+    CONFIRMATION,
+    MODE_SELECT_BACKGROUND,
+    MODE_SELECT_CHARACTER,
+    MODE_INPUT_TEXT,
+    MODE_CONFIRM_NODE,
+    MODE_REVIEW_SCENE,
+    MODE_MOVE_TREE
 };
 
 struct SceneNode
@@ -69,10 +76,10 @@ typedef struct Tree
     struct Tree *Parent;
 }*CustomSceneTree;
 
-CustomSceneTree Current;
+extern CustomSceneTree *Current;
 
-Texture2D FileChara[CHARA_AMMOUNT];
-Texture2D FileBackground[BACKGROUND_AMMOUNT];
+extern Texture2D FileChara[CHARA_AMMOUNT];
+extern Texture2D FileBackground[BACKGROUND_AMMOUNT];
 static Texture2D MenuBackground;
 
 void CustomStoryGUI(int state);
