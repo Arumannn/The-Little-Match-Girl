@@ -187,9 +187,9 @@ void UpdateMainMenu(GameState *currentGameState) {
         case GAME_STATE_PLAY_GAME: startIndex = 5; endIndex = 6; break;
         case GAME_STATE_NEW_CONTINUE_MENU: startIndex = 7; endIndex = 8; break;
         case GAME_STATE_CUSTOM_GAME_MENU: startIndex = 9; endIndex = 11; break;
-        case GAME_STATE_DELETE: startIndex = 12; endIndex = 14; break;
+        case GAME_STATE_DELETE: 
         case GAME_STATE_CREATE:
-        case GAME_STATE_EDIT:
+        case GAME_STATE_EDIT: startIndex = 12; endIndex = 14; break;
         case GAME_STATE_ABOUT: startIndex = 15; endIndex = 15; break; 
         default: return; 
     }
@@ -205,7 +205,7 @@ void UpdateMainMenu(GameState *currentGameState) {
     }
 
 
-    if (*currentGameState != GAME_STATE_PLAY_GAME && *currentGameState != GAME_STATE_PLAY_GAME) {
+    if (*currentGameState != GAME_STATE_STORY) {
         if (CheckCollisionPointRec(mousePos, buttonRects[15])) {
             selectedMenu = 15;
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {

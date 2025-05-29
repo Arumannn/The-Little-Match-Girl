@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include "mainmenu.h"
-#include "minigame.h"
 #include "story.h"
 
 #endif

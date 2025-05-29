@@ -2,7 +2,7 @@
 #define MAINMENU_H
 
 #include <raylib.h>
-#include "customstory.h"
+// #include "customstory.h"
 
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
@@ -35,6 +35,7 @@ typedef enum{
     GAME_STATE_CONTINUE_SLOT_1,
     GAME_STATE_CONTINUE_SLOT_2,
     GAME_STATE_CONTINUE_SLOT_3,
+    GAME_STATE_MINI_GAME_STACK
 }GameState;
 
 // Fungsi utama menu

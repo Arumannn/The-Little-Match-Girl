@@ -1,41 +1,27 @@
 #ifndef MINIGAME_H
 #define MINIGAME_H
-#define MAX 6
+#include <raylib.h>
+#include "queue.h"
+#include "mainmenu.h"
+#include "Stack.h"
 
-typedef struct{
-    char data[MAX];
-    int head;
-    int tail;
-}QTE;
+extern Stack MemoryStack;
+extern Stack PlayerChoiceStack;
+extern Texture2D memoryImages[MAX_STACK];
+extern float memoryDisplayTimer;
+extern int currentMemoryIndex;
+extern bool showingMemories;
+extern bool choosingMemories;
+extern bool minigameSuccess;
+extern bool minigameActive;
+extern int currentChoiceCount;
 
+//MINIGAME STACK
 
-typedef struct {
-    char data[MAX];
-    int top;
-} Stack;
+void InitMiniGameStack();
+void UpdateMiniGameStack(GameState *currentGameState);
+void DrawMiniGameStack();
+bool CompareStack(Stack S1, Stack S2);
+void UnloadMiniGameStackAssets(Stack * S); 
 
-
-// ===================================== STACK GAME KENANGAN =====================================
-void CreateEmptyStack(Stack *S);
-void Push (Stack *S, char X);
-void Pop (Stack *S, char *X);
-//DEBUGGING STACK
-int IsStackEmpty(Stack S);
-int StackSize(Stack S);        
-void PrintStack(Stack S);      
-int CompareStack(Stack S1, Stack S2);
-
-//===================================== QUEUE GAME QTE =====================================
-void CreateQueue (QTE *Q);
-void EnQueue (QTE *Q, char X);
-void DeQueue (QTE *Q, char *X);
-//DEBUGING QUEUE
-int isQueueEmpty(QTE Q);
-int QueueSize(QTE Q);
-void PrintQueue(QTE S);
-
-// Comparing
-int CheckQTEInput(QTE *q, char input); 
-
-// Clearing
 #endif

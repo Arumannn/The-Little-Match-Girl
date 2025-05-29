@@ -2,8 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <raylib.h>
+//#include "customstory.h"
+#include "minigame.h"
 #include "story.h"
-// #include "customstory.h"
 #include "mainmenu.h"
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
@@ -12,8 +13,8 @@
 
 Tree Mytree[MAX_NODE_TREE];
 GameState currentGameState = GAME_STATE_MAIN_MENU;
-VNTreeNode Slot_1, *Slot_2, *Slot_3;
-AssetLibraryArr Assets;
+// VNTreeNode Slot_1, *Slot_2, *Slot_3;
+// AssetLibraryArr Assets;
 
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Grid Coordinate Debug");
@@ -23,11 +24,9 @@ int main() {
     InitAudioDevice();
     InitButtonRects(currentGameState);
 
-    Music Pusic = LoadMusicStream("Assets/music/Jingle Bells.mp3");
+    Music Pusic = LoadMusicStream("Assets/Music/SilentNight.mp3");
     PlayMusicStream(Pusic); 
     SetMusicVolume(Pusic, 1.0f);
-
-    assetCount = 2;
     
     
     
@@ -56,8 +55,11 @@ int main() {
             UpdateCerita(Mytree, &currentGameState); 
             DrawCurrentNodeScreen(Mytree);
 
-        }else if(GAME_STATE_CREATE_SLOT_1){
-            StoryCreator(&Slot_1, Assets);
+        }else if(currentGameState == GAME_STATE_MINI_GAME_STACK){
+            InitMiniGameStack();
+            currentGameState = GAME_STATE_MINI_GAME_STACK;
+        } if(GAME_STATE_CREATE_SLOT_1){
+            //StoryCreator(*Slot_1, Assets);
             currentGameState = GAME_STATE_MAIN_MENU;
         }else if (GAME_STATE_CREATE_SLOT_2){
             currentGameState = GAME_STATE_MAIN_MENU;

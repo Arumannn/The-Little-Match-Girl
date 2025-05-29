@@ -2,14 +2,16 @@
 #define CUSTOMSTORY_H
 #include <raylib.h>
 #include <stdlib.h>
+#include "mainmenu.h"
 
-
+// Hapus typedef lama yang tidak digunakan:
+/*
 typedef struct VNTreeNode *addressTree;
 typedef struct SceneNode *addressScene;
 typedef struct SceneNode {
     //char *backgroundSound;
     char *dialogue;
-
+    
     char *backgroundPath;
     char *characterPath;
 
@@ -34,18 +36,77 @@ typedef struct {
 
 typedef struct {
     Texture2D background;
-    Texture2D sprite;
+    Texture22 sprite;
 } AssetLibrarySimple;
 typedef AssetLibrarySimple AssetLibraryArr[2];
+*/
 
-static Texture2D MenuBackground;
+#define CHARA_AMMOUNT 8
+#define BACKGROUND_AMMOUNT 18
 
-static int assetCount;
+typedef enum
+{
+    CHOOSINGBACKGROUND,
+    CHOOSINGCHARA,
+    CONFIRMATION,
+    MODE_SELECT_BACKGROUND,
+    MODE_SELECT_CHARACTER,
+    MODE_INPUT_TEXT,
+    MODE_CONFIRM_NODE,
+    MODE_REVIEW_SCENE,
+    MODE_MOVE_TREE
+}CustomStoryMode;
+
+typedef struct SceneNode
+{
+    Texture2D Background;
+    Texture2D Character;
+    char *BackgroundPath;
+    char *CharacterPath;
+    char *Convo;
+};
 
 
-void StoryCreator(VNTreeNode *currentNodePtr, AssetLibraryArr assets);
-void LoadAssetsSimple(AssetLibraryArr assets);
-void UnloadAssetsSimple(AssetLibraryArr assets);
-void CustomPrintTree(VNTreeNode *node);
+
+typedef struct ListElements
+{
+    struct ListElements *Next;   
+    struct SceneNode Data;
+}*SceneList;
+
+typedef struct Tree
+{
+    int ID;
+    SceneList *NodeContents;
+    struct Tree *Left;
+    struct Tree *Right;
+    struct Tree *Parent;
+    char *ChoiceLeftText;         
+    char *ChoiceRightText;
+}*CustomSceneTree;
+
+typedef struct NodeLoadEntry {
+    CustomSceneTree nodePtr; // Pointer ke node yang dimuat
+    int leftChildId;         // ID anak kiri yang mentah dari file
+    int rightChildId;        // ID anak kanan yang mentah dari file
+    struct NodeLoadEntry *next; // Untuk linked list sementara
+} NodeLoadEntry;
+
+
+extern CustomSceneTree *Current;
+
+extern Texture2D FileChara[CHARA_AMMOUNT];
+extern Texture2D FileBackground[BACKGROUND_AMMOUNT];
+static Texture2D MenuBackground; // Deklarasi statis di sini
+
+void CustomStoryGUI(int state);
+void InitiateAssets();
+void SaveSlot(CustomSceneTree *ThisSlot, const char* filename);
+void MakeCustomStory(CustomSceneTree *ThisSlot, GameState *currentGameState);
+void LoadSlot(CustomSceneTree *ThisSlot, const char* filename);
+
+void FreeSceneList(SceneList list);
+void FreeCustomStoryTree(CustomSceneTree tree);
+void AssignNodeIDs(CustomSceneTree node, int *nextID);
 
 #endif
