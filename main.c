@@ -13,7 +13,7 @@
 
 Tree Mytree[MAX_NODE_TREE];
 GameState currentGameState = GAME_STATE_MAIN_MENU;
-CustomSceneTree Slot_1, Slot_2, Slot_3;
+CustomSceneTree Slot_1 = NULL, Slot_2 = NULL, Slot_3 = NULL;
 
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Grid Coordinate Debug");
@@ -73,8 +73,10 @@ int main() {
             MakeCustomStory(&Slot_1);
             currentGameState = GAME_STATE_MAIN_MENU;
         }else if (GAME_STATE_CREATE_SLOT_2){
+            MakeCustomStory(&Slot_2);
             currentGameState = GAME_STATE_MAIN_MENU;
         }else if (GAME_STATE_CREATE_SLOT_3){
+            MakeCustomStory(&Slot_3);
             currentGameState = GAME_STATE_MAIN_MENU;
         }else if(GAME_STATE_EDIT_SLOT_1){
             currentGameState = GAME_STATE_MAIN_MENU;
