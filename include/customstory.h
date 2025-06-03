@@ -14,6 +14,7 @@ typedef enum
     CONFIRMATION,
     MODE_REVIEW_SCENE,
     MODE_MOVE_TREE,
+    OUTOFBOUNDS,
     CHANGE_TREENODE,
     CHANGE_LINKEDNODE,
     ALLDONE
@@ -41,6 +42,7 @@ struct SceneNode
 typedef struct ListElements 
 {
     struct ListElements *Next;
+    struct ListElements *Before;
     struct SceneNode Data;
 } *SceneList;
 

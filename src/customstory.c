@@ -2,10 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <math.h>
 #include "customstory.h"
 
 CharaArr FileChara[CHARA_AMMOUNT];
 BackgroundArr FileBackground[BACKGROUND_AMMOUNT];
+float RenderTimer = 2.0f;
+bool ShowRender;
 
 void CustomStoryGUI(int state, int currentsprite, char *Dialogue) {
     char buffer[128];
@@ -34,17 +38,28 @@ void CustomStoryGUI(int state, int currentsprite, char *Dialogue) {
             break;
 
         case CONFIRMATION:
+        if (ShowRender && currentsprite == 1)
+        {
+            DrawText("You already are in the earliest Node Possible!", 40, 30, 30, WHITE);
+        }
+        else if (ShowRender && currentsprite == 2)
+        {
+            DrawText("You already are in the earliest Scene Possible!", 40, 30, 30, WHITE);
+        }
+        else if (!ShowRender)
+        {
             DrawText("Pick where to go next:", 40, 40, 30, WHITE);
-            DrawText("←: Left child | →: Right child | ↑: Parent | ↓: Add node | ENTER: Save", 40, 80, 25, WHITE);
-            break;
+            DrawText("<--: Left child | -->: Right child | ↑: Parent | ↓: Add Scene | BACKSPACE: Previous Scene  | ENTER: Save", 40, 80, 25, WHITE);
+        }
+        break;
     }
 }
 
 void MakeCustomStory(CustomSceneTree *ThisSlot)
 {
+    ShowRender = false;
     char Convo[128];
     int selectedsprite = 0;
-    //char inputtext[30];
     int control = CHOOSINGBACKGROUND;
 
     *ThisSlot = (CustomSceneTree)malloc(sizeof(struct Tree));
@@ -54,9 +69,14 @@ void MakeCustomStory(CustomSceneTree *ThisSlot)
     (*ThisSlot)->ID = rand() % 100000000;
     (*ThisSlot)->NodeContents = (SceneList)malloc(sizeof(struct ListElements));
     (*ThisSlot)->NodeContents->Next = NULL;
+    (*ThisSlot)->NodeContents->Before = NULL;
 
     CustomSceneTree TempTree = *ThisSlot;
-
+    SceneList TempScene = TempTree->NodeContents;
+    TempScene->Data.Background = NULL;
+    TempScene->Data.Character = NULL;
+    TempScene->Data.Convo = NULL;
+    
     while (control != ALLDONE)
     {
         if (control == CHOOSINGBACKGROUND)
@@ -66,28 +86,27 @@ void MakeCustomStory(CustomSceneTree *ThisSlot)
             {
                 BeginDrawing();
                 ClearBackground(BLACK);
-                //selectedsprite = 1;
                 CustomStoryGUI(control, selectedsprite, NULL);
-                if (IsKeyPressed(KEY_ENTER)) //selectedsprite = (selectedsprite + 1) % BACKGROUND_AMMOUNT;
+                if (IsKeyPressed(KEY_ENTER))
                 {
                     char TempFileName[128];
                     sprintf(TempFileName, "Assets/BackgroundSprites/background%i.png", selectedsprite+1);
-                    TempTree->NodeContents->Data.Background = malloc(strlen(TempFileName) + 1);
-                    strcpy(TempTree->NodeContents->Data.Background, TempFileName);
+                    TempScene->Data.Background = malloc(strlen(TempFileName) + 1);
+                    strcpy(TempScene->Data.Background, TempFileName);
                     control = CHOOSINGCHARA;
                 }
                 else if (IsKeyPressed(KEY_LEFT))
                 {
                     if (selectedsprite > 0)
                     {
-                        selectedsprite--;// = (selectedsprite - 1 + BACKGROUND_AMMOUNT) % BACKGROUND_AMMOUNT;
+                        selectedsprite--;
                     }
                 }
-                else if (IsKeyPressed(KEY_RIGHT)) //selectedsprite = (selectedsprite + 1) % BACKGROUND_AMMOUNT;
+                else if (IsKeyPressed(KEY_RIGHT))
                 {
                     if (selectedsprite < BACKGROUND_AMMOUNT-1)
                     {
-                        selectedsprite++; //+ 1) % BACKGROUND_AMMOUNT;
+                        selectedsprite++;
                     }
                 }
                 EndDrawing();
@@ -102,26 +121,26 @@ void MakeCustomStory(CustomSceneTree *ThisSlot)
                 BeginDrawing();
                 ClearBackground(BLACK);
                 CustomStoryGUI(control, selectedsprite, NULL);
-                if (IsKeyPressed(KEY_ENTER)) //selectedsprite = (selectedsprite + 1) % BACKGROUND_AMMOUNT;
+                if (IsKeyPressed(KEY_ENTER))
                 {
                     char TempFileName[128];
                     sprintf(TempFileName, "Assets/CharaSprites/chara%i.png", selectedsprite+1);
-                    TempTree->NodeContents->Data.Character = malloc(strlen(TempFileName) + 1);
-                    strcpy(TempTree->NodeContents->Data.Character, TempFileName);
+                    TempScene->Data.Character = malloc(strlen(TempFileName) + 1);
+                    strcpy(TempScene->Data.Character, TempFileName);
                     control = CHOOSINGDIALOGUE;
                 }
                 else if (IsKeyPressed(KEY_LEFT))
                 {
                     if (selectedsprite > 0)
                     {
-                        selectedsprite--;// = (selectedsprite - 1 + BACKGROUND_AMMOUNT) % BACKGROUND_AMMOUNT;
+                        selectedsprite--;
                     }
                 }
-                else if (IsKeyPressed(KEY_RIGHT)) //selectedsprite = (selectedsprite + 1) % BACKGROUND_AMMOUNT;
+                else if (IsKeyPressed(KEY_RIGHT))
                 {
                     if (selectedsprite < CHARA_AMMOUNT - 1)
                     {
-                        selectedsprite++; //+ 1) % BACKGROUND_AMMOUNT;
+                        selectedsprite++;
                     }
                 }
                 EndDrawing();
@@ -151,61 +170,116 @@ void MakeCustomStory(CustomSceneTree *ThisSlot)
                 {
                     if (letterCount > 0) Convo[--letterCount] = '\0';
                 }
-                if (IsKeyPressed(KEY_ENTER)) //selectedsprite = (selectedsprite + 1) % BACKGROUND_AMMOUNT;
+                if (IsKeyPressed(KEY_ENTER))
                 {
-                    TempTree->NodeContents->Data.Convo = malloc(strlen(Convo) + 1);
-                    strcpy(TempTree->NodeContents->Data.Convo, Convo);
+                    TempScene->Data.Convo = malloc(strlen(Convo) + 1);
+                    strcpy(TempScene->Data.Convo, Convo);
                     control = CONFIRMATION;
                 }
                 CustomStoryGUI(control, selectedsprite, Convo);
                 EndDrawing();
             }
         }
-        
-        if (control == CONFIRMATION)
+        else if (control == CONFIRMATION)
         {
-            CustomStoryGUI(control, selectedsprite, NULL);
-            if (IsKeyPressed(KEY_LEFT))
+            selectedsprite = 0;
+            while (control == CONFIRMATION)
             {
-                TempTree->Left = (CustomSceneTree)malloc(sizeof(struct Tree));
-                TempTree->Left->Parent = TempTree;
-                TempTree = TempTree->Left;
-                TempTree->ID = rand() % 100000000;
-                TempTree->NodeContents = (SceneList)malloc(sizeof(struct ListElements));;
-                control = CHOOSINGBACKGROUND;
-            }
-            else if(IsKeyPressed(KEY_RIGHT))
-            {
-                TempTree->Right = (CustomSceneTree)malloc(sizeof(struct Tree));
-                TempTree->Right->Parent = TempTree;
-                TempTree = TempTree->Right;
-                TempTree->ID = rand() % 100000000;
-                TempTree->NodeContents = (SceneList)malloc(sizeof(struct ListElements));
-                control = CHOOSINGBACKGROUND;
-            }
-            else if(IsKeyPressed(KEY_UP))
-            {
-                if (TempTree->Parent != NULL)
+                BeginDrawing();
+                ClearBackground(BLACK);
+                if (ShowRender)
                 {
-                    TempTree = TempTree->Parent;
+                    CustomStoryGUI(control, selectedsprite, NULL);
+                    RenderTimer -= GetFrameTime();
+                    if (RenderTimer <= 0.0f)
+                    {
+                        ShowRender = false;
+                    }
                 }
                 else
                 {
-                    DrawText("Type your dialogue and press ENTER", 40, 30, 30, WHITE);
-                    control = CONFIRMATION;
+                    CustomStoryGUI(control, 0, NULL);
                 }
-            }
-            else if(IsKeyPressed(KEY_DOWN))
-            {
-                TempTree->NodeContents->Next = (SceneList)malloc(sizeof(struct ListElements));
-                TempTree->NodeContents = TempTree->NodeContents->Next;
-                TempTree->NodeContents->Next = NULL;
-                control = CHOOSINGBACKGROUND;
-            }
-            else if (IsKeyPressed(KEY_ENTER))
-            {
-                SaveSlot(&TempTree);
-                control = ALLDONE;
+                if (IsKeyPressed(KEY_LEFT))
+                {
+                    TempTree->Left = (CustomSceneTree)malloc(sizeof(struct Tree));
+                    TempTree->Left->Parent = TempTree;
+                    TempTree = TempTree->Left;
+                    TempTree->ID = rand() % 100000000;
+                    TempTree->Left = NULL;
+                    TempTree->Right = NULL;
+                    TempTree->NodeContents = (SceneList)malloc(sizeof(struct ListElements));
+                    TempScene = TempTree->NodeContents;
+                    TempScene->Next = NULL;
+                    TempScene->Before = NULL;
+                    TempScene->Data.Background = NULL;
+                    TempScene->Data.Character = NULL;
+                    TempScene->Data.Convo = NULL;
+                    control = CHOOSINGBACKGROUND;
+                }
+                else if(IsKeyPressed(KEY_RIGHT))
+                {
+                    TempTree->Right = (CustomSceneTree)malloc(sizeof(struct Tree));
+                    TempTree->Right->Parent = TempTree;
+                    TempTree = TempTree->Right;
+                    TempTree->ID = rand() % 100000000;
+                    TempTree->Left = NULL;
+                    TempTree->Right = NULL;
+                    TempTree->NodeContents = (SceneList)malloc(sizeof(struct ListElements));
+                    TempScene = TempTree->NodeContents;
+                    TempScene->Next = NULL;
+                    TempScene->Before = NULL;
+                    TempScene->Data.Background = NULL;
+                    TempScene->Data.Character = NULL;
+                    TempScene->Data.Convo = NULL;
+                    control = CHOOSINGBACKGROUND;
+                }
+                else if(IsKeyPressed(KEY_UP))
+                {
+                    if (TempTree->Parent == NULL)
+                    {
+                        ShowRender = true;
+                        selectedsprite = 1;
+                        RenderTimer = 2.0f;
+                    }
+                    else
+                    {
+                        TempTree = TempTree->Parent;
+                        TempScene = TempTree->NodeContents;
+                        control = CHOOSINGBACKGROUND;
+                    }
+                }
+                else if(IsKeyPressed(KEY_DOWN))
+                {
+                    TempScene->Next = (SceneList)malloc(sizeof(struct ListElements));
+                    TempScene->Next->Before = TempScene;
+                    TempScene = TempScene->Next;
+                    TempScene->Next = NULL;
+                    TempScene->Data.Background = NULL;
+                    TempScene->Data.Character = NULL;
+                    TempScene->Data.Convo = NULL;
+                    control = CHOOSINGBACKGROUND;
+                }
+                else if (IsKeyPressed(KEY_ENTER))
+                {
+                    SaveSlot(ThisSlot);
+                    control = ALLDONE;
+                }
+                else if (IsKeyPressed(KEY_BACKSPACE))
+                {
+                    if (TempScene->Before == NULL)
+                    {
+                        ShowRender = true;
+                        selectedsprite = 2;
+                        RenderTimer = 2.0f;
+                    }
+                    else
+                    {
+                        TempScene = TempScene->Before;
+                        control = CHOOSINGBACKGROUND;
+                    }
+                }
+                EndDrawing();
             }
         }
     }
@@ -231,20 +305,83 @@ void InitiateAssets()
 
 void SaveSlot(CustomSceneTree *ThisSlot)
 {
-    // if (node == NULL) {
-    // int nullFlag = 0;
-    // fwrite(&nullFlag, sizeof(int), 1, file); // Null marker
-    // return;
-    // }
+    CustomSceneTree root = *ThisSlot;
+    if (!root) 
+    {
+        printf("Tree is empty.\n");
+        return;
+    }
 
-    // int presentFlag = 1;
-    // fwrite(&presentFlag, sizeof(int), 1, file);
-    // fwrite(&node->ID, sizeof(int), 1, file);
 
-    // SaveSceneList(node->NodeContents, file);
+    printf("===== DEBUG TREE LOG START =====\n");
 
-    // SaveTree(node->Left, file);
-    // SaveTree(node->Right, file);
+    // Define queue inside this function
+    typedef struct TempQueueNode {
+        CustomSceneTree treeNode;
+        int level;
+        struct TempQueueNode *next;
+    } TempQueueNode;
+
+    TempQueueNode *front = NULL, *rear = NULL;
+
+    // Enqueue function
+    auto void Enqueue(CustomSceneTree treeNode, int level) {
+        TempQueueNode *newNode = (TempQueueNode *)malloc(sizeof(TempQueueNode));
+        newNode->treeNode = treeNode;
+        newNode->level = level;
+        newNode->next = NULL;
+        if (!rear) {
+            front = rear = newNode;
+        } else {
+            rear->next = newNode;
+            rear = newNode;
+        }
+    }
+
+    // Dequeue function
+    auto TempQueueNode *Dequeue() {
+        if (!front) return NULL;
+        TempQueueNode *temp = front;
+        front = front->next;
+        if (!front) rear = NULL;
+        return temp;
+    }
+
+    Enqueue(root, 0);
+
+    while (front) {
+        TempQueueNode *qNode = Dequeue();
+        CustomSceneTree current = qNode->treeNode;
+        int level = qNode->level;
+
+        printf("---- Tree Node ID: %d | Level: %d ----\n", current->ID, level);
+
+        SceneList scene = current->NodeContents;
+        int sceneIndex = 1;
+
+        while (scene) {
+            printf("   Scene %d:\n", sceneIndex);
+            printf("     Background: %s\n", scene->Data.Background ? scene->Data.Background : "(none)");
+            printf("     Character : %s\n", scene->Data.Character ? scene->Data.Character : "(none)");
+            printf("     Dialogue  : %s\n", scene->Data.Convo ? scene->Data.Convo : "(none)");
+            scene = scene->Next;
+            sceneIndex++;
+        }
+
+        if (sceneIndex == 1) {
+            printf("   [No scenes in this node]\n");
+        }
+
+        if (current->Left)
+            Enqueue(current->Left, level + 1);
+        if (current->Right)
+            Enqueue(current->Right, level + 1);
+
+        free(qNode);
+    }
+
+    printf("===== DEBUG TREE LOG END =====\n\n");
+
 }
 
 

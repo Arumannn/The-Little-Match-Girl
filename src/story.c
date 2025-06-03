@@ -97,7 +97,7 @@ void InitDataCerita(Tree * SceneTree){
     SceneTree[3].choiceRightSon = "Protect the match";
     SceneTree[3].IdLeftSon = 7;
     SceneTree[3].IdRightSon = 8;
-
+    
     SceneTree[3].Frame[0].backgroundPath = "Assets/BackgroundSprites/background6.png";
     SceneTree[3].Frame[0].characterPath = "Assets/CharaSprites/chara2.png";
     SceneTree[3].Frame[0].backgroundSound = NULL; 
