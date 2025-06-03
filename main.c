@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <raylib.h>
-//#include "customstory.h"
+#include "customstory.h"
 #include "minigame.h"
 #include "story.h"
 #include "mainmenu.h"
@@ -11,11 +11,13 @@
 #define GRID_SIZE 50  // Jarak antar garis grid
 
 Tree Mytree[MAX_NODE_TREE];
+CustomSceneTree Slot_1, Slot_2, Slot_3;
 GameState currentGameState = GAME_STATE_MAIN_MENU; // Start with main menu instead of minigame
 bool minigameInitialized = false; // Flag to track minigame initialization
 
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Grid Coordinate Debug");
+    InitiateAssets();
     SetTargetFPS(60);
     InitAssets();
     InitDataCerita(Mytree);
@@ -75,8 +77,11 @@ int main() {
                 break;
                 
             case GAME_STATE_CREATE_SLOT_1:
+            MakeCustomStory(&Slot_1);
             case GAME_STATE_CREATE_SLOT_2:
+            MakeCustomStory(&Slot_2);
             case GAME_STATE_CREATE_SLOT_3:
+            MakeCustomStory(&Slot_3);
                 currentGameState = GAME_STATE_MAIN_MENU;
                 InitButtonRects(currentGameState);
                 break;

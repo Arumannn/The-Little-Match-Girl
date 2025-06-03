@@ -40,7 +40,6 @@ void CustomStoryGUI(int state, int currentsprite, char *Dialogue) {
     }
 }
 
-
 void MakeCustomStory(CustomSceneTree *ThisSlot)
 {
     char Convo[128];
