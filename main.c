@@ -22,6 +22,7 @@ int main() {
     InitDataCerita(Mytree);
     InitAudioDevice();
     InitButtonRects(currentGameState);
+    InitiateAssets();
 
     Music Pusic = LoadMusicStream("Assets/Music/SilentNight.mp3");
     PlayMusicStream(Pusic); 
@@ -71,7 +72,7 @@ int main() {
 
         }else if(currentGameState == GAME_STATE_CREATE_SLOT_1){
             MakeCustomStory(&Slot_1);
-            currentGameState = GAME_STATE_MAIN_MENU;
+            //currentGameState = GAME_STATE_MAIN_MENU;
         }else if (GAME_STATE_CREATE_SLOT_2){
             MakeCustomStory(&Slot_2);
             currentGameState = GAME_STATE_MAIN_MENU;

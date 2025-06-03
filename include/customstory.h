@@ -3,43 +3,8 @@
 #include <raylib.h>
 #include <stdlib.h>
 
-
-// typedef struct VNTreeNode *addressTree;
-// typedef struct SceneNode *addressScene;
-// typedef struct SceneNode {
-//     //char *backgroundSound;
-//     char *dialogue;
-
-//     char *backgroundPath;
-//     char *characterPath;
-
-//     Texture2D backgroundTex;
-//     Texture2D characterTex;
-//     Texture2D particle;
-
-//     addressScene next;
-// } SceneNode;
-
-// typedef struct VNTreeNode {
-//     int id;
-//     addressScene sceneList;             // Head of this node's scene linked list
-//     addressTree leftChoice;    // Left child node (e.g., first choice)
-//     addressTree rightChoice;   // Right child node (e.g., second choice)
-//     char choices[2];                  // Descriptions or labels for left/right choices
-// } VNTreeNode;
-
-// typedef struct {
-//     addressTree root;
-// } VNTree;
-
-// typedef struct {
-//     Texture2D background;
-//     Texture2D sprite;
-// } AssetLibrarySimple;
-// typedef AssetLibrarySimple AssetLibraryArr[2];
-
-#define CHARA_AMMOUNT 8
-#define BACKGROUND_AMMOUNT 18
+#define CHARA_AMMOUNT 11
+#define BACKGROUND_AMMOUNT 23
 
 typedef enum
 {
@@ -53,6 +18,18 @@ typedef enum
     CHANGE_LINKEDNODE,
     ALLDONE
 };
+
+typedef struct BackgroundFileData
+{
+    Texture2D Background;
+    char FileName[124];
+}BackgroundArr;
+
+typedef struct CharaFileData
+{
+    Texture2D Chara;
+    char FileName[124];
+}CharaArr;
 
 struct SceneNode
 {
@@ -78,11 +55,11 @@ typedef struct Tree
 
 //extern CustomSceneTree *Current;
 
-// extern Texture2D FileChara[CHARA_AMMOUNT];
-// extern Texture2D FileBackground[BACKGROUND_AMMOUNT];
+extern CharaArr FileChara[CHARA_AMMOUNT];
+extern BackgroundArr FileBackground[BACKGROUND_AMMOUNT];
 static Texture2D MenuBackground;
 
-void CustomStoryGUI(int state, char Link[128], int currentsprite);
+void CustomStoryGUI(int state, int currentsprite, char *Dialogue);
 void InitiateAssets();
 void SaveSlot(CustomSceneTree *ThisSlot);
 void MakeCustomStory(CustomSceneTree *ThisSlot);
