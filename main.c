@@ -2,18 +2,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <raylib.h>
-#include "customstory.h"
+//#include "customstory.h"
+#include "minigame.h"
 #include "story.h"
-// #include "customstory.h"
 #include "mainmenu.h"
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
 #define GRID_SIZE 50  // Jarak antar garis grid
 
-
 Tree Mytree[MAX_NODE_TREE];
-GameState currentGameState = GAME_STATE_MAIN_MENU;
-CustomSceneTree Slot_1 = NULL, Slot_2 = NULL, Slot_3 = NULL;
+GameState currentGameState = GAME_STATE_MAIN_MENU; // Start with main menu instead of minigame
+bool minigameInitialized = false; // Flag to track minigame initialization
 
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Grid Coordinate Debug");
@@ -22,97 +21,101 @@ int main() {
     InitDataCerita(Mytree);
     InitAudioDevice();
     InitButtonRects(currentGameState);
-    InitiateAssets();
 
     Music Pusic = LoadMusicStream("Assets/Music/SilentNight.mp3");
     PlayMusicStream(Pusic); 
     SetMusicVolume(Pusic, 1.0f);
     
-    
-    
     while (!WindowShouldClose()) {
         if (IsKeyPressed(KEY_ESCAPE)) break;
         
-        BeginDrawing();
+        UpdateMusicStream(Pusic); 
         
-        if (currentGameState == GAME_STATE_MAIN_MENU ||
-            currentGameState == GAME_STATE_PLAY_GAME ||
-            currentGameState == GAME_STATE_NEW_CONTINUE_MENU ||
-            currentGameState == GAME_STATE_CUSTOM_GAME_MENU ||
-            currentGameState == GAME_STATE_CREATE ||
-            currentGameState == GAME_STATE_EDIT ||
-            currentGameState == GAME_STATE_DELETE ||
-            currentGameState == GAME_STATE_CONTINUE_SLOT_1 ||
-            currentGameState == GAME_STATE_CONTINUE_SLOT_2 ||
-            currentGameState == GAME_STATE_CONTINUE_SLOT_3 ||
-            currentGameState == GAME_STATE_ABOUT) {
-            UpdateMusicStream(Pusic);
-            UpdateMainMenu(&currentGameState); 
-            DrawMainMenu(currentGameState);
-            DrawDebugGrid(GRID_SIZE); 
+        BeginDrawing();
+        ClearBackground(WHITE); 
+        
+        switch (currentGameState) {
+            case GAME_STATE_MAIN_MENU:
+            case GAME_STATE_PLAY_GAME:
+            case GAME_STATE_NEW_CONTINUE_MENU:
+            case GAME_STATE_CUSTOM_GAME_MENU:
+            case GAME_STATE_CREATE:
+            case GAME_STATE_EDIT:
+            case GAME_STATE_DELETE:
+            case GAME_STATE_CONTINUE_SLOT_1:
+            case GAME_STATE_CONTINUE_SLOT_2:
+            case GAME_STATE_CONTINUE_SLOT_3:
+            case GAME_STATE_ABOUT:
+                UpdateMainMenu(&currentGameState); 
+                DrawMainMenu(currentGameState);
+                DrawDebugGrid(GRID_SIZE);
+                break;
+                
+            case GAME_STATE_STORY:
+                UpdateCerita(Mytree, &currentGameState); 
+                DrawCurrentNodeScreen(Mytree);
+                break;
+                
+            case GAME_STATE_MINI_GAME_STACK:
+                if (!minigameInitialized) {
+                    InitMiniGameStack();
+                    minigameInitialized = true;
+                    printf("Minigame initialized!\n");
+                }
 
-        } else if (currentGameState == GAME_STATE_STORY) {
-            UpdateCerita(Mytree, &currentGameState); 
-            DrawCurrentNodeScreen(Mytree);
+                UpdateMiniGameStack(&currentGameState);
+                DrawMiniGameStack();
 
-        } else if (currentGameState == END_GAME_ALONE ||
-                   currentGameState == END_GAME_DIE_BECAUSE_HOMELESS ||
-                   currentGameState == END_GAME_FOOD_FROM_HOMELESS ||
-                   currentGameState == END_GAME_DIE_FAILED_ESCAPE ||
-                   currentGameState == END_GAME_NEW_FAMILY ||
-                   currentGameState == END_GAME_ALONE_IN_FEAR ||
-                   currentGameState == END_GAME_CRUSHED_BY_CAR ||
-                   currentGameState == END_GAME_AFFORD_HOT_SOUP ||
-                   currentGameState == END_GAME_GET_STAB_BY_HOMELESS ||
-                   currentGameState == END_GAME_DIE_ALONE_UNDER_CHRISTMAS_TREE ||
-                   currentGameState == END_GAME_LOST_MATCH_THEN_DIE) {
-            
-            UpdateCerita(Mytree, &currentGameState); 
-            DrawCurrentNodeScreen(Mytree); 
-
-        }else if(currentGameState == GAME_STATE_CREATE_SLOT_1){
-            MakeCustomStory(&Slot_1);
-            //currentGameState = GAME_STATE_MAIN_MENU;
-        }else if (GAME_STATE_CREATE_SLOT_2){
-            MakeCustomStory(&Slot_2);
-            currentGameState = GAME_STATE_MAIN_MENU;
-        }else if (GAME_STATE_CREATE_SLOT_3){
-            MakeCustomStory(&Slot_3);
-            currentGameState = GAME_STATE_MAIN_MENU;
-        }else if(GAME_STATE_EDIT_SLOT_1){
-            currentGameState = GAME_STATE_MAIN_MENU;
-        }else if (GAME_STATE_EDIT_SLOT_2){
-            currentGameState = GAME_STATE_MAIN_MENU;
-        }else if (GAME_STATE_EDIT_SLOT_3){
-            currentGameState = GAME_STATE_MAIN_MENU;
-        }else if(GAME_STATE_DELETE_SLOT_1){
-            currentGameState = GAME_STATE_MAIN_MENU;
-        }else if (GAME_STATE_DELETE_SLOT_2){
-            currentGameState = GAME_STATE_MAIN_MENU;
-        }else if (GAME_STATE_DELETE_SLOT_3){
-            currentGameState = GAME_STATE_MAIN_MENU;
-        } else {
-            currentGameState = GAME_STATE_MAIN_MENU;
-            InitButtonRects(currentGameState); 
+                if (currentGameState != GAME_STATE_MINI_GAME_STACK) {
+                    minigameInitialized = false;
+                    printf("Exiting minigame, transitioning to story\n");
+                    LoadNodeAssets(Mytree, currentScene); 
+                    
+                }
+                break;
+                
+            case GAME_STATE_CREATE_SLOT_1:
+            case GAME_STATE_CREATE_SLOT_2:
+            case GAME_STATE_CREATE_SLOT_3:
+                currentGameState = GAME_STATE_MAIN_MENU;
+                InitButtonRects(currentGameState);
+                break;
+                
+            // Handle slot editing states
+            case GAME_STATE_EDIT_SLOT_1:
+            case GAME_STATE_EDIT_SLOT_2:
+            case GAME_STATE_EDIT_SLOT_3:
+                currentGameState = GAME_STATE_MAIN_MENU;
+                InitButtonRects(currentGameState);
+                break;
+                
+            // Handle slot deletion states
+            case GAME_STATE_DELETE_SLOT_1:
+            case GAME_STATE_DELETE_SLOT_2:
+            case GAME_STATE_DELETE_SLOT_3:
+                currentGameState = GAME_STATE_MAIN_MENU;
+                InitButtonRects(currentGameState);
+                break;
+                
+            default:
+                currentGameState = GAME_STATE_MAIN_MENU;
+                InitButtonRects(currentGameState);
+                break;
         }
         
-        
-        ClearBackground(WHITE);
-        //currentFrame= 0;
-        
-
-        
         Vector2 mouse = GetMousePosition();
-        DrawText(TextFormat("Mouse: [%.0f, %.0f]", mouse.x, mouse.y), 100, 100, 50, BLACK);
+        DrawText(TextFormat("Mouse: [%.0f, %.0f]", mouse.x, mouse.y), 10, 10, 20, WHITE     );
+        DrawText(TextFormat("Current State: %d", currentGameState), 10, 40, 20, BLACK);
+        
         EndDrawing();
     }
 
+    // Cleanup
     UnloadNodeAssets(Mytree, currentScene);
+    UnloadMusicStream(Pusic);
     CloseWindow();
     CloseAudioDevice();
     UnloadAssets();
-    //PrintTree(&root);
-
-    // UnloadAssetsSimple(assets);
+    
     return 0;
 }

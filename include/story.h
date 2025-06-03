@@ -27,6 +27,8 @@ typedef struct Scene{
 
 }Scene;
 
+
+
 typedef struct{
     int id;
     Scene Frame[MAX_SCENE];

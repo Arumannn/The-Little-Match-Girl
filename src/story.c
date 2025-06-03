@@ -9,7 +9,9 @@
 
 
 int currentScene = 0; 
-int currentFrame= 0;
+int currentFrame = 0;
+float frameDelay = 2.0f;
+float frameTimer = 0.0f;
 
 
 // Inisialisasi Data untuk cerita dan juga setiap frame dari node
@@ -134,8 +136,40 @@ void InitDataCerita(Tree * SceneTree){
     
 
     // NODE 4 dan 5 ENDING SCENE, nanti
+    SceneTree[5].id = 5;
+    SceneTree[5].TotalScene = 4;
+    SceneTree[5].numChoices = 1;
+    SceneTree[5].IdLeftSon = -1;
+    SceneTree[5].IdRightSon = -1;
+    SceneTree[5].choiceLeftSon = NULL;
+    SceneTree[5].choiceRightSon = NULL;
 
+    SceneTree[5].Frame[0].backgroundPath = "Assets/Endings/crossingtheroad1.png";
+    SceneTree[5].Frame[0].characterPath = NULL;
+    SceneTree[5].Frame[0].backgroundSound = NULL; 
+    SceneTree[5].Frame[0].CharPosition = CHAR_POS_NONE;
+    SceneTree[5].Frame[0].dialogue = NULL;
+
+    SceneTree[5].Frame[1].backgroundPath = "Assets/Endings/crossingtheroad2.png";
+    SceneTree[5].Frame[1].characterPath = NULL;
+    SceneTree[5].Frame[1].backgroundSound = NULL; 
+    SceneTree[5].Frame[1].CharPosition = CHAR_POS_NONE;
+    SceneTree[5].Frame[1].dialogue = NULL;
+
+    SceneTree[5].Frame[2].backgroundPath = "Assets/Endings/crossingtheroad3.png";
+    SceneTree[5].Frame[2].characterPath = NULL;
+    SceneTree[5].Frame[2].backgroundSound = NULL; 
+    SceneTree[5].Frame[2].CharPosition = CHAR_POS_NONE;
+    SceneTree[5].Frame[2].dialogue = NULL;
+
+    SceneTree[5].Frame[3].backgroundPath = "Assets/Endings/crossingtheroad4.png";
+    SceneTree[5].Frame[3].characterPath = NULL;
+    SceneTree[5].Frame[3].backgroundSound = NULL; 
+    SceneTree[5].Frame[3].CharPosition = CHAR_POS_NONE;
+    SceneTree[5].Frame[3].dialogue = NULL;
     //========================================
+
+
     SceneTree[6].id = 6;
     SceneTree[6].TotalScene = 5;
     SceneTree[6].numChoices = 2;
@@ -144,6 +178,7 @@ void InitDataCerita(Tree * SceneTree){
     SceneTree[6].IdLeftSon = 9;
     SceneTree[6].IdRightSon = 10;
 
+    
     SceneTree[6].Frame[0].backgroundPath = "Assets/BackgroundSprites/background10.png";
     SceneTree[6].Frame[0].characterPath = "Assets/CharaSprites/chara3.png";
     SceneTree[6].Frame[0].backgroundSound = NULL; 
@@ -256,60 +291,73 @@ void LoadNodeAssets(Tree SceneTree[], int nodeIndex){
 
 void DrawCurrentNodeScreen(Tree SceneTree[]){
     Tree *NodeCur = &SceneTree[currentScene];
-    if (NodeCur->numChoices == 0 || NodeCur->TotalScene == 0) {
-        ClearBackground(BLACK);
-        
-    }
-
     Scene *SceneDataCur = &NodeCur->Frame[currentFrame];
 
-    if (SceneDataCur->backgroundTex.id != 0) {
-        DrawTexture(SceneDataCur->backgroundTex, 0, 0, WHITE);
-    } else {
-        ClearBackground(RAYWHITE);
-    }
-    DrawCharacterAtPosition(SceneDataCur->characterTex, SceneDataCur->CharPosition);
-
-    DrawRectangle(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, BLACK);
-    DrawRectangleLines(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, WHITE);
-
-    if (SceneDataCur->dialogue != NULL) {
-        DrawText(SceneDataCur->dialogue, 70, SCREEN_HEIGHT - 180, 30, WHITE);
-    }
-
-    if (currentFrame== NodeCur->TotalScene - 1 && NodeCur->numChoices > 0) {
-        int choiceButtonWidth = 400;
-        int choiceButtonHeight = 60;
-        int yButton = SCREEN_HEIGHT / 2 + 275;
-
-        if (NodeCur->numChoices >= 1) {
-            Rectangle choiceRectLeft = {
-                SCREEN_WIDTH / 2 - choiceButtonWidth / 2 - 715,
-                yButton,
-                (float)choiceButtonWidth,
-                (float)choiceButtonHeight
-            };
-            DrawRectangleRec(choiceRectLeft, Fade(GRAY, 0.8f));
-            DrawRectangleLinesEx(choiceRectLeft, 2, WHITE);
-            DrawText(NodeCur->choiceLeftSon,
-                     (int)(choiceRectLeft.x + choiceButtonWidth / 2 - MeasureText(NodeCur->choiceLeftSon, 30) / 2),
-                     (int)(choiceRectLeft.y + choiceButtonHeight / 2 - 25 / 2),
-                     25, WHITE);
+    if (currentGameState == GAME_STATE_STORY) {
+        
+        if (SceneDataCur->backgroundTex.id != 0) {
+            DrawTexture(SceneDataCur->backgroundTex, 0, 0, WHITE);
+        } else {
+            ClearBackground(RAYWHITE); 
         }
 
-        if (NodeCur->numChoices == 2) {
-            Rectangle choiceRectRight = {
-                SCREEN_WIDTH / 2 - choiceButtonWidth / 2 + 715,
-                yButton,
-                (float)choiceButtonWidth,
-                (float)choiceButtonHeight
-            };
-            DrawRectangleRec(choiceRectRight, Fade(GRAY, 0.8f));
-            DrawRectangleLinesEx(choiceRectRight, 2, WHITE);
-            DrawText(NodeCur->choiceRightSon,
-                     (int)(choiceRectRight.x + choiceButtonWidth / 2 - MeasureText(NodeCur->choiceRightSon, 25) / 2),
-                     (int)(choiceRectRight.y + choiceButtonHeight / 2 - 25 / 2),
-                     25, WHITE);
+      
+        if (NodeCur->id != 5) {
+            DrawCharacterAtPosition(SceneDataCur->characterTex, SceneDataCur->CharPosition);
+
+  
+            if (SceneDataCur->dialogue != NULL || (currentFrame == NodeCur->TotalScene - 1 && NodeCur->numChoices > 0)) {
+                DrawRectangle(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, BLACK);
+                DrawRectangleLines(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, WHITE);
+
+                if (SceneDataCur->dialogue != NULL) {
+                    DrawText(SceneDataCur->dialogue, 70, SCREEN_HEIGHT - 180, 30, WHITE);
+                }
+            }
+
+            if (currentFrame == NodeCur->TotalScene - 1 && NodeCur->numChoices > 0) {
+                int choiceButtonWidth = 400;
+                int choiceButtonHeight = 60;
+                int yButton = SCREEN_HEIGHT / 2 + 275;
+
+                if (NodeCur->numChoices >= 1) {
+                    Rectangle choiceRectLeft = {
+                        SCREEN_WIDTH / 2 - choiceButtonWidth / 2 - 715,
+                        yButton,
+                        (float)choiceButtonWidth,
+                        (float)choiceButtonHeight
+                    };
+                    DrawRectangleRec(choiceRectLeft, Fade(GRAY, 0.8f));
+                    DrawRectangleLinesEx(choiceRectLeft, 2, WHITE);
+                    DrawText(NodeCur->choiceLeftSon,
+                             (int)(choiceRectLeft.x + choiceButtonWidth / 2 - MeasureText(NodeCur->choiceLeftSon, 30) / 2),
+                             (int)(choiceRectLeft.y + choiceButtonHeight / 2 - 25 / 2),
+                             25, WHITE);
+                }
+
+                if (NodeCur->numChoices == 2) {
+                    Rectangle choiceRectRight = {
+                        SCREEN_WIDTH / 2 - choiceButtonWidth / 2 + 715,
+                        yButton,
+                        (float)choiceButtonWidth,
+                        (float)choiceButtonHeight
+                    };
+                    DrawRectangleRec(choiceRectRight, Fade(GRAY, 0.8f));
+                    DrawRectangleLinesEx(choiceRectRight, 2, WHITE);
+                    DrawText(NodeCur->choiceRightSon,
+                             (int)(choiceRectRight.x + choiceButtonWidth / 2 - MeasureText(NodeCur->choiceRightSon, 25) / 2),
+                             (int)(choiceRectRight.y + choiceButtonHeight / 2 - 25 / 2),
+                             25, WHITE);
+                }
+            }
+        }
+        
+    }
+    else { 
+        if(SceneDataCur->backgroundTex.id != 0) {
+            DrawTexture(SceneDataCur->backgroundTex, 0, 0, WHITE);
+        } else {
+            ClearBackground(RAYWHITE); 
         }
     }
 }
@@ -320,6 +368,7 @@ void DrawCurrentNodeScreen(Tree SceneTree[]){
 void UpdateCerita(Tree SceneTree[], GameState *GameState){
     Tree NodeCur = SceneTree[currentScene];
     Vector2 mouse = GetMousePosition();
+     
     if (currentScene < 0 || currentScene > MAX_NODE_TREE || NodeCur.TotalScene == 0)
     {
         if (*GameState != GAME_STATE_MAIN_MENU)
@@ -330,7 +379,9 @@ void UpdateCerita(Tree SceneTree[], GameState *GameState){
         return;        
     }
 
-    if (currentFrame == NodeCur.TotalScene - 1 && NodeCur.numChoices > 0)
+    if (currentScene != 5)
+    {
+        if (currentFrame == NodeCur.TotalScene - 1 && NodeCur.numChoices > 0)
     {
         Vector2 mousePos = GetMousePosition();
 
@@ -372,10 +423,27 @@ void UpdateCerita(Tree SceneTree[], GameState *GameState){
             if (currentFrame< NodeCur.TotalScene - 1)
             {
                 currentFrame++;
-            }else printf("ENDING\n");
+            }
             
         }
-    }
+     }
+
+    }else{
+        frameTimer += GetFrameTime(); 
+
+        if (frameTimer >= frameDelay) {
+            frameTimer = 0.0f; 
+            if (currentFrame < NodeCur.TotalScene - 1) {
+                currentFrame++;
+            } else {
+                UnloadNodeAssets(SceneTree, currentScene); 
+                *GameState = GAME_STATE_MAIN_MENU; 
+                currentScene = 0;        
+                currentFrame = 0; 
+                // PlayBackGroundMusic(NULL); 
+            }
+        }
+    }    
     // if (currentBGM.stream.buffer != NULL) {
     //     UpdateMusicStream(currentBGM);
     // }
@@ -394,33 +462,7 @@ void ProsesChoice(Tree SceneTree[], int choice){
     
     if (nextNodeIndex < 0 || nextNodeIndex > MAX_NODE_TREE || SceneTree[nextNodeIndex].TotalScene == 0)
     {
-        switch (currentGameState)
-        {
-        case END_GAME_ALONE:
-            break;
-        case END_GAME_DIE_BECAUSE_HOMELESS:
-            break;
-        case END_GAME_FOOD_FROM_HOMELESS:
-            break;
-        case END_GAME_DIE_FAILED_ESCAPE:
-            break;
-        case END_GAME_NEW_FAMILY:
-            break;
-        case END_GAME_ALONE_IN_FEAR:
-            break;
-        case END_GAME_CRUSHED_BY_CAR:
-            break;
-        case END_GAME_AFFORD_HOT_SOUP:
-            break;
-        case END_GAME_GET_STAB_BY_HOMELESS:
-            break;
-        case END_GAME_DIE_ALONE_UNDER_CHRISTMAS_TREE:
-            break;
-        case END_GAME_LOST_MATCH_THEN_DIE:
-            break;
-        default:
-            break;
-        }
+
     }
     
     UnloadNodeAssets(SceneTree, currentScene);
