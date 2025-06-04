@@ -10,12 +10,12 @@
 #define SCREEN_HEIGHT 1080
 #define GRID_SIZE 50  // Jarak antar garis grid
 
-Tree Mytree[MAX_NODE_TREE];
-GameState currentGameState = GAME_STATE_MAIN_MENU; // Start with main menu instead of minigame
-bool minigameInitialized = false; // Flag to track minigame initialization
-
+TreeStory Mytree[MAX_NODE_TREE];
+GameState currentGameState = GAME_STATE_MAIN_MENU; 
+bool minigameInitialized = false; 
+bool exitProgram = false;
 int main() {
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Grid Coordinate Debug");
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "The Little Match Girl");
     SetTargetFPS(60);
     InitAssets();
     InitDataCerita(Mytree);
@@ -26,36 +26,39 @@ int main() {
     PlayMusicStream(Pusic); 
     SetMusicVolume(Pusic, 1.0f);
     
-    while (!WindowShouldClose()) {
-        if (IsKeyPressed(KEY_ESCAPE)) break;
+    while (!WindowShouldClose() && !exitProgram) {
         
         UpdateMusicStream(Pusic); 
         
         BeginDrawing();
-        ClearBackground(WHITE); 
         
         switch (currentGameState) {
             case GAME_STATE_MAIN_MENU:
-            case GAME_STATE_PLAY_GAME:
-            case GAME_STATE_NEW_CONTINUE_MENU:
-            case GAME_STATE_CUSTOM_GAME_MENU:
-            case GAME_STATE_CREATE:
-            case GAME_STATE_EDIT:
-            case GAME_STATE_DELETE:
-            case GAME_STATE_CONTINUE_SLOT_1:
-            case GAME_STATE_CONTINUE_SLOT_2:
-            case GAME_STATE_CONTINUE_SLOT_3:
+            case GAME_STATE_PLAY_GAME_MENU:
+            case GAME_STATE_NEW_CONTINUE_NON_CUSTOM:
+            case GAME_STATE_NEW_CONTINUE_CUSTOM:
+            case GAME_STATE_STUDIO_MENU:
+            case GAME_STATE_CREATE_MENU:
+            case GAME_STATE_EDIT_MENU:
+            case GAME_STATE_DELETE_MENU:
+            // case GAME_STATE_CONTINUE_SLOT_1:
+            // case GAME_STATE_CONTINUE_SLOT_2:
+            // case GAME_STATE_CONTINUE_SLOT_3:
             case GAME_STATE_ABOUT:
+                ClearBackground(WHITE); 
                 UpdateMainMenu(&currentGameState); 
                 DrawMainMenu(currentGameState);
                 DrawDebugGrid(GRID_SIZE);
                 break;
                 
-            case GAME_STATE_STORY:
+            case GAME_STATE_PLAY_GAME:
                 UpdateCerita(Mytree, &currentGameState); 
                 DrawCurrentNodeScreen(Mytree);
                 break;
-                
+            case GAME_STATE_PAUSE:
+                UpdatePauseMenu(&currentGameState);
+                DrawPauseMenu();
+                break;
             case GAME_STATE_MINI_GAME_STACK:
                 if (!minigameInitialized) {
                     InitMiniGameStack();
@@ -72,24 +75,13 @@ int main() {
                     LoadNodeAssets(Mytree, currentScene); 
                     
                 }
-                break;
-                
+                break;   
             case GAME_STATE_CREATE_SLOT_1:
             case GAME_STATE_CREATE_SLOT_2:
             case GAME_STATE_CREATE_SLOT_3:
-                currentGameState = GAME_STATE_MAIN_MENU;
-                InitButtonRects(currentGameState);
-                break;
-                
-            // Handle slot editing states
             case GAME_STATE_EDIT_SLOT_1:
             case GAME_STATE_EDIT_SLOT_2:
             case GAME_STATE_EDIT_SLOT_3:
-                currentGameState = GAME_STATE_MAIN_MENU;
-                InitButtonRects(currentGameState);
-                break;
-                
-            // Handle slot deletion states
             case GAME_STATE_DELETE_SLOT_1:
             case GAME_STATE_DELETE_SLOT_2:
             case GAME_STATE_DELETE_SLOT_3:
@@ -110,7 +102,6 @@ int main() {
         EndDrawing();
     }
 
-    // Cleanup
     UnloadNodeAssets(Mytree, currentScene);
     UnloadMusicStream(Pusic);
     CloseWindow();

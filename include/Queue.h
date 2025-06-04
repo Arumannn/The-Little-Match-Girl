@@ -8,8 +8,6 @@
 
 
 
-
-
 typedef struct{
     Data data[MAX];
     int front;

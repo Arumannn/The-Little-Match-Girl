@@ -10,13 +10,16 @@
 
 int currentScene = 0; 
 int currentFrame = 0;
-float frameDelay = 2.0f;
+float frameDelay = 3.5f;
 float frameTimer = 0.0f;
 
 
 // Inisialisasi Data untuk cerita dan juga setiap frame dari node
-void InitDataCerita(Tree * SceneTree){
+void InitDataCerita(TreeStory * SceneTree){
  
+
+    // =================================== SCENE ===================================
+
     SceneTree[0].id = 0;
     SceneTree[0].TotalScene = 4;
     SceneTree[0].numChoices = 2;
@@ -135,7 +138,47 @@ void InitDataCerita(Tree * SceneTree){
     SceneTree[3].Frame[5].dialogue = "";
     
 
-    // NODE 4 dan 5 ENDING SCENE, nanti
+    // =================================== NODE 4 ENDING DIE ALONE ===================================
+
+    SceneTree[4].id = 4;
+    SceneTree[4].TotalScene = 5;
+    SceneTree[4].numChoices = 1;
+    SceneTree[4].IdLeftSon = -1;
+    SceneTree[4].IdRightSon = -1;
+    SceneTree[4].choiceLeftSon = NULL;
+    SceneTree[4].choiceRightSon = NULL;
+
+    SceneTree[4].Frame[0].backgroundPath = "Assets/BackgroundSprites/background14.png";
+    SceneTree[4].Frame[0].characterPath = "Assets/CharaSprites/chara3.png";
+    SceneTree[4].Frame[0].backgroundSound = NULL; 
+    SceneTree[4].Frame[0].CharPosition = CHAR_POS_CENTER;
+    SceneTree[4].Frame[0].dialogue = "GIrl : Itldlaosdlaokd's cold, should i light a few matches?";
+
+    SceneTree[4].Frame[1].backgroundPath = "Assets/Endings/diecoldalone1.png";
+    SceneTree[4].Frame[1].characterPath = NULL;
+    SceneTree[4].Frame[1].backgroundSound = NULL; 
+    SceneTree[4].Frame[1].CharPosition = CHAR_POS_NONE;
+    SceneTree[4].Frame[1].dialogue = "Girl : No, i can handle it";
+
+    SceneTree[4].Frame[2].backgroundPath = "Assets/Endings/diecoldalone2.png";
+    SceneTree[4].Frame[2].characterPath = NULL;
+    SceneTree[4].Frame[2].backgroundSound = NULL; 
+    SceneTree[4].Frame[2].CharPosition = CHAR_POS_NONE;
+    SceneTree[4].Frame[2].dialogue = "Girl : I'm still can handle it";
+
+    SceneTree[4].Frame[3].backgroundPath = "Assets/Endings/diecoldalone2.png";
+    SceneTree[4].Frame[3].characterPath = NULL;
+    SceneTree[4].Frame[3].backgroundSound = NULL; 
+    SceneTree[4].Frame[3].CharPosition = CHAR_POS_NONE;
+    SceneTree[4].Frame[3].dialogue = "Girl : I'm Just need a rest for a moment......";
+
+    SceneTree[4].Frame[4].backgroundPath = "Assets/Endings/diecoldalone2.png";
+    SceneTree[4].Frame[4].characterPath = NULL;
+    SceneTree[4].Frame[4].backgroundSound = NULL; 
+    SceneTree[4].Frame[4].CharPosition = CHAR_POS_NONE;
+    SceneTree[4].Frame[4].dialogue = NULL;
+    // =================================== NODE 5 ENDING CRUSHED BY A CAR ===================================
+
     SceneTree[5].id = 5;
     SceneTree[5].TotalScene = 4;
     SceneTree[5].numChoices = 1;
@@ -208,6 +251,111 @@ void InitDataCerita(Tree * SceneTree){
     SceneTree[6].Frame[4].backgroundSound = NULL; 
     SceneTree[6].Frame[4].CharPosition = CHAR_POS_LEFT;
     SceneTree[6].Frame[4].dialogue = "Girl : Should i offer one to that man?";
+
+
+    SceneTree[7].id = 7;
+    SceneTree[7].TotalScene = 4;
+    SceneTree[7].numChoices = 2;
+    SceneTree[7].choiceLeftSon = "Take all and escape ";
+    SceneTree[7].choiceRightSon = "Accept his offer";
+    SceneTree[7].IdLeftSon = 11;
+    SceneTree[7].IdRightSon = 12;
+
+    
+    SceneTree[7].Frame[0].backgroundPath = "Assets/BackgroundSprites/background6.png";
+    SceneTree[7].Frame[0].characterPath = "Assets/CharaSprites/chara5.png";
+    SceneTree[7].Frame[0].backgroundSound = NULL; 
+    SceneTree[7].Frame[0].CharPosition = CHAR_POS_LEFT;
+    SceneTree[7].Frame[0].dialogue = "Girl : Don't Take all the match...";
+
+    SceneTree[7].Frame[1].backgroundPath = "Assets/BackgroundSprites/background6.png";
+    SceneTree[7].Frame[1].characterPath = "Assets/CharaSprites/chara4.png";
+    SceneTree[7].Frame[1].backgroundSound = NULL; 
+    SceneTree[7].Frame[1].CharPosition = CHAR_POS_RIGHT;
+    SceneTree[7].Frame[1].dialogue = "Homeless man : Sorry for the trouble kid.";
+
+    SceneTree[7].Frame[2].backgroundPath = "Assets/BackgroundSprites/background6.png";
+    SceneTree[7].Frame[2].characterPath = "Assets/CharaSprites/chara5.png";
+    SceneTree[7].Frame[2].backgroundSound = NULL; 
+    SceneTree[7].Frame[2].CharPosition = CHAR_POS_LEFT;
+    SceneTree[7].Frame[2].dialogue = "Girl: ........";
+
+    SceneTree[7].Frame[3].backgroundPath = "Assets/BackgroundSprites/background6.png";
+    SceneTree[7].Frame[3].characterPath = "Assets/CharaSprites/chara4.png";
+    SceneTree[7].Frame[3].backgroundSound = NULL; 
+    SceneTree[7].Frame[3].CharPosition = CHAR_POS_RIGHT;
+    SceneTree[7].Frame[3].dialogue = "Homeless Man : You know how desperate we bums are. Here's your match back. If you want,\n we have some food for you—it's our way of apologizing";
+    // =================================== NODE 8 ENDING RUMBLING ===================================
+
+    //MASIH KOSONG
+
+    // =================================== NODE 9 ENDING GET PUSH WITH A MAN AND CRUSHED BY A CAR ===================================
+
+    SceneTree[9].id = 9;
+    SceneTree[9].TotalScene = 4;
+    SceneTree[9].numChoices = 1;
+    SceneTree[9].IdLeftSon = -1;
+    SceneTree[9].IdRightSon = -1;
+    SceneTree[9].choiceLeftSon = NULL;
+    SceneTree[9].choiceRightSon = NULL;
+
+    SceneTree[9].Frame[0].backgroundPath = "Assets/Endings/crossingtheroad1.png";
+    SceneTree[9].Frame[0].characterPath = NULL;
+    SceneTree[9].Frame[0].backgroundSound = NULL; 
+    SceneTree[9].Frame[0].CharPosition = CHAR_POS_NONE;
+    SceneTree[9].Frame[0].dialogue = NULL;
+
+    SceneTree[9].Frame[1].backgroundPath = "Assets/Endings/crossingtheroad2.png";
+    SceneTree[9].Frame[1].characterPath = NULL;
+    SceneTree[9].Frame[1].backgroundSound = NULL; 
+    SceneTree[9].Frame[1].CharPosition = CHAR_POS_NONE;
+    SceneTree[9].Frame[1].dialogue = NULL;
+
+    SceneTree[9].Frame[2].backgroundPath = "Assets/Endings/crossingtheroad3.png";
+    SceneTree[9].Frame[2].characterPath = NULL;
+    SceneTree[9].Frame[2].backgroundSound = NULL; 
+    SceneTree[9].Frame[2].CharPosition = CHAR_POS_NONE;
+    SceneTree[9].Frame[2].dialogue = NULL;
+
+    SceneTree[9].Frame[3].backgroundPath = "Assets/Endings/crossingtheroad4.png";
+    SceneTree[9].Frame[3].characterPath = NULL;
+    SceneTree[9].Frame[3].backgroundSound = NULL; 
+    SceneTree[9].Frame[3].CharPosition = CHAR_POS_NONE;
+    SceneTree[9].Frame[3].dialogue = NULL;
+
+    SceneTree[10].id = 10;
+    SceneTree[10].TotalScene = 4;
+    SceneTree[10].numChoices = 2;
+    SceneTree[10].choiceLeftSon = "Tell him";
+    SceneTree[10].choiceRightSon = "Be Quite..";
+    SceneTree[10].IdLeftSon = 13;
+    SceneTree[10].IdRightSon = 14;
+
+    
+    SceneTree[10].Frame[0].backgroundPath = "Assets/BackgroundSprites/background6.png";
+    SceneTree[10].Frame[0].characterPath = "Assets/CharaSprites/chara5.png";
+    SceneTree[10].Frame[0].backgroundSound = NULL; 
+    SceneTree[10].Frame[0].CharPosition = CHAR_POS_LEFT;
+    SceneTree[10].Frame[0].dialogue = "Girl : Don't Take all the match...";
+
+    SceneTree[10].Frame[1].backgroundPath = "Assets/BackgroundSprites/background6.png";
+    SceneTree[10].Frame[1].characterPath = "Assets/CharaSprites/chara4.png";
+    SceneTree[10].Frame[1].backgroundSound = NULL; 
+    SceneTree[10].Frame[1].CharPosition = CHAR_POS_RIGHT;
+    SceneTree[10].Frame[1].dialogue = "Homeless man : Sorry for the trouble kid.";
+
+    SceneTree[10].Frame[2].backgroundPath = "Assets/BackgroundSprites/background6.png";
+    SceneTree[10].Frame[2].characterPath = "Assets/CharaSprites/chara5.png";
+    SceneTree[10].Frame[2].backgroundSound = NULL; 
+    SceneTree[10].Frame[2].CharPosition = CHAR_POS_LEFT;
+    SceneTree[10].Frame[2].dialogue = "Girl: ........";
+
+    SceneTree[10].Frame[3].backgroundPath = "Assets/BackgroundSprites/background6.png";
+    SceneTree[10].Frame[3].characterPath = "Assets/CharaSprites/chara4.png";
+    SceneTree[10].Frame[3].backgroundSound = NULL; 
+    SceneTree[10].Frame[3].CharPosition = CHAR_POS_RIGHT;
+    SceneTree[10].Frame[3].dialogue = "Homeless Man : You know how desperate we bums are. Here's your match back. If you want,\n we have some food for you—it's our way of apologizing";
+
     
 }  
 
@@ -236,7 +384,7 @@ void DrawCharacterAtPosition(Texture2D tex, CharacterPosition pos) {
 
 
 //Menghapus gambar dari layar, agar tidak memberatkan
-void UnloadNodeAssets(Tree SceneTree[], int nodeIndex){
+void UnloadNodeAssets(TreeStory SceneTree[], int nodeIndex){
     
     if (nodeIndex < 0 || nodeIndex > MAX_NODE_TREE)
     {
@@ -245,7 +393,7 @@ void UnloadNodeAssets(Tree SceneTree[], int nodeIndex){
     }
     
     // Unload node assets
-    Tree *UnloadTemp = &SceneTree[nodeIndex];
+    TreeStory *UnloadTemp = &SceneTree[nodeIndex];
 
     for (int i = 0; i <= UnloadTemp->TotalScene; i++)
     {
@@ -263,8 +411,8 @@ void UnloadNodeAssets(Tree SceneTree[], int nodeIndex){
     }
 }
 
-void LoadNodeAssets(Tree SceneTree[], int nodeIndex){
-    Tree *NodeCur = &SceneTree[nodeIndex];
+void LoadNodeAssets(TreeStory SceneTree[], int nodeIndex){
+    TreeStory *NodeCur = &SceneTree[nodeIndex];
 
     if (NodeCur->TotalScene == 0) {
         printf("node %d nilai TotalScene = 0\n", nodeIndex);
@@ -289,11 +437,12 @@ void LoadNodeAssets(Tree SceneTree[], int nodeIndex){
     
 }
 
-void DrawCurrentNodeScreen(Tree SceneTree[]){
-    Tree *NodeCur = &SceneTree[currentScene];
+
+void DrawCurrentNodeScreen(TreeStory SceneTree[]){
+    TreeStory *NodeCur = &SceneTree[currentScene];
     Scene *SceneDataCur = &NodeCur->Frame[currentFrame];
 
-    if (currentGameState == GAME_STATE_STORY) {
+    if (currentGameState == GAME_STATE_PLAY_GAME) {
         
         if (SceneDataCur->backgroundTex.id != 0) {
             DrawTexture(SceneDataCur->backgroundTex, 0, 0, WHITE);
@@ -301,11 +450,9 @@ void DrawCurrentNodeScreen(Tree SceneTree[]){
             ClearBackground(RAYWHITE); 
         }
 
-      
-        if (NodeCur->id != 5) {
+        if (NodeCur->id != 5 && NodeCur->id != 4) {
             DrawCharacterAtPosition(SceneDataCur->characterTex, SceneDataCur->CharPosition);
 
-  
             if (SceneDataCur->dialogue != NULL || (currentFrame == NodeCur->TotalScene - 1 && NodeCur->numChoices > 0)) {
                 DrawRectangle(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, BLACK);
                 DrawRectangleLines(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, WHITE);
@@ -352,6 +499,16 @@ void DrawCurrentNodeScreen(Tree SceneTree[]){
             }
         }
         
+        else if (NodeCur->id == 4) {
+            DrawCharacterAtPosition(SceneDataCur->characterTex, SceneDataCur->CharPosition);
+            
+            if (currentFrame < NodeCur->TotalScene - 1 && SceneDataCur->dialogue != NULL) {
+                DrawRectangle(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, BLACK);
+                DrawRectangleLines(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, WHITE);
+                DrawText(SceneDataCur->dialogue, 70, SCREEN_HEIGHT - 180, 30, WHITE);
+            }
+        }
+        
     }
     else { 
         if(SceneDataCur->backgroundTex.id != 0) {
@@ -363,72 +520,30 @@ void DrawCurrentNodeScreen(Tree SceneTree[]){
 }
 
 
-
-
-void UpdateCerita(Tree SceneTree[], GameState *GameState){
-    Tree NodeCur = SceneTree[currentScene];
+void UpdateCerita(TreeStory SceneTree[], GameState *GameState){
+    TreeStory NodeCur = SceneTree[currentScene];
     Vector2 mouse = GetMousePosition();
-     
+    //PlayBackgroundMusic(NULL);
     if (currentScene < 0 || currentScene > MAX_NODE_TREE || NodeCur.TotalScene == 0)
     {
         if (*GameState != GAME_STATE_MAIN_MENU)
         {
             *GameState = GAME_STATE_MAIN_MENU;
-            // PlayBackGroundMusic(NULL);
         }
         return;        
     }
 
-    if (currentScene != 5)
+    if (IsKeyPressed(KEY_F1))
     {
-        if (currentFrame == NodeCur.TotalScene - 1 && NodeCur.numChoices > 0)
+        *GameState = GAME_STATE_PAUSE;
+        InitButtonRects(*GameState);
+        printf("MASUK KE F1\n");
+        return;
+    }
+    
+
+    if (currentScene == 4 || currentScene == 5)
     {
-        Vector2 mousePos = GetMousePosition();
-
-        int choiceButtonWidth = 400;
-        int choiceButtonHeight = 60;
-        int choiceStartY = SCREEN_HEIGHT / 2 + 275;
-
-        Rectangle choiceRectLeft = {
-            SCREEN_WIDTH / 2 - choiceButtonWidth / 2 - 715,
-            choiceStartY,
-            (float)choiceButtonWidth,
-            (float)choiceButtonHeight
-        };
-        if (CheckCollisionPointRec(mousePos, choiceRectLeft) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-        {
-            ProsesChoice(SceneTree, 0);
-            return;
-        }
-        
-        if (currentFrame == NodeCur.TotalScene - 1)
-        {
-            Rectangle choiceRectRight = {
-                SCREEN_WIDTH / 2 - choiceButtonWidth / 2 + 715,
-                choiceStartY,
-                (float)choiceButtonWidth,
-                (float)choiceButtonHeight
-
-                
-            };
-            if (CheckCollisionPointRec(mousePos, choiceRectRight) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-            {
-                ProsesChoice(SceneTree, 1);
-                return;
-            }
-        }
-    } else{
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsKeyPressed(KEY_ENTER))
-        {
-            if (currentFrame< NodeCur.TotalScene - 1)
-            {
-                currentFrame++;
-            }
-            
-        }
-     }
-
-    }else{
         frameTimer += GetFrameTime(); 
 
         if (frameTimer >= frameDelay) {
@@ -440,16 +555,66 @@ void UpdateCerita(Tree SceneTree[], GameState *GameState){
                 *GameState = GAME_STATE_MAIN_MENU; 
                 currentScene = 0;        
                 currentFrame = 0; 
-                // PlayBackGroundMusic(NULL); 
+                //PlayBackgroundMusic(NULL); 
             }
         }
-    }    
+    }
+
+    else
+    {
+        if (currentFrame == NodeCur.TotalScene - 1 && NodeCur.numChoices > 0)
+        {
+            Vector2 mousePos = GetMousePosition();
+
+            int choiceButtonWidth = 400;
+            int choiceButtonHeight = 60;
+            int choiceStartY = SCREEN_HEIGHT / 2 + 275;
+
+            Rectangle choiceRectLeft = {
+                SCREEN_WIDTH / 2 - choiceButtonWidth / 2 - 715,
+                choiceStartY,
+                (float)choiceButtonWidth,
+                (float)choiceButtonHeight
+            };
+            if (CheckCollisionPointRec(mousePos, choiceRectLeft) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+            {
+                ProsesChoice(SceneTree, 0);
+                return;
+            }
+            
+            if (currentFrame == NodeCur.TotalScene - 1)
+            {
+                Rectangle choiceRectRight = {
+                    SCREEN_WIDTH / 2 - choiceButtonWidth / 2 + 715,
+                    choiceStartY,
+                    (float)choiceButtonWidth,
+                    (float)choiceButtonHeight
+                };
+                if (CheckCollisionPointRec(mousePos, choiceRectRight) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                {
+                    ProsesChoice(SceneTree, 1);
+                    return;
+                }
+            }
+        } 
+        else {
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE))
+            {
+                if (currentFrame < NodeCur.TotalScene - 1)
+                {
+                    currentFrame++;
+                }
+            }
+        }
+    }
+    
     // if (currentBGM.stream.buffer != NULL) {
     //     UpdateMusicStream(currentBGM);
     // }
 }
 
-void ProsesChoice(Tree SceneTree[], int choice){
+
+void ProsesChoice(TreeStory SceneTree[], int choice){
     int nextNodeIndex = -1;
     
 
@@ -462,7 +627,7 @@ void ProsesChoice(Tree SceneTree[], int choice){
     
     if (nextNodeIndex < 0 || nextNodeIndex > MAX_NODE_TREE || SceneTree[nextNodeIndex].TotalScene == 0)
     {
-
+        return;
     }
     
     UnloadNodeAssets(SceneTree, currentScene);
@@ -472,3 +637,31 @@ void ProsesChoice(Tree SceneTree[], int choice){
     LoadNodeAssets(SceneTree, currentScene);
     printf("Berpindah ke scene %d\n", currentScene);
 }
+
+void SaveGameStory(const char *filename, int Node, int Scene){
+    FILE *file = fopen(filename, "w");
+    if (!file)
+    {
+        printf("Nama File Tidak Ditemukan\n");
+        return;
+    }
+
+    fwrite(&Node, sizeof(int), 1, file);
+    fwrite(&Scene, sizeof(int), 1, file);
+    fclose(file);
+
+
+}
+void LoadGameStory(const char *filename, int * Node, int * Scene){
+    FILE *file = fopen(filename, "r");
+    if (!file)
+    {
+        printf("Nama File Tidak Ditemukan\n");
+        *Node = 0;
+        *Scene = 0;
+        return;
+    }
+    
+    fread(Node, sizeof(int), 1, file);
+    fread(Scene, sizeof(int), 1, file);
+} 

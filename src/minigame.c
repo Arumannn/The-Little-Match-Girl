@@ -1,4 +1,3 @@
-// minigame.c - Modified for Random Grid Display
 #include "minigame.h"
 
 Stack MemoryStack;
@@ -170,7 +169,9 @@ void UpdateMiniGameStack(GameState *currentGameState) {
     // Handle success state
     if (minigameSuccess && IsKeyPressed(KEY_SPACE)) {
         minigameActive = false;
-        *currentGameState = GAME_STATE_STORY;
+        UnloadMiniGameStackAssets(&MemoryStack);
+        UnloadMiniGameStackAssets(&PlayerChoiceStack);
+        *currentGameState = GAME_STATE_PLAY_GAME;
     }
 }
 
@@ -249,24 +250,25 @@ void DrawMiniGameStack() {
     }
 
     if (minigameSuccess) {
+        
         DrawText("Now you have to fight with your life.....", SCREEN_WIDTH / 2 - 200, SCREEN_HEIGHT / 2, 40, WHITE);
         DrawText("Press SPACE to continue...", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 50, 20, LIGHTGRAY);
     }
 }
 
-bool CompareStacksReverse(Stack original, Stack playerChoice) {
-    if (StackSize(original) != StackSize(playerChoice)) {
-        return false;
-    }
+// bool CompareStacksReverse(Stack original, Stack playerChoice) {
+//     if (StackSize(original) != StackSize(playerChoice)) {
+//         return false;
+//     }
     
-    for (int i = 0; i < StackSize(original); i++) {
-        int originalIndex = StackSize(original) - 1 - i;
-        if (original.Memory[originalIndex].Image.id != playerChoice.Memory[i].Image.id) {
-            return false;
-        }
-    }
-    return true;
-}
+//     for (int i = 0; i < StackSize(original); i++) {
+//         int originalIndex = StackSize(original) - 1 - i;
+//         if (original.Memory[originalIndex].Image.id != playerChoice.Memory[i].Image.id) {
+//             return false;
+//         }
+//     }
+//     return true;
+// }
 
 void UnloadMiniGameStackAssets(Stack *S) {
     for (int i = 0; i < StackSize(*S); i++) {
@@ -276,11 +278,4 @@ void UnloadMiniGameStackAssets(Stack *S) {
         }
     }
     CreateEmptyStack(S);
-    
-    for (int i = 0; i < MAX_STACK; i++) {
-        if (memoryImages[i].id != 0) {
-            UnloadTexture(memoryImages[i]);
-            memoryImages[i] = (Texture2D){0};
-        }
-    }
 }
