@@ -7,7 +7,7 @@
       "command": "gcc",
       "args": [
         "-Iinclude",
-        "main.c", "src/mainmenu.c", "src/stack.c", "src/story.c", "src/queue.c", "src/minigame.c", 
+        "main.c", "src/mainmenu.c", "src/minigame.c", "src/story.c", "src/customstory.c" , "src/Stack.c",
         "-o",
         "main",
         "-lraylib",

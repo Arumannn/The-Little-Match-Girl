@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <raylib.h>
-//#include "customstory.h"
+#include "customstory.h"
 #include "minigame.h"
 #include "story.h"
 #include "mainmenu.h"
@@ -77,7 +77,9 @@ int main() {
                 }
                 break;   
             case GAME_STATE_CREATE_SLOT_1:
+            MakeCustomStory(&Slot_1);
             case GAME_STATE_CREATE_SLOT_2:
+            MakeCustomStory(&Slot_2);
             case GAME_STATE_CREATE_SLOT_3:
             case GAME_STATE_EDIT_SLOT_1:
             case GAME_STATE_EDIT_SLOT_2:
