@@ -75,11 +75,16 @@ void InitiateAssets();
 void SaveSlot(CustomSceneTree *ThisSlot);
 void MakeCustomStory(CustomSceneTree *ThisSlot);
 void LoadSlot(CustomSceneTree *ThisSlot);
+void AddLeftChild(CustomSceneTree *TempTree, SceneList *TempScene, bool *warning, int *control);
+void AddRightChild(CustomSceneTree *TempTree, SceneList *TempScene, bool *warning, int *control);
+void PreviousScene(CustomSceneTree *TempTree, SceneList *TempScene, int *selectedsprite, bool *warning, int *control); //soon to be deleted
+void PreviousTree(CustomSceneTree *TempTree, SceneList *TempScene, int *selectedsprite, bool *warning, int *control);
+void AddNewScene(SceneList *TempScene, bool *warning, int *control); //soon to be deleted
 void AddSceneLast(CustomSceneTree *ThisSlot);
-void AddSceneFirst();
-void DeleteSceneFirst();
-void DeleteSceneLast();
-void ReviewScene(CustomSceneTree *ThisSlot);
+void AddSceneFirst(CustomSceneTree *ThisSlot);
+void DeleteSceneFirst(CustomSceneTree *ThisSlot);
+void DeleteSceneLast(CustomSceneTree *ThisSlot);
+void ReviewScene(int *control, SceneList *TempScene);
 
 
 
