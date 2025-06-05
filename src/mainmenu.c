@@ -437,7 +437,7 @@ void UnloadAssets() {
     }
 }         
 
-void DrawDebugGrid(int gridSize) {
+v oid DrawDebugGrid(int gridSize) {
     Color gridColor = DARKGRAY;
 
     // Draw vertical lines

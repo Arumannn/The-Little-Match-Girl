@@ -72,7 +72,6 @@ int main() {
                     minigameInitialized = false;
                     printf("Exiting minigame, transitioning to story\n");
                     LoadNodeAssets(Mytree, currentScene); 
-                    
                 }
                 break;
                 

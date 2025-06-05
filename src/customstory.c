@@ -8,10 +8,12 @@
 
 CharaArr FileChara[CHARA_AMMOUNT];
 BackgroundArr FileBackground[BACKGROUND_AMMOUNT];
+AudioArr FileAudio[AUDIO_AMMOUNT];
+Texture2D Background, Character;
 float RenderTimer = 2.0f;
 bool ShowRender;
 
-void CustomStoryGUI(int state, int currentsprite, char *Dialogue) {
+void CustomStoryGUI(int state, int currentsprite, char *Dialogue, char *BackSprite, char *CharaSprite) {
     char buffer[128];
     Vector2 position;
     switch (state) {
@@ -38,20 +40,48 @@ void CustomStoryGUI(int state, int currentsprite, char *Dialogue) {
             break;
 
         case CONFIRMATION:
-        if (ShowRender && currentsprite == 1)
-        {
-            DrawText("You already are in the earliest Node Possible!", 40, 30, 30, WHITE);
-        }
-        else if (ShowRender && currentsprite == 2)
-        {
-            DrawText("You already are in the earliest Scene Possible!", 40, 30, 30, WHITE);
-        }
-        else if (!ShowRender)
-        {
-            DrawText("Pick where to go next:", 40, 40, 30, WHITE);
-            DrawText("<--: Left child | -->: Right child | ↑: Parent | ↓: Add Scene | BACKSPACE: Previous Scene  | ENTER: Save", 40, 80, 25, WHITE);
-        }
-        break;
+            if (ShowRender && currentsprite == 1)
+            {
+                DrawText("You already are in the earliest Node Possible!", 40, 30, 30, WHITE);
+            }
+            else if (ShowRender && currentsprite == 2)
+            {
+                DrawText("You already are in the earliest Scene Possible!", 40, 30, 30, WHITE);
+            }
+            else if (!ShowRender && currentsprite < 3)
+            {
+                DrawText("Pick where to go next:", 40, 40, 30, WHITE);
+                DrawText("<--: Left child | -->: Right child | ↑: Parent | ↓: Add Scene | BACKSPACE: Delete The Latest Scene | ENTER: Save", 40, 80, 25, WHITE);
+            }
+            else if (currentsprite == 3) //FOR TREE
+            {
+                DrawText("WARNING: You already have a story tree node here!", 40, 30, 30, WHITE);
+                DrawText("<-- Review | / : Delete Tree Node | BACKSPACE: Delete Latest Scene | Overwrite -->", 40, 80, 25, WHITE);
+            }
+            else if (currentsprite == 4) // FOR LINKEDLIST
+            {
+                DrawText("WARNING: You already have a scene here!", 40, 30, 30, WHITE);
+                DrawText("<-- Review | / : Deletes | Overwrite -->", 40, 80, 25, WHITE);
+            }
+            else if (currentsprite == 5)
+            {
+                DrawText("Scene successfully deleted!", 40, 30, 30, WHITE);
+            }
+            break;
+        case MODE_REVIEW_SCENE:
+            Background = LoadTexture(BackSprite);
+            Character = LoadTexture(CharaSprite);
+            position.x = GetScreenWidth() - Background.width * 0.75f / 2.0f;
+            position.y = GetScreenHeight()- Background.height * 0.75f / 2.0f;
+            DrawTextureEx(Background, position, 0, 0.75, WHITE);
+            position.x = GetScreenWidth()/2.0f - Character.width * 0.75f / 2.0f;
+            position.y = GetScreenHeight()/2.0f - Character.height * 0.75f / 2.0f;
+            DrawTextureEx(Character, position, 0, 0.75f, WHITE);
+            DrawText(Dialogue, position.x, position.y-50, 20, WHITE);
+            DrawText("Press <-- to go to previous scene, and press --> to go to the next scene", position.x, position.y-80, 20, WHITE);
+            // UnloadTexture(Background);
+            // UnloadTexture(Character);
+            break;
     }
 }
 
@@ -62,14 +92,7 @@ void MakeCustomStory(CustomSceneTree *ThisSlot)
     int selectedsprite = 0;
     int control = CHOOSINGBACKGROUND;
 
-    *ThisSlot = (CustomSceneTree)malloc(sizeof(struct Tree));
-    (*ThisSlot)->Parent = NULL;
-    (*ThisSlot)->Left = NULL;
-    (*ThisSlot)->Right = NULL;
-    (*ThisSlot)->ID = rand() % 100000000;
-    (*ThisSlot)->NodeContents = (SceneList)malloc(sizeof(struct ListElements));
-    (*ThisSlot)->NodeContents->Next = NULL;
-    (*ThisSlot)->NodeContents->Before = NULL;
+    InitializeStoryTree(ThisSlot);
 
     CustomSceneTree TempTree = *ThisSlot;
     SceneList TempScene = TempTree->NodeContents;
@@ -86,7 +109,7 @@ void MakeCustomStory(CustomSceneTree *ThisSlot)
             {
                 BeginDrawing();
                 ClearBackground(BLACK);
-                CustomStoryGUI(control, selectedsprite, NULL);
+                CustomStoryGUI(control, selectedsprite, NULL, NULL, NULL);
                 if (IsKeyPressed(KEY_ENTER))
                 {
                     char TempFileName[128];
@@ -120,7 +143,7 @@ void MakeCustomStory(CustomSceneTree *ThisSlot)
             {
                 BeginDrawing();
                 ClearBackground(BLACK);
-                CustomStoryGUI(control, selectedsprite, NULL);
+                CustomStoryGUI(control, selectedsprite, NULL, NULL, NULL);
                 if (IsKeyPressed(KEY_ENTER))
                 {
                     char TempFileName[128];
@@ -176,12 +199,13 @@ void MakeCustomStory(CustomSceneTree *ThisSlot)
                     strcpy(TempScene->Data.Convo, Convo);
                     control = CONFIRMATION;
                 }
-                CustomStoryGUI(control, selectedsprite, Convo);
+                CustomStoryGUI(control, selectedsprite, Convo, NULL, NULL);
                 EndDrawing();
             }
         }
         else if (control == CONFIRMATION)
         {
+            bool warning = false;
             selectedsprite = 0;
             while (control == CONFIRMATION)
             {
@@ -189,7 +213,7 @@ void MakeCustomStory(CustomSceneTree *ThisSlot)
                 ClearBackground(BLACK);
                 if (ShowRender)
                 {
-                    CustomStoryGUI(control, selectedsprite, NULL);
+                    CustomStoryGUI(control, selectedsprite, NULL, NULL, NULL);
                     RenderTimer -= GetFrameTime();
                     if (RenderTimer <= 0.0f)
                     {
@@ -198,44 +222,148 @@ void MakeCustomStory(CustomSceneTree *ThisSlot)
                 }
                 else
                 {
-                    CustomStoryGUI(control, 0, NULL);
+                    CustomStoryGUI(control, 0, NULL, NULL, NULL);
                 }
                 if (IsKeyPressed(KEY_LEFT))
                 {
-                    TempTree->Left = (CustomSceneTree)malloc(sizeof(struct Tree));
-                    TempTree->Left->Parent = TempTree;
-                    TempTree = TempTree->Left;
-                    TempTree->ID = rand() % 100000000;
-                    TempTree->Left = NULL;
-                    TempTree->Right = NULL;
-                    TempTree->NodeContents = (SceneList)malloc(sizeof(struct ListElements));
-                    TempScene = TempTree->NodeContents;
-                    TempScene->Next = NULL;
-                    TempScene->Before = NULL;
-                    TempScene->Data.Background = NULL;
-                    TempScene->Data.Character = NULL;
-                    TempScene->Data.Convo = NULL;
-                    control = CHOOSINGBACKGROUND;
+                    if (TempTree->Left == NULL)
+                    {
+                        TempTree->Left = (CustomSceneTree)malloc(sizeof(struct Tree));
+                        TempTree->Left->Parent = TempTree;
+                        TempTree = TempTree->Left;
+                        TempTree->ID = rand() % 100000000;
+                        TempTree->Left = NULL;
+                        TempTree->Right = NULL;
+                        TempTree->NodeContents = (SceneList)malloc(sizeof(struct ListElements));
+                        TempScene = TempTree->NodeContents;
+                        TempScene->Next = NULL;
+                        TempScene->Before = NULL;
+                        TempScene->Data.Background = NULL;
+                        TempScene->Data.Character = NULL;
+                        TempScene->Data.Convo = NULL;
+                        control = CHOOSINGBACKGROUND;
+                    }
+                    else
+                    {
+                        warning = true;
+                        while(warning)
+                        {
+                            BeginDrawing();
+                            ClearBackground(BLACK);
+                            CustomStoryGUI(control, 3, NULL, NULL, NULL);
+                            if (IsKeyPressed(KEY_RIGHT))
+                            {
+                                TempTree = TempTree->Left;
+                                TempScene = TempTree->NodeContents;
+                                SceneList toDelete = TempScene;
+                                SceneList next;
+                                while (toDelete != NULL)
+                                {
+                                    next = toDelete->Next;
+
+                                    if (toDelete->Data.Background) free(toDelete->Data.Background);
+                                    if (toDelete->Data.Character) free(toDelete->Data.Character);
+                                    if (toDelete->Data.Convo) free(toDelete->Data.Convo);
+                                    free(toDelete);
+                                    toDelete = next;
+                                }
+                                TempTree->NodeContents = (SceneList)calloc(1, sizeof(struct ListElements));
+                                TempScene = TempTree->NodeContents;
+                                TempScene->Next = NULL;
+                                TempScene->Before = NULL;
+                                TempScene->Data.Background = NULL;
+                                TempScene->Data.Character = NULL;
+                                TempScene->Data.Convo = NULL;
+                                control = CHOOSINGBACKGROUND;
+                                warning = false;
+                            }
+                            else if (IsKeyPressed(KEY_LEFT))
+                            {
+                                warning = false;
+                                TempTree = TempTree->Left;
+                            }
+                            else if (IsKeyPressed(KEY_BACKSPACE))
+                            {
+                                SceneList DeleteNode = TempTree->NodeContents;
+                                while (DeleteNode->Next != NULL)
+                                {
+                                    DeleteNode = DeleteNode->Next;
+                                }
+                                if (DeleteNode->Data.Background) free(DeleteNode->Data.Background);
+                                if (DeleteNode->Data.Character) free(DeleteNode->Data.Character);
+                                if (DeleteNode->Data.Convo) free(DeleteNode->Data.Convo);
+                                free(DeleteNode);
+
+                            }
+                            EndDrawing();
+                        }
+                    }
                 }
                 else if(IsKeyPressed(KEY_RIGHT))
                 {
-                    TempTree->Right = (CustomSceneTree)malloc(sizeof(struct Tree));
-                    TempTree->Right->Parent = TempTree;
-                    TempTree = TempTree->Right;
-                    TempTree->ID = rand() % 100000000;
-                    TempTree->Left = NULL;
-                    TempTree->Right = NULL;
-                    TempTree->NodeContents = (SceneList)malloc(sizeof(struct ListElements));
-                    TempScene = TempTree->NodeContents;
-                    TempScene->Next = NULL;
-                    TempScene->Before = NULL;
-                    TempScene->Data.Background = NULL;
-                    TempScene->Data.Character = NULL;
-                    TempScene->Data.Convo = NULL;
-                    control = CHOOSINGBACKGROUND;
+                    if (TempTree->Right == NULL)
+                    {
+                        TempTree->Right = (CustomSceneTree)malloc(sizeof(struct Tree));
+                        TempTree->Right->Parent = TempTree;
+                        TempTree = TempTree->Right;
+                        TempTree->ID = rand() % 100000000;
+                        TempTree->Left = NULL;
+                        TempTree->Right = NULL;
+                        TempTree->NodeContents = (SceneList)malloc(sizeof(struct ListElements));
+                        TempScene = TempTree->NodeContents;
+                        TempScene->Next = NULL;
+                        TempScene->Before = NULL;
+                        TempScene->Data.Background = NULL;
+                        TempScene->Data.Character = NULL;
+                        TempScene->Data.Convo = NULL;
+                        control = CHOOSINGBACKGROUND;
+                    }
+                    else
+                    {
+                        warning = true;
+                        while(warning)
+                        {
+                            BeginDrawing();
+                            ClearBackground(BLACK);
+                            CustomStoryGUI(control, 3, NULL, NULL, NULL);
+                            if (IsKeyPressed(KEY_RIGHT))
+                            {
+                                TempTree = TempTree->Right;
+                                TempScene = TempTree->NodeContents;
+                                SceneList toDelete = TempScene;
+                                SceneList next;
+                                while (toDelete != NULL)
+                                {
+                                    next = toDelete->Next;
+
+                                    if (toDelete->Data.Background) free(toDelete->Data.Background);
+                                    if (toDelete->Data.Character) free(toDelete->Data.Character);
+                                    if (toDelete->Data.Convo) free(toDelete->Data.Convo);
+                                    free(toDelete);
+                                    toDelete = next;
+                                }
+                                TempTree->NodeContents = (SceneList)calloc(1, sizeof(struct ListElements));
+                                TempScene = TempTree->NodeContents;
+                                TempScene->Next = NULL;
+                                TempScene->Before = NULL;
+                                TempScene->Data.Background = NULL;
+                                TempScene->Data.Character = NULL;
+                                TempScene->Data.Convo = NULL;
+                                control = CHOOSINGBACKGROUND;
+                                warning = false;
+                            }
+                            else if (IsKeyPressed(KEY_LEFT))
+                            {
+                                warning = false;
+                                TempTree = TempTree->Right;
+                            }
+                            EndDrawing();
+                        }
+                    }
                 }
                 else if(IsKeyPressed(KEY_UP))
                 {
+                    EndDrawing();
                     if (TempTree->Parent == NULL)
                     {
                         ShowRender = true;
@@ -244,21 +372,137 @@ void MakeCustomStory(CustomSceneTree *ThisSlot)
                     }
                     else
                     {
+                        warning = true;
                         TempTree = TempTree->Parent;
                         TempScene = TempTree->NodeContents;
-                        control = CHOOSINGBACKGROUND;
+                        while (warning)
+                        {
+                            BeginDrawing();
+                            ClearBackground(BLACK);
+                            CustomStoryGUI(control, 3, NULL, NULL, NULL);
+                            if (IsKeyPressed(KEY_RIGHT))
+                            {
+                                SceneList toDelete = TempScene;
+                                SceneList next;
+                                while (toDelete != NULL)
+                                {
+                                    next = toDelete->Next;
+
+                                    if (toDelete->Data.Background) free(toDelete->Data.Background);
+                                    if (toDelete->Data.Character) free(toDelete->Data.Character);
+                                    if (toDelete->Data.Convo) free(toDelete->Data.Convo);
+                                    free(toDelete);
+                                    toDelete = next;
+                                }
+                                TempTree->NodeContents = (SceneList)calloc(1, sizeof(struct ListElements));
+                                TempScene = TempTree->NodeContents;
+                                TempScene->Next = NULL;
+                                TempScene->Before = NULL;
+                                TempScene->Data.Background = NULL;
+                                TempScene->Data.Character = NULL;
+                                TempScene->Data.Convo = NULL;
+                                control = CHOOSINGBACKGROUND;
+                                warning = false;
+                            }
+                            else if (IsKeyPressed(KEY_LEFT) && TempScene != NULL)
+                            {
+                                control = MODE_REVIEW_SCENE;
+                                warning = false;
+                                CustomStoryGUI(control, 0, TempScene->Data.Convo, TempScene->Data.Background, TempScene->Data.Character);
+                            }
+                            else if (IsKeyPressed(KEY_SLASH))
+                            {
+                                // if (DeleteTemp->Before != NULL)
+                                // {
+                                //     DeleteTemp->Before->Next = DeleteTemp->Next;
+                                // }
+                                // if (DeleteTemp->Next != NULL)
+                                // {
+                                //     DeleteTemp->Next->Before = DeleteTemp->Before;
+                                // }
+                                // if (DeleteTemp->Before != NULL)
+                                // {
+                                //     TempScene = TempScene->Before;
+                                // }
+                                // else if (DeleteTemp->Next != NULL)
+                                // {
+                                //     TempScene = TempScene->Next;
+                                // }
+                                // else
+                                // {
+                                //     TempTree->NodeContents = (SceneList)malloc(sizeof(struct ListElements));
+                                //     TempScene = TempTree->NodeContents;
+                                //     TempScene->Data.Background = NULL;
+                                //     TempScene->Data.Character = NULL;
+                                //     TempScene->Data.Convo = NULL;
+                                //     TempScene->Next = NULL;
+                                //     TempScene->Before = NULL;
+                                // }
+                                // if (DeleteTemp->Data.Background) free(DeleteTemp->Data.Background);
+                                // if (DeleteTemp->Data.Character) free(DeleteTemp->Data.Character);
+                                // if (DeleteTemp->Data.Convo) free(DeleteTemp->Data.Convo);
+                                SceneList DeleteTemp = TempTree->NodeContents;
+                                while (DeleteTemp->Next != NULL)
+                                {
+                                    DeleteTemp = DeleteTemp->Next;
+                                }
+                                DeleteTemp->Before->Next = NULL;
+                                if (DeleteTemp->Data.Background) free(DeleteTemp->Data.Background);
+                                if (DeleteTemp->Data.Character) free(DeleteTemp->Data.Character);
+                                if (DeleteTemp->Data.Convo) free(DeleteTemp->Data.Convo);
+                                free(DeleteTemp);
+                                warning = false;
+                                ShowRender = true;
+                                selectedsprite = 5;
+                                RenderTimer = 2.0f;
+                                CustomStoryGUI(control, selectedsprite, NULL, NULL, NULL);
+                            }
+                            EndDrawing();
+                        }
                     }
                 }
                 else if(IsKeyPressed(KEY_DOWN))
                 {
-                    TempScene->Next = (SceneList)malloc(sizeof(struct ListElements));
-                    TempScene->Next->Before = TempScene;
-                    TempScene = TempScene->Next;
-                    TempScene->Next = NULL;
-                    TempScene->Data.Background = NULL;
-                    TempScene->Data.Character = NULL;
-                    TempScene->Data.Convo = NULL;
-                    control = CHOOSINGBACKGROUND;
+                    if (TempScene->Next == NULL)
+                    {
+                        TempScene->Next = (SceneList)malloc(sizeof(struct ListElements));
+                        TempScene->Next->Before = TempScene;
+                        TempScene = TempScene->Next;
+                        TempScene->Next = NULL;
+                        TempScene->Data.Background = NULL;
+                        TempScene->Data.Character = NULL;
+                        TempScene->Data.Convo = NULL;
+                        control = CHOOSINGBACKGROUND;
+                    }
+                    // else
+                    // {
+                    //     warning = true;
+                    //     while (warning == true)
+                    //     {
+                    //         BeginDrawing();
+                    //         ClearBackground(BLACK);
+                    //         CustomStoryGUI(control, 4, NULL, NULL, NULL);
+                    //         if (IsKeyPressed(KEY_RIGHT))
+                    //         {
+                    //             if (TempScene->Next->Data.Background) free(TempScene->Next->Data.Background);
+                    //             if (TempScene->Next->Data.Character) free(TempScene->Next->Data.Character);
+                    //             if (TempScene->Next->Data.Convo) free(TempScene->Next->Data.Convo);
+                    //             TempScene->Next->Data.Background = NULL;
+                    //             TempScene->Next->Data.Character = NULL;
+                    //             TempScene->Next->Data.Convo = NULL;
+                    //             warning = false;
+                    //             TempScene = TempScene->Next;
+                    //             control = CHOOSINGBACKGROUND;
+                    //         }
+                    //         else if (IsKeyPressed(KEY_LEFT))
+                    //         {
+                    //             control = MODE_REVIEW_SCENE;
+                    //             TempScene = TempScene->Next;
+                    //             warning = false;
+                    //         }
+                    //         EndDrawing();
+                    //     }
+                    // }
                 }
                 else if (IsKeyPressed(KEY_ENTER))
                 {
@@ -275,14 +519,122 @@ void MakeCustomStory(CustomSceneTree *ThisSlot)
                     }
                     else
                     {
+                        warning = true;
                         TempScene = TempScene->Before;
-                        control = CHOOSINGBACKGROUND;
+                        while (warning)
+                        {
+                            BeginDrawing();
+                            ClearBackground(BLACK);
+                            CustomStoryGUI(control, 4, NULL, NULL, NULL);
+                            if (IsKeyPressed(KEY_RIGHT))
+                            {
+                                if (TempScene->Data.Background) free(TempScene->Data.Background);
+                                if (TempScene->Data.Character) free(TempScene->Data.Character);
+                                if (TempScene->Data.Convo) free(TempScene->Data.Convo);
+                                TempScene->Data.Background = NULL;
+                                TempScene->Data.Character = NULL;
+                                TempScene->Data.Convo = NULL;
+                                warning = false;
+                                control = CHOOSINGBACKGROUND;
+                            }
+                            else if (IsKeyPressed(KEY_LEFT))
+                            {
+                                control = MODE_REVIEW_SCENE;
+                                warning = false;
+                                CustomStoryGUI(control, 0, TempScene->Data.Convo, TempScene->Data.Background, TempScene->Data.Character);
+                            }
+                            else if (IsKeyPressed(KEY_SLASH))
+                            {
+                                SceneList DeleteTemp = TempScene;
+                                if (DeleteTemp->Before != NULL)
+                                {
+                                    DeleteTemp->Before->Next = DeleteTemp->Next;
+                                }
+                                if (DeleteTemp->Next != NULL)
+                                {
+                                    DeleteTemp->Next->Before = DeleteTemp->Before;
+                                }
+                                if (DeleteTemp->Before != NULL)
+                                {
+                                    TempScene = TempScene->Before;
+                                }
+                                else if (DeleteTemp->Next != NULL)
+                                {
+                                    TempScene = TempScene->Next;
+                                }
+                                else
+                                {
+                                    TempTree->NodeContents = (SceneList)malloc(sizeof(struct ListElements));
+                                    TempScene = TempTree->NodeContents;
+                                    TempScene->Data.Background = NULL;
+                                    TempScene->Data.Character = NULL;
+                                    TempScene->Data.Convo = NULL;
+                                    TempScene->Next = NULL;
+                                    TempScene->Before = NULL;
+                                }
+                                if (DeleteTemp->Data.Background) free(DeleteTemp->Data.Background);
+                                if (DeleteTemp->Data.Character) free(DeleteTemp->Data.Character);
+                                if (DeleteTemp->Data.Convo) free(DeleteTemp->Data.Convo);
+                                free(DeleteTemp);
+                                warning = false;
+                                ShowRender = true;
+                                selectedsprite = 5;
+                                RenderTimer = 2.0f;
+                                CustomStoryGUI(control, selectedsprite, NULL, NULL, NULL);
+                            }
+                            EndDrawing();
+                        }
                     }
                 }
                 EndDrawing();
             }
         }
+        else if (control == MODE_REVIEW_SCENE)
+        {
+            char LinkBack[128];
+            char LinkChara[128];
+            char LinkAudio[128];
+            char LinkConvo[128];
+            while (control == MODE_REVIEW_SCENE)
+            {
+                BeginDrawing();
+                ClearBackground(BLACK);
+                sprintf(LinkBack, TempScene->Data.Background);
+                sprintf(LinkChara, TempScene->Data.Character);
+                sprintf(LinkConvo, TempScene->Data.Convo);
+                CustomStoryGUI(control, 0, LinkConvo, LinkBack, LinkChara);
+                if (IsKeyPressed(KEY_RIGHT) && TempScene->Next != NULL)
+                {
+                    TempScene = TempScene->Next;
+                }
+                else if(IsKeyPressed(KEY_LEFT) && TempScene->Before != NULL)
+                {
+                    TempScene = TempScene->Before;
+                }
+                else if(IsKeyPressed(KEY_ENTER))
+                {
+                    control = CONFIRMATION;
+                }
+                EndDrawing();
+            }
+        }
     }
+    EndDrawing();
+}
+
+void InitializeStoryTree(CustomSceneTree *ThisSlot)
+{
+    *ThisSlot = (CustomSceneTree)malloc(sizeof(struct Tree));
+    (*ThisSlot)->Parent = NULL;
+    (*ThisSlot)->Left = NULL;
+    (*ThisSlot)->Right = NULL;
+    (*ThisSlot)->ID = rand() % 100000000;
+    (*ThisSlot)->NodeContents = (SceneList)malloc(sizeof(struct ListElements));
+    (*ThisSlot)->NodeContents->Next = NULL;
+    (*ThisSlot)->NodeContents->Before = NULL;
+    (*ThisSlot)->NodeContents->Data.Background = NULL;
+    (*ThisSlot)->NodeContents->Data.Character = NULL;
+    (*ThisSlot)->NodeContents->Data.Convo = NULL;
 }
 
 void InitiateAssets()
@@ -302,6 +654,7 @@ void InitiateAssets()
         FileChara[i].Chara = LoadTexture(path);
     }
 }
+
 
 void SaveSlot(CustomSceneTree *ThisSlot)
 {

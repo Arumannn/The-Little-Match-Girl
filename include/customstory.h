@@ -5,6 +5,7 @@
 
 #define CHARA_AMMOUNT 11
 #define BACKGROUND_AMMOUNT 23
+#define AUDIO_AMMOUNT 6
 
 typedef enum
 {
@@ -12,12 +13,10 @@ typedef enum
     CHOOSINGCHARA,
     CHOOSINGDIALOGUE,
     CONFIRMATION,
+    ALLDONE,
     MODE_REVIEW_SCENE,
-    MODE_MOVE_TREE,
+    MODE_OVERWRITING,
     OUTOFBOUNDS,
-    CHANGE_TREENODE,
-    CHANGE_LINKEDNODE,
-    ALLDONE
 };
 
 typedef struct BackgroundFileData
@@ -32,11 +31,18 @@ typedef struct CharaFileData
     char FileName[124];
 }CharaArr;
 
+typedef struct AudioFileData
+{
+    Texture2D Audio;
+    char FileName[124];
+}AudioArr;
+
 struct SceneNode
 {
     char *Background;
     char *Character;
     char *Convo;
+    char *SFX;
 };
 
 typedef struct ListElements 
@@ -59,13 +65,22 @@ typedef struct Tree
 
 extern CharaArr FileChara[CHARA_AMMOUNT];
 extern BackgroundArr FileBackground[BACKGROUND_AMMOUNT];
+extern AudioArr FileAudio[AUDIO_AMMOUNT];
 static Texture2D MenuBackground;
 
-void CustomStoryGUI(int state, int currentsprite, char *Dialogue);
+
+void InitializeStoryTree(CustomSceneTree *ThisSlot);
+void CustomStoryGUI(int state, int currentsprite, char *Dialogue, char *BackSprite, char *CharaSprite);
 void InitiateAssets();
 void SaveSlot(CustomSceneTree *ThisSlot);
 void MakeCustomStory(CustomSceneTree *ThisSlot);
 void LoadSlot(CustomSceneTree *ThisSlot);
+void AddSceneLast(CustomSceneTree *ThisSlot);
+void AddSceneFirst();
+void DeleteSceneFirst();
+void DeleteSceneLast();
+void ReviewScene(CustomSceneTree *ThisSlot);
+
 
 
 // void StoryCreator(VNTreeNode *currentNodePtr, AssetLibraryArr assets);
