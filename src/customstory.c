@@ -102,163 +102,182 @@ void MakeCustomStory(CustomSceneTree *ThisSlot)
     
     while (control != ALLDONE)
     {
-        if (control == CHOOSINGBACKGROUND)
+        switch (control)
         {
-            selectedsprite = 0;
-            while (control == CHOOSINGBACKGROUND)
-            {
-                BeginDrawing();
-                ClearBackground(BLACK);
-                CustomStoryGUI(control, selectedsprite, NULL, NULL, NULL);
-                if (IsKeyPressed(KEY_ENTER))
-                {
-                    char TempFileName[128];
-                    sprintf(TempFileName, "Assets/BackgroundSprites/background%i.png", selectedsprite+1);
-                    TempScene->Data.Background = malloc(strlen(TempFileName) + 1);
-                    strcpy(TempScene->Data.Background, TempFileName);
-                    control = CHOOSINGCHARA;
-                }
-                else if (IsKeyPressed(KEY_LEFT))
-                {
-                    if (selectedsprite > 0)
-                    {
-                        selectedsprite--;
-                    }
-                }
-                else if (IsKeyPressed(KEY_RIGHT))
-                {
-                    if (selectedsprite < BACKGROUND_AMMOUNT-1)
-                    {
-                        selectedsprite++;
-                    }
-                }
-                EndDrawing();
-            }
-        }
+            case CHOOSINGBACKGROUND:
+                ChoosingBackground(&selectedsprite, &control, &TempScene);
+            break;
 
-        else if (control == CHOOSINGCHARA)
-        {
-            selectedsprite = 0;
-            while (control == CHOOSINGCHARA)
-            {
-                BeginDrawing();
-                ClearBackground(BLACK);
-                CustomStoryGUI(control, selectedsprite, NULL, NULL, NULL);
-                if (IsKeyPressed(KEY_ENTER))
-                {
-                    char TempFileName[128];
-                    sprintf(TempFileName, "Assets/CharaSprites/chara%i.png", selectedsprite+1);
-                    TempScene->Data.Character = malloc(strlen(TempFileName) + 1);
-                    strcpy(TempScene->Data.Character, TempFileName);
-                    control = CHOOSINGDIALOGUE;
-                }
-                else if (IsKeyPressed(KEY_LEFT))
-                {
-                    if (selectedsprite > 0)
-                    {
-                        selectedsprite--;
-                    }
-                }
-                else if (IsKeyPressed(KEY_RIGHT))
-                {
-                    if (selectedsprite < CHARA_AMMOUNT - 1)
-                    {
-                        selectedsprite++;
-                    }
-                }
-                EndDrawing();
-            }
-        }
+            case CHOOSINGCHARA:
+                ChoosingChara(&selectedsprite, &control, &TempScene);
+            break;
 
-        else if (control == CHOOSINGDIALOGUE)
-        {
-            int letterCount = 0;
-            int key = 0;
-            memset(Convo, 0, sizeof(Convo));
-            while (control == CHOOSINGDIALOGUE)
-            {
-                BeginDrawing();
-                ClearBackground(BLACK);
-                key = GetCharPressed();
-                while (key > 0)
+            case CHOOSINGDIALOGUE:
+                ChoosingDialogue(Convo, &selectedsprite, &control, &TempScene);
+            break;
+
+            case CONFIRMATION:
+                bool warning = false;
+                selectedsprite = 0;
+                int KeyPad;
+                while (control == CONFIRMATION)
                 {
-                    if (letterCount < 127 && key >= 32 && key <= 125)
+                    KeyPad = GetKeyPressed();
+                    BeginDrawing();
+                    ClearBackground(BLACK);
+                    if (ShowRender)
                     {
-                        Convo[letterCount++] = (char)key;
-                        Convo[letterCount] = '\0';
+                        CustomStoryGUI(control, selectedsprite, NULL, NULL, NULL);
+                        RenderTimer -= GetFrameTime();
+                        if (RenderTimer <= 0.0f)
+                        {
+                            ShowRender = false;
+                        }
                     }
-                    key = GetCharPressed();
-                }
-                if (IsKeyPressed(KEY_BACKSPACE))
-                {
-                    if (letterCount > 0) Convo[--letterCount] = '\0';
-                }
-                if (IsKeyPressed(KEY_ENTER))
-                {
-                    TempScene->Data.Convo = malloc(strlen(Convo) + 1);
-                    strcpy(TempScene->Data.Convo, Convo);
-                    control = CONFIRMATION;
-                }
-                CustomStoryGUI(control, selectedsprite, Convo, NULL, NULL);
-                EndDrawing();
-            }
-        }
-        else if (control == CONFIRMATION)
-        {
-            bool warning = false;
-            selectedsprite = 0;
-            while (control == CONFIRMATION)
-            {
-                BeginDrawing();
-                ClearBackground(BLACK);
-                if (ShowRender)
-                {
-                    CustomStoryGUI(control, selectedsprite, NULL, NULL, NULL);
-                    RenderTimer -= GetFrameTime();
-                    if (RenderTimer <= 0.0f)
+                    else
                     {
-                        ShowRender = false;
+                        CustomStoryGUI(control, 0, NULL, NULL, NULL);
                     }
-                }
-                else
-                {
-                    CustomStoryGUI(control, 0, NULL, NULL, NULL);
-                }
-                if (IsKeyPressed(KEY_LEFT))
-                {
-                    AddLeftChild(&TempTree, &TempScene, &warning, &control);
-                }
-                else if(IsKeyPressed(KEY_RIGHT))
-                {
-                    AddRightChild(&TempTree, &TempScene, &warning, &control);
-                }
-                else if(IsKeyPressed(KEY_UP))
-                {
+                    switch (KeyPad)
+                    {
+                        case KEY_LEFT:
+                            AddLeftChild(&TempTree, &TempScene, &warning, &control);
+                        break;
+
+                        case KEY_RIGHT:
+                            AddRightChild(&TempTree, &TempScene, &warning, &control);
+                        break;
+
+                        case KEY_UP:
+                            EndDrawing();
+                            PreviousTree(&TempTree, &TempScene, &selectedsprite, &warning, &control);
+                        break;
+
+                        case KEY_DOWN:
+                            AddNewScene(&TempScene, &warning, &control);
+                        break;
+
+                        case KEY_ENTER:
+                            SaveSlot(ThisSlot);
+                            control = ALLDONE;
+                        break;
+
+                        case KEY_BACKSPACE:
+                            PreviousScene(&TempTree, &TempScene, &selectedsprite, &warning, &control);
+                        break;
+                    }
                     EndDrawing();
-                    PreviousTree(&TempTree, &TempScene, &selectedsprite, &warning, &control);
                 }
-                else if(IsKeyPressed(KEY_DOWN))
-                {
-                    AddNewScene(&TempScene, &warning, &control);
-                }
-                else if (IsKeyPressed(KEY_ENTER))
-                {
-                    SaveSlot(ThisSlot);
-                    control = ALLDONE;
-                }
-                else if (IsKeyPressed(KEY_BACKSPACE))
-                {
-                    PreviousScene(&TempTree, &TempScene, &selectedsprite, &warning, &control);
-                }
-                EndDrawing();
-            }
-        }
-        else if (control == MODE_REVIEW_SCENE)
-        {
-            ReviewScene(&control, &TempScene);
+            break;
+
+            case MODE_REVIEW_SCENE:
+                ReviewScene(&control, &TempScene);
+            break;
         }
     }
     EndDrawing();
+}
+
+void ChoosingDialogue(char *Convo, int *selectedsprite, int *control, SceneList *TempScene)
+{
+    int letterCount = 0;
+    int key = 0;
+    memset(Convo, 0, sizeof(Convo));
+    while (*control == CHOOSINGDIALOGUE)
+    {
+        BeginDrawing();
+        ClearBackground(BLACK);
+        key = GetCharPressed();
+        while (key > 0)
+        {
+            if (letterCount < 127 && key >= 32 && key <= 125)
+            {
+                Convo[letterCount++] = (char)key;
+                Convo[letterCount] = '\0';
+            }
+            key = GetCharPressed();
+        }
+        if (IsKeyPressed(KEY_BACKSPACE))
+        {
+            if (letterCount > 0) Convo[--letterCount] = '\0';
+        }
+        if (IsKeyPressed(KEY_ENTER))
+        {
+            (*TempScene)->Data.Convo = malloc(strlen(Convo) + 1);
+            strcpy((*TempScene)->Data.Convo, Convo);
+            *control = CONFIRMATION;
+        }
+        CustomStoryGUI(*control, *selectedsprite, Convo, NULL, NULL);
+        EndDrawing();
+    }
+}
+
+void ChoosingChara(int *selectedsprite, int *control, SceneList *TempScene)
+{
+    *selectedsprite = 0;
+    while ((*control) == CHOOSINGCHARA)
+    {
+        BeginDrawing();
+        ClearBackground(BLACK);
+        CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL);
+        if (IsKeyPressed(KEY_ENTER))
+        {
+            char TempFileName[128];
+            sprintf(TempFileName, "Assets/CharaSprites/chara%i.png", (*selectedsprite)+1);
+            (*TempScene)->Data.Character = malloc(strlen(TempFileName) + 1);
+            strcpy((*TempScene)->Data.Character, TempFileName);
+            *control = CHOOSINGDIALOGUE;
+        }
+        else if (IsKeyPressed(KEY_LEFT))
+        {
+            if (*selectedsprite > 0)
+            {
+                (*selectedsprite)--;
+            }
+        }
+        else if (IsKeyPressed(KEY_RIGHT))
+        {
+            if (*selectedsprite < CHARA_AMMOUNT - 1)
+            {
+                (*selectedsprite)++;
+            }
+        }
+        EndDrawing();
+    }
+}
+
+void ChoosingBackground(int *selectedsprite, int *control, SceneList *TempScene)
+{
+    *selectedsprite = 0;
+    while (*control == CHOOSINGBACKGROUND)
+    {
+        BeginDrawing();
+        ClearBackground(BLACK);
+        CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL);
+        if (IsKeyPressed(KEY_ENTER))
+        {
+            char TempFileName[128];
+            sprintf(TempFileName, "Assets/BackgroundSprites/background%i.png", (*selectedsprite)+1);
+            (*TempScene)->Data.Background = malloc(strlen(TempFileName) + 1);
+            strcpy((*TempScene)->Data.Background, TempFileName);
+            *control = CHOOSINGCHARA;
+        }
+        else if (IsKeyPressed(KEY_LEFT))
+        {
+            if (*selectedsprite > 0)
+            {
+                (*selectedsprite)--;
+            }
+        }
+        else if (IsKeyPressed(KEY_RIGHT))
+        {
+            if (*selectedsprite < BACKGROUND_AMMOUNT-1)
+            {
+                (*selectedsprite)++;
+            }
+        }
+        EndDrawing();
+    }
 }
 
 void AddNewScene(SceneList *TempScene, bool *warning, int *control)
