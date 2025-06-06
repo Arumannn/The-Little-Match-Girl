@@ -14,6 +14,7 @@ TreeStory Mytree[MAX_NODE_TREE];
 GameState currentGameState = GAME_STATE_MAIN_MENU; 
 bool minigameInitialized = false; 
 bool exitProgram = false;
+
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "The Little Match Girl");
     SetTargetFPS(60);
@@ -77,9 +78,9 @@ int main() {
                 }
                 break;   
             case GAME_STATE_CREATE_SLOT_1:
-            MakeCustomStory(&Slot_1);
+            //MakeCustomStory(&Slot_1);
             case GAME_STATE_CREATE_SLOT_2:
-            MakeCustomStory(&Slot_2);
+            //MakeCustomStory(&Slot_2);
             case GAME_STATE_CREATE_SLOT_3:
             case GAME_STATE_EDIT_SLOT_1:
             case GAME_STATE_EDIT_SLOT_2:

@@ -1,4 +1,5 @@
 #include "minigame.h"
+#include <stdio.h>
 
 Stack MemoryStack;
 Stack PlayerChoiceStack;
