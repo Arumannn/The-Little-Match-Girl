@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <raylib.h>
-#include "customstory.h"
+//#include "customstory.h"
 #include "minigame.h"
 #include "story.h"
 #include "mainmenu.h"

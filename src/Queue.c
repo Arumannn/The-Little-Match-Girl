@@ -52,7 +52,6 @@ void DeQueueFirst(Queue *Q) {
         return;
     }
     
-    // Unload textures if they exist
     if (Q->data[Q->front].backgroundTex.id != 0) {
         UnloadTexture(Q->data[Q->front].backgroundTex);
     }
