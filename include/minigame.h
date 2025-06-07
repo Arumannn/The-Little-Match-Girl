@@ -21,7 +21,6 @@ extern int currentChoiceCount;
 void InitMiniGameStack();
 void UpdateMiniGameStack(GameState *currentGameState);
 void DrawMiniGameStack();
-bool CompareStack(Stack S1, Stack S2);
 void UnloadMiniGameStackAssets(Stack * S); 
 
 #endif

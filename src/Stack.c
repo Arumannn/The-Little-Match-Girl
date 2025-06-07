@@ -26,6 +26,9 @@ void Pop (Stack *S, Data *X){
     {
         *X = S->Memory[S->top];
         S->top--;
+    }else{
+        printf("Stack kosong\n");
+        *X = (Data) {0};
     }
     
 }
@@ -34,15 +37,14 @@ int StackSize(Stack S){
     return S.top + 1;
 } 
 
-void PrintStack(Stack S){
-    if (!IsStackEmpty(S))
-    {
-        for (int i = S.top; i >= MAX_STACK - 1; i--)
-        {
-            printf("Memory [%d]: Image ID :\n", i, S.Memory[i].Image.id);
-        }
-        
-    }else printf("Stack Masih Kosong\n");
-    
-}      
+void PrintStack(Stack S) {
+    if (IsStackEmpty(S)) {
+        printf("Stack kosong\n");
+        return;
+    }
+    printf("Isi stack (dari top ke bottom):\n");
+    for (int i = S.top; i >= 0; i--) {
+        printf("Memory [index %d]: Image ID: %u\n", i, S.Memory[i].Image.id);
+    }
+}  
 

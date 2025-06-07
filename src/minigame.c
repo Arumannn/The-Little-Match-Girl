@@ -10,39 +10,37 @@ int currentMemoryIndex = 0;
 bool showingMemories = false;
 bool choosingMemories = false;
 bool minigameSuccess = false;
-bool minigameActive = false; 
+bool minigameActive = false;
 int currentChoiceCount = 0;
-int memorySequence[MAX_STACK];       // Urutan memori yang ditampilkan besar (tetap berurutan)
-int gridDisplayOrder[MAX_STACK];     // Urutan tampilan di grid pilihan (yang akan diacak)
-bool correctChoices[MAX_STACK];      // Array untuk menandai pilihan yang benar
+int memorySequence[MAX_STACK];   // Urutan memori yang ditampilkan (berurutan)
+int gridDisplayOrder[MAX_STACK]; // Urutan tampilan di grid (acak)
+bool correctChoices[MAX_STACK];  // Menandai pilihan yang benar
 
-void InitMiniGameStack(){
+void InitMiniGameStack() {
     char filepath[256];
     
-    // Load textures
     for (int i = 0; i < MAX_STACK; i++) {
         sprintf(filepath, "Assets/Memories/Memory_%d.png", i);
         memoryImages[i] = LoadTexture(filepath);
-        
         if (memoryImages[i].id == 0) {
-            printf("Gambar masih kosong %s\n", filepath);
+            printf("Gagal memuat gambar %s\n", filepath);
         }
     }
     
+    // Inisialisasi stack
     CreateEmptyStack(&MemoryStack);
     CreateEmptyStack(&PlayerChoiceStack);
 
-    // Inisialisasi urutan memori yang ditampilkan (tetap berurutan)
+    // Inisialisasi urutan memori (0, 1, 2, ..., MAX_STACK-1)
     for (int i = 0; i < MAX_STACK; i++) {
-        memorySequence[i] = i; 
+        memorySequence[i] = i;
     }
     
-    // Inisialisasi dan acak urutan tampilan grid
+    // Inisialisasi dan acak urutan grid
     for (int i = 0; i < MAX_STACK; i++) {
         gridDisplayOrder[i] = i;
     }
-    
-    // Mengacak array gridDisplayOrder menggunakan Fisher-Yates shuffle
+    // Fisher-Yates shuffle untuk gridDisplayOrder
     for (int i = MAX_STACK - 1; i > 0; i--) {
         int j = GetRandomValue(0, i);
         int temp = gridDisplayOrder[i];
@@ -50,6 +48,7 @@ void InitMiniGameStack(){
         gridDisplayOrder[j] = temp;
     }
 
+    // Inisialisasi state minigame
     showingMemories = true;
     choosingMemories = false;
     minigameSuccess = false;
@@ -63,13 +62,12 @@ void InitMiniGameStack(){
         correctChoices[i] = false;
     }
     
+    // Debugging: Cetak urutan
     printf("Urutan memori yang ditampilkan: ");
     for (int i = 0; i < MAX_STACK; i++) {
         printf("%d ", memorySequence[i]);
     }
-    printf("\n");
-    
-    printf("Urutan tampilan grid: ");
+    printf("\nUrutan tampilan grid: ");
     for (int i = 0; i < MAX_STACK; i++) {
         printf("%d ", gridDisplayOrder[i]);
     }
@@ -79,19 +77,22 @@ void InitMiniGameStack(){
 void UpdateMiniGameStack(GameState *currentGameState) {
     if (!minigameActive) return;
 
+    static Stack TempStack; // Stack sementara untuk perbandingan dengan Pop
+    static bool tempStackInitialized = false; // Flag inisialisasi TempStack
+
     if (showingMemories) {
         memoryDisplayTimer += GetFrameTime();
 
-        // Delay 5 detik sebelum mulai menampilkan memory
+        // Delay 5 detik sebelum menampilkan memori
         if (memoryDisplayTimer < 5.0f) {
-            return; // Belum saatnya menampilkan memory
+            return;
         }
 
-        // Hitung waktu relatif setelah delay 5 detik
+        // Hitung waktu relatif dan indeks memori yang diharapkan
         float timeAfterStart = memoryDisplayTimer - 5.0f;
         int expectedMemoryIndex = (int)(timeAfterStart / displayDurationPerMemory);
         
-        // Jika sudah saatnya untuk memory berikutnya dan masih ada memory yang belum ditampilkan
+        // Push memori ke MemoryStack
         if (expectedMemoryIndex >= currentMemoryIndex && currentMemoryIndex < MAX_STACK) {
             Data memoryData = { 
                 memoryImages[memorySequence[currentMemoryIndex]], 
@@ -99,79 +100,106 @@ void UpdateMiniGameStack(GameState *currentGameState) {
                            memoryImages[memorySequence[currentMemoryIndex]].height}
             };
             Push(&MemoryStack, memoryData);
-            
-            printf("Memory %d (Gambar : %d)\n", currentMemoryIndex, memorySequence[currentMemoryIndex]);
-            
             currentMemoryIndex++;
         }
 
-        // Jika semua memory sudah ditampilkan dan waktu cukup untuk memory terakhir
+        // Pindah ke fase pemilihan setelah semua memori ditampilkan
         if (currentMemoryIndex >= MAX_STACK && timeAfterStart >= MAX_STACK * displayDurationPerMemory) {
             showingMemories = false;
             choosingMemories = true;
             currentChoiceCount = 0;
-            printf("Pemilihan memori\n");
+            tempStackInitialized = false; // Reset flag TempStack
+            printf("Memory Stack : Memulai pemilihan memori (urutan terbalik)\n");
+            PrintStack(MemoryStack); // Debugging: Cetak MemoryStack
         }
     } 
     else if (choosingMemories) {
+        // Inisialisasi TempStack dengan salinan MemoryStack
+        if (!tempStackInitialized) {
+            CreateEmptyStack(&TempStack);
+            for (int i = 0; i < StackSize(MemoryStack); i++) {
+                Push(&TempStack, MemoryStack.Memory[i]);
+            }
+            tempStackInitialized = true;
+            printf("Menyalin MemoryStack ke TempStack\n");
+            PrintStack(TempStack); // Debugging: Cetak TempStack
+        }
+
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
             Vector2 mouse = GetMousePosition();
 
             for (int i = 0; i < MAX_STACK; i++) {
+                // Skip jika kotak sudah dipilih
+                if (correctChoices[i]) continue;
+
+                // Hitung posisi grid 3x2
                 Rectangle choiceRect;
-                
-                // Posisi grid 3x2 (3 kolom, 2 baris) dengan center alignment
                 int col = i % 3;
                 int row = i / 3;
-                int gridStartX = SCREEN_WIDTH / 2 - (3 * 640) / 2; // Center grid horizontal untuk ukuran 640
-                int gridStartY = SCREEN_HEIGHT / 2 - (2 * 360) / 2; // Center grid vertical untuk ukuran 360
-                
-                choiceRect.x = gridStartX + col * 640; 
-                choiceRect.y = gridStartY + row * 360; 
+                int gridStartX = SCREEN_WIDTH / 2 - (3 * 640) / 2;
+                int gridStartY = SCREEN_HEIGHT / 2 - (2 * 360) / 2;
+                choiceRect.x = gridStartX + col * 640;
+                choiceRect.y = gridStartY + row * 360;
                 choiceRect.width = 640;
                 choiceRect.height = 360;
 
                 if (CheckCollisionPointRec(mouse, choiceRect)) {
-                    // Mendapatkan index memori yang sebenarnya dari grid yang diacak
+                    // Mendapatkan indeks memori dari grid yang diacak
                     int actualMemoryIndex = gridDisplayOrder[i];
                     
-                    int expectedMemoryIndex = StackSize(MemoryStack) - 1 - currentChoiceCount;
-                    
-                    if (expectedMemoryIndex >= 0 && expectedMemoryIndex < StackSize(MemoryStack)) {
-                        Data expectedMemory = MemoryStack.Memory[expectedMemoryIndex];
-                        
-                        // Membandingkan dengan memori yang sebenarnya
+                    // Pop elemen teratas dari TempStack
+                    Data expectedMemory;
+                    Pop(&TempStack, &expectedMemory);
+
+                    // Cek apakah Pop berhasil
+                    if (expectedMemory.Image.id != 0) { 
                         if (memoryImages[actualMemoryIndex].id == expectedMemory.Image.id) {
                             Data chosenData = { memoryImages[actualMemoryIndex], choiceRect };
                             Push(&PlayerChoiceStack, chosenData);
-                            correctChoices[i] = true; // Menandai pilihan ini sebagai benar
+                            correctChoices[i] = true;
                             currentChoiceCount++;
+                            printf("Pilihan benar: Memori %d (ID: %u)\n", actualMemoryIndex, memoryImages[actualMemoryIndex].id);
+                            PrintStack(PlayerChoiceStack); // Debugging: Cetak PlayerChoiceStack
+                            
+                            // Cek apakah minigame selesai
                             if (currentChoiceCount >= MAX_STACK) {
                                 choosingMemories = false;
                                 minigameSuccess = true;
-                                printf("Minigame completed successfully!\n");
+                                printf("Minigame berhasil diselesaikan!\n");
                             }
                         } else {
-                            
+                            // Pilihan salah, reset PlayerChoiceStack dan TempStack
                             CreateEmptyStack(&PlayerChoiceStack);
                             currentChoiceCount = 0;
-                            // Reset semua correctChoices
                             for (int j = 0; j < MAX_STACK; j++) {
                                 correctChoices[j] = false;
                             }
+                            CreateEmptyStack(&TempStack);
+                            for (int j = 0; j < StackSize(MemoryStack); j++) {
+                                Push(&TempStack, MemoryStack.Memory[j]);
+                            }
+                            printf("Pilihan salah: Memori %d (ID: %u), mereset pilihan\n", 
+                                   actualMemoryIndex, memoryImages[actualMemoryIndex].id);
+                            PrintStack(TempStack); // Debugging: Cetak TempStack
+                        }
+                    } else {
+                        printf("Error: TempStack kosong, mereset TempStack\n");
+                        CreateEmptyStack(&TempStack);
+                        for (int j = 0; j < StackSize(MemoryStack); j++) {
+                            Push(&TempStack, MemoryStack.Memory[j]);
                         }
                     }
-                    break; 
+                    break;
                 }
             }
         }
     }
     
-    // Handle success state
     if (minigameSuccess && IsKeyPressed(KEY_SPACE)) {
         minigameActive = false;
-        UnloadMiniGameStackAssets(&MemoryStack);
-        UnloadMiniGameStackAssets(&PlayerChoiceStack);
+        CreateEmptyStack(&MemoryStack);
+        CreateEmptyStack(&PlayerChoiceStack);
+        CreateEmptyStack(&TempStack); 
         *currentGameState = GAME_STATE_PLAY_GAME;
     }
 }
@@ -180,7 +208,6 @@ void DrawMiniGameStack() {
     ClearBackground(BLACK);
     
     if (showingMemories) {
-        
         if (memoryDisplayTimer < 5.0f) {
             DrawText("Remember everything.........", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2, 42, WHITE);
             return;
@@ -191,34 +218,30 @@ void DrawMiniGameStack() {
         
         if (displayIndex < MAX_STACK && displayIndex >= 0) {
             Texture2D currentTexture = memoryImages[memorySequence[displayIndex]];
-            
             float scaleX = (float)SCREEN_WIDTH / currentTexture.width;
             float scaleY = (float)SCREEN_HEIGHT / currentTexture.height;
-            float scale = (scaleX < scaleY) ? scaleX : scaleY; 
-            
+            float scale = (scaleX < scaleY) ? scaleX : scaleY;
             int drawWidth = (int)(currentTexture.width * scale);
             int drawHeight = (int)(currentTexture.height * scale);
             int x = (SCREEN_WIDTH - drawWidth) / 2;
             int y = (SCREEN_HEIGHT - drawHeight) / 2;
             
             DrawTextureEx(currentTexture, (Vector2){x, y}, 0, scale, WHITE);
-            
             DrawText(TextFormat("Memory %d of %d", displayIndex + 1, MAX_STACK), 
-                    SCREEN_WIDTH / 2 - 80, 100, 20, LIGHTGRAY);
+                     SCREEN_WIDTH / 2 - 80, 100, 20, LIGHTGRAY);
         }
     }
     else if (choosingMemories) {
-        DrawText("How can you become like this.... (choice reverse sequence)", SCREEN_WIDTH / 2 - 250, 50, 30, WHITE);
+        DrawText("How can you become like this.... (choose reverse sequence)", SCREEN_WIDTH / 2 - 250, 50, 30, WHITE);
         
-        // Menggambar grid dengan urutan yang sudah diacak
+        // Menggambar grid 3x2
         for (int i = 0; i < MAX_STACK; i++) {
             int col = i % 3;
             int row = i / 3;
-            int gridStartX = SCREEN_WIDTH / 2 - (3 * 640) / 2; // Center grid horizontal untuk ukuran 640
-            int gridStartY = SCREEN_HEIGHT / 2 - (2 * 360) / 2; // Center grid vertical untuk ukuran 360
+            int gridStartX = SCREEN_WIDTH / 2 - (3 * 640) / 2;
+            int gridStartY = SCREEN_HEIGHT / 2 - (2 * 360) / 2;
             
             Rectangle choiceRect = {gridStartX + col * 640, gridStartY + row * 360, 640, 360};
-            
             int memoryToDisplay = gridDisplayOrder[i];
             
             DrawTexturePro(
@@ -234,13 +257,11 @@ void DrawMiniGameStack() {
             int borderThickness = 2;
             
             if (correctChoices[i]) {
-                // Jika pilihan benar, border hijau tebal
                 borderColor = GREEN;
                 borderThickness = 4;
             } else {
                 Vector2 mouse = GetMousePosition();
                 if (CheckCollisionPointRec(mouse, choiceRect)) {
-                    // Hover effect hanya untuk yang belum dipilih
                     borderColor = YELLOW;
                     borderThickness = 3;
                 }
@@ -251,32 +272,11 @@ void DrawMiniGameStack() {
     }
 
     if (minigameSuccess) {
-        
         DrawText("Now you have to fight with your life.....", SCREEN_WIDTH / 2 - 200, SCREEN_HEIGHT / 2, 40, WHITE);
         DrawText("Press SPACE to continue...", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 50, 20, LIGHTGRAY);
     }
 }
 
-// bool CompareStacksReverse(Stack original, Stack playerChoice) {
-//     if (StackSize(original) != StackSize(playerChoice)) {
-//         return false;
-//     }
-    
-//     for (int i = 0; i < StackSize(original); i++) {
-//         int originalIndex = StackSize(original) - 1 - i;
-//         if (original.Memory[originalIndex].Image.id != playerChoice.Memory[i].Image.id) {
-//             return false;
-//         }
-//     }
-//     return true;
-// }
-
 void UnloadMiniGameStackAssets(Stack *S) {
-    for (int i = 0; i < StackSize(*S); i++) {
-        if (S->Memory[i].Image.id != 0) {
-            UnloadTexture(S->Memory[i].Image);
-            S->Memory[i].Image = (Texture2D){0};
-        }
-    }
     CreateEmptyStack(S);
 }
