@@ -100,5 +100,6 @@ void SaveTreeToFile(CustomSceneTree tree, const char* filename);
 void SaveSlotToFile(CustomSceneTree *ThisSlot, int slotNumber);
 void SerializeTreeNode(FILE *file, CustomSceneTree node);
 void SerializeSceneList(FILE *file, SceneList sceneList);
+void LoadSlot(CustomSceneTree *ThisSlot, int slotnumber);
 
 #endif

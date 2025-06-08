@@ -95,11 +95,20 @@ int main() {
                 
             // Handle slot editing states
             case GAME_STATE_EDIT_SLOT_1:
+            LoadSlot(&Slot_1, 1);
+            currentGameState = GAME_STATE_MAIN_MENU;
+            break;
+
             case GAME_STATE_EDIT_SLOT_2:
+            LoadSlot(&Slot_2, 2);
+            currentGameState = GAME_STATE_MAIN_MENU;
+            break;
+
             case GAME_STATE_EDIT_SLOT_3:
-                currentGameState = GAME_STATE_MAIN_MENU;
-                InitButtonRects(currentGameState);
-                break;
+            LoadSlot(&Slot_3, 3);
+            currentGameState = GAME_STATE_MAIN_MENU;
+                //InitButtonRects(currentGameState);
+            break;
                 
             // Handle slot deletion states
             case GAME_STATE_DELETE_SLOT_1:
