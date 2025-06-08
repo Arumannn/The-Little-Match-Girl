@@ -76,12 +76,20 @@ int main() {
                 break;
                 
             case GAME_STATE_CREATE_SLOT_1:
-            MakeCustomStory(&Slot_1);
+            MakeCustomStory(&Slot_1, 1);
+            currentGameState = GAME_STATE_MAIN_MENU;
+            break;
+
             case GAME_STATE_CREATE_SLOT_2:
-            MakeCustomStory(&Slot_2);
+            MakeCustomStory(&Slot_2, 2);
+            currentGameState = GAME_STATE_MAIN_MENU;
+            break;
+
             case GAME_STATE_CREATE_SLOT_3:
-            MakeCustomStory(&Slot_3);
-                currentGameState = GAME_STATE_MAIN_MENU;
+            MakeCustomStory(&Slot_3, 3);
+            currentGameState = GAME_STATE_MAIN_MENU;
+            break;
+            
                 InitButtonRects(currentGameState);
                 break;
                 

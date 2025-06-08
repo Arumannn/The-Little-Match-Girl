@@ -24,7 +24,7 @@ void CustomStoryGUI(int state, int currentsprite, char *Dialogue, char *BackSpri
             DrawTextureEx(FileBackground[currentsprite].Background, position, 0, 0.75f, WHITE);
             DrawText(buffer, position.x, position.y-50, 20, WHITE);
             break;
-
+        
         case CHOOSINGCHARA:
             sprintf(buffer, "Character %i of %i", currentsprite+1, CHARA_AMMOUNT);
             position.x = GetScreenWidth()/2.0f - FileChara[currentsprite].Chara.width * 0.75f / 2.0f;
@@ -50,24 +50,38 @@ void CustomStoryGUI(int state, int currentsprite, char *Dialogue, char *BackSpri
             }
             else if (!ShowRender && currentsprite < 3)
             {
-                DrawText("Pick where to go next:", 40, 40, 30, WHITE);
-                DrawText("<--: Left child | -->: Right child | ↑: Parent | ↓: Add Scene | BACKSPACE: Delete The Latest Scene | ENTER: Save", 40, 80, 25, WHITE);
+                DrawText("Where do you want to go next?", 40, 30, 30, WHITE);
+                DrawText("<-- Go to Next Left Option | Go to Next Right Option --> | Up_Arrow Go To Parent | / Review Scenes", 40, 40, 30, WHITE);
+                DrawText(" (A) Delete Lastest Scene | (S) Delete First Scene | (D) Add Scene As The First Scene | (F) Add Scene Into The Last Scene | (G) Overwrite Tree", 40, 80, 25, WHITE);
             }
-            else if (currentsprite == 3) //FOR TREE
+            else if (currentsprite == 3)
             {
                 DrawText("WARNING: You already have a story tree node here!", 40, 30, 30, WHITE);
-                DrawText("<-- Review | / : Delete Tree Node | BACKSPACE: Delete Latest Scene | Overwrite -->", 40, 80, 25, WHITE);
+                DrawText("<-- Go to Next Left Option | Go to Next Right Option --> | Up_Arrow Go To Parent | / Review Scenes | BACKSPACE Delete Tree", 40, 80, 25, WHITE);
+                DrawText(" (A) Delete Lastest Scene | (S) Delete First Scene | (D) Add Scene As The First Scene | (F) Add Scene Into The Last Scene | (G) Overwrite Tree", 40, 130, 25, WHITE);
             }
-            else if (currentsprite == 4) // FOR LINKEDLIST
+            else if (currentsprite == 4) 
             {
-                DrawText("WARNING: You already have a scene here!", 40, 30, 30, WHITE);
-                DrawText("<-- Review | / : Deletes | Overwrite -->", 40, 80, 25, WHITE);
+                DrawText("Scene Successfully Added!", 40, 30, 30, WHITE);
             }
             else if (currentsprite == 5)
             {
                 DrawText("Scene successfully deleted!", 40, 30, 30, WHITE);
             }
+            else if (currentsprite == 6)
+            {
+                DrawText("Tree and its descendants has been wiped off clean!", 40, 30, 30, WHITE);
+            }
+            else if (currentsprite == 7)
+            {
+                DrawText("Tree node has been wiped and ready for overwriting!", 40, 30, 30, WHITE);
+            }
+            else if (currentsprite == 8)
+            {
+                DrawText("Story saved successfully!", 40, 30, 30, WHITE);
+            }
             break;
+            
         case MODE_REVIEW_SCENE:
             Background = LoadTexture(BackSprite);
             Character = LoadTexture(CharaSprite);
@@ -85,7 +99,7 @@ void CustomStoryGUI(int state, int currentsprite, char *Dialogue, char *BackSpri
     }
 }
 
-void MakeCustomStory(CustomSceneTree *ThisSlot)
+void MakeCustomStory(CustomSceneTree *ThisSlot, int SlotNumber)
 {
     ShowRender = false;
     char Convo[128];
@@ -136,42 +150,104 @@ void MakeCustomStory(CustomSceneTree *ThisSlot)
                     }
                     else
                     {
-                        CustomStoryGUI(control, 0, NULL, NULL, NULL);
+                        CustomStoryGUI(control, selectedsprite, NULL, NULL, NULL);
                     }
                     switch (KeyPad)
                     {
                         case KEY_LEFT:
-                            AddLeftChild(&TempTree, &TempScene, &warning, &control);
+                            AddLeftChild(&TempTree, &TempScene, &selectedsprite, &warning, &control);
                         break;
 
                         case KEY_RIGHT:
-                            AddRightChild(&TempTree, &TempScene, &warning, &control);
+                            AddRightChild(&TempTree, &TempScene, &warning, &control, &selectedsprite);
                         break;
 
                         case KEY_UP:
-                            EndDrawing();
                             PreviousTree(&TempTree, &TempScene, &selectedsprite, &warning, &control);
                         break;
 
-                        case KEY_DOWN:
-                            AddNewScene(&TempScene, &warning, &control);
+                        case KEY_A:
+                            control = DELETELASTSCENE;
                         break;
 
+                        case KEY_S:
+                            control = DELETEFIRSTSCENE;
+                        break;
+
+                        case KEY_D:
+                            control = ADDFIRSTSCENE;
+                        break;
+
+                        case KEY_F:
+                            control = ADDLASTSCENE;
+                        break;
+
+                        case KEY_G:
+                            control = MODE_OVERWRITING;
+
                         case KEY_ENTER:
-                            SaveSlot(ThisSlot);
+                            PrintTree(ThisSlot);
+                            SaveSlotToFile(ThisSlot, SlotNumber);
+                            
+                            selectedsprite = 8; // New confirmation message
+                            RenderTimer = 2.0f;
+                            ShowRender = true;
+                            control = CONFIRMATION;
+                            while (ShowRender)
+                            {
+                                BeginDrawing();
+                                ClearBackground(BLACK);
+                                if (ShowRender)
+                                {
+                                    CustomStoryGUI(control, selectedsprite, NULL, NULL, NULL);
+                                    RenderTimer -= GetFrameTime();
+                                    if (RenderTimer <= 0.0f)
+                                    {
+                                        ShowRender = false;
+                                    }
+                                }
+                                EndDrawing();
+                            }
                             control = ALLDONE;
                         break;
 
                         case KEY_BACKSPACE:
-                            PreviousScene(&TempTree, &TempScene, &selectedsprite, &warning, &control);
+                            //HandleDeleteCurrentNode(&TempTree, &TempScene, &control, &selectedsprite);
                         break;
+
+                        case KEY_SLASH:
+                        {
+                            control = MODE_REVIEW_SCENE;
+                        }
                     }
                     EndDrawing();
                 }
             break;
 
+            case ADDFIRSTSCENE:
+                AddSceneFirst(&TempTree, &TempScene, &warning, &control);
+            break;
+
+            case ADDLASTSCENE:
+                AddSceneLast(&TempTree, &TempScene, &control);
+            break;
+
+            case DELETEFIRSTSCENE:
+                DeleteSceneFirst(&TempTree, &TempScene, &selectedsprite, &warning, &control);
+            break;
+
+            case DELETELASTSCENE:
+                DeleteSceneLast(&TempTree, &TempScene, &selectedsprite, &warning, &control);
+            break;
+
             case MODE_REVIEW_SCENE:
+                TempScene = TempTree->NodeContents;
                 ReviewScene(&control, &TempScene);
+                selectedsprite = 2;
+            break;
+
+            case MODE_OVERWRITING:
+                OverwriteTree(&TempScene, &TempTree, &control);
             break;
         }
     }
@@ -206,6 +282,16 @@ void ChoosingDialogue(char *Convo, int *selectedsprite, int *control, SceneList 
             (*TempScene)->Data.Convo = malloc(strlen(Convo) + 1);
             strcpy((*TempScene)->Data.Convo, Convo);
             *control = CONFIRMATION;
+            *selectedsprite = 4;
+            RenderTimer = 2.0f;
+            while (RenderTimer > 0.0f)
+            {
+                BeginDrawing();
+                ClearBackground(BLACK);
+                CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL);
+                RenderTimer -= GetFrameTime();
+                EndDrawing();
+            }
         }
         CustomStoryGUI(*control, *selectedsprite, Convo, NULL, NULL);
         EndDrawing();
@@ -280,48 +366,41 @@ void ChoosingBackground(int *selectedsprite, int *control, SceneList *TempScene)
     }
 }
 
-void AddNewScene(SceneList *TempScene, bool *warning, int *control)
+void OverwriteTree(SceneList *TempScene, CustomSceneTree *TempTree, int *control)
 {
-    if ((*TempScene)->Next == NULL)
+    (*TempScene) = (*TempTree)->NodeContents;
+    SceneList toDelete = (*TempScene);
+    SceneList next;
+    while (toDelete != NULL)
     {
-        (*TempScene)->Next = (SceneList)malloc(sizeof(struct ListElements));
-        (*TempScene)->Next->Before = (*TempScene);
-        (*TempScene) = (*TempScene)->Next;
-        (*TempScene)->Next = NULL;
-        (*TempScene)->Data.Background = NULL;
-        (*TempScene)->Data.Character = NULL;
-        (*TempScene)->Data.Convo = NULL;
-        *control = CHOOSINGBACKGROUND;
+        next = toDelete->Next;
+
+        if (toDelete->Data.Background) free(toDelete->Data.Background);
+        if (toDelete->Data.Character) free(toDelete->Data.Character);
+        if (toDelete->Data.Convo) free(toDelete->Data.Convo);
+        free(toDelete);
+        toDelete = next;
     }
-    else
+    (*TempTree)->NodeContents = (SceneList)calloc(1, sizeof(struct ListElements));
+    (*TempScene) = (*TempTree)->NodeContents;
+    (*TempScene)->Next = NULL;
+    (*TempScene)->Before = NULL;
+    (*TempScene)->Data.Background = NULL;
+    (*TempScene)->Data.Character = NULL;
+    (*TempScene)->Data.Convo = NULL;
+
+    *control = CONFIRMATION;
+    RenderTimer = 2.0f;
+    while (RenderTimer > 0.0f)
     {
-        *warning = true;
-        while (*warning == true)
-        {
-            BeginDrawing();
-            ClearBackground(BLACK);
-            CustomStoryGUI(*control, 4, NULL, NULL, NULL);
-            if (IsKeyPressed(KEY_RIGHT))
-            {
-                if ((*TempScene)->Next->Data.Background) free((*TempScene)->Next->Data.Background);
-                if ((*TempScene)->Next->Data.Character) free((*TempScene)->Next->Data.Character);
-                if ((*TempScene)->Next->Data.Convo) free((*TempScene)->Next->Data.Convo);
-                (*TempScene)->Next->Data.Background = NULL;
-                (*TempScene)->Next->Data.Character = NULL;
-                (*TempScene)->Next->Data.Convo = NULL;
-                *warning = false;
-                (*TempScene) = (*TempScene)->Next;
-                *control = CHOOSINGBACKGROUND;
-            }
-            else if (IsKeyPressed(KEY_LEFT))
-            {
-                *control = MODE_REVIEW_SCENE;
-                (*TempScene) = (*TempScene)->Next;
-                *warning = false;
-            }
-            EndDrawing();
-        }
+        BeginDrawing();
+        ClearBackground(BLACK);
+        CustomStoryGUI(*control, 7, NULL, NULL, NULL);
+        RenderTimer -= GetFrameTime();
+        EndDrawing();
     }
+
+    *control = CHOOSINGBACKGROUND;
 }
 
 void PreviousTree(CustomSceneTree *TempTree, SceneList *TempScene, int *selectedsprite, bool *warning, int *control)
@@ -335,99 +414,14 @@ void PreviousTree(CustomSceneTree *TempTree, SceneList *TempScene, int *selected
     else
     {
         *warning = true;
+        *control = CONFIRMATION;
         (*TempTree) = (*TempTree)->Parent;
         (*TempScene) = (*TempTree)->NodeContents;
-        while (*warning)
-        {
-            BeginDrawing();
-            ClearBackground(BLACK);
-            CustomStoryGUI(*control, 3, NULL, NULL, NULL);
-            if (IsKeyPressed(KEY_RIGHT))
-            {
-                SceneList toDelete = (*TempScene);
-                SceneList next;
-                while (toDelete != NULL)
-                {
-                    next = toDelete->Next;
-
-                    if (toDelete->Data.Background) free(toDelete->Data.Background);
-                    if (toDelete->Data.Character) free(toDelete->Data.Character);
-                    if (toDelete->Data.Convo) free(toDelete->Data.Convo);
-                    free(toDelete);
-                    toDelete = next;
-                }
-                (*TempTree)->NodeContents = (SceneList)calloc(1, sizeof(struct ListElements));
-                (*TempScene) = (*TempTree)->NodeContents;
-                (*TempScene)->Next = NULL;
-                (*TempScene)->Before = NULL;
-                (*TempScene)->Data.Background = NULL;
-                (*TempScene)->Data.Character = NULL;
-                (*TempScene)->Data.Convo = NULL;
-                *control = CHOOSINGBACKGROUND;
-                *warning = false;
-            }
-            else if (IsKeyPressed(KEY_LEFT) && (*TempScene) != NULL)
-            {
-                *control = MODE_REVIEW_SCENE;
-                *warning = false;
-                CustomStoryGUI(*control, 0, (*TempScene)->Data.Convo, (*TempScene)->Data.Background, (*TempScene)->Data.Character);
-            }
-            else if (IsKeyPressed(KEY_SLASH))
-            {
-                SceneList DeleteTemp = (*TempScene);
-                if (DeleteTemp->Before != NULL)
-                {
-                    DeleteTemp->Before->Next = DeleteTemp->Next;
-                }
-                if (DeleteTemp->Next != NULL)
-                {
-                    DeleteTemp->Next->Before = DeleteTemp->Before;
-                }
-                if (DeleteTemp->Before != NULL)
-                {
-                    (*TempScene) = (*TempScene)->Before;
-                }
-                else if (DeleteTemp->Next != NULL)
-                {
-                    (*TempScene) = (*TempScene)->Next;
-                }
-                else
-                {
-                    (*TempTree)->NodeContents = (SceneList)malloc(sizeof(struct ListElements));
-                    (*TempScene) = (*TempTree)->NodeContents;
-                    (*TempScene)->Data.Background = NULL;
-                    (*TempScene)->Data.Character = NULL;
-                    (*TempScene)->Data.Convo = NULL;
-                    (*TempScene)->Next = NULL;
-                    (*TempScene)->Before = NULL;
-                }
-                if (DeleteTemp->Data.Background) free(DeleteTemp->Data.Background);
-                if (DeleteTemp->Data.Character) free(DeleteTemp->Data.Character);
-                if (DeleteTemp->Data.Convo) free(DeleteTemp->Data.Convo);
-                
-                DeleteTemp = (*TempTree)->NodeContents;
-
-                while (DeleteTemp->Next != NULL)
-                {
-                    DeleteTemp = DeleteTemp->Next;
-                }
-                DeleteTemp->Before->Next = NULL;
-                if (DeleteTemp->Data.Background) free(DeleteTemp->Data.Background);
-                if (DeleteTemp->Data.Character) free(DeleteTemp->Data.Character);
-                if (DeleteTemp->Data.Convo) free(DeleteTemp->Data.Convo);
-                free(DeleteTemp);
-                *warning = false;
-                ShowRender = true;
-                *selectedsprite = 5;
-                RenderTimer = 2.0f;
-                CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL);
-            }
-            EndDrawing();
-        }
+        *selectedsprite = 3;
     }
 }
 
-void AddRightChild(CustomSceneTree *TempTree, SceneList *TempScene, bool *warning, int *control)
+void AddRightChild(CustomSceneTree *TempTree, SceneList *TempScene, bool *warning, int *control, int *selectedsprite)
 {
     if ((*TempTree)->Right == NULL)
     {
@@ -448,49 +442,13 @@ void AddRightChild(CustomSceneTree *TempTree, SceneList *TempScene, bool *warnin
     }
     else
     {
+        *TempTree = (*TempTree)->Right;
         *warning = true;
-        while(*warning)
-        {
-            BeginDrawing();
-            ClearBackground(BLACK);
-            CustomStoryGUI(*control, 3, NULL, NULL, NULL);
-            if (IsKeyPressed(KEY_RIGHT))
-            {
-                (*TempTree) = (*TempTree)->Right;
-                (*TempScene) = (*TempTree)->NodeContents;
-                SceneList toDelete = (*TempScene);
-                SceneList next;
-                while (toDelete != NULL)
-                {
-                    next = toDelete->Next;
-
-                    if (toDelete->Data.Background) free(toDelete->Data.Background);
-                    if (toDelete->Data.Character) free(toDelete->Data.Character);
-                    if (toDelete->Data.Convo) free(toDelete->Data.Convo);
-                    free(toDelete);
-                    toDelete = next;
-                }
-                (*TempTree)->NodeContents = (SceneList)calloc(1, sizeof(struct ListElements));
-                (*TempScene) = (*TempTree)->NodeContents;
-                (*TempScene)->Next = NULL;
-                (*TempScene)->Before = NULL;
-                (*TempScene)->Data.Background = NULL;
-                (*TempScene)->Data.Character = NULL;
-                (*TempScene)->Data.Convo = NULL;
-                *control = CHOOSINGBACKGROUND;
-                *warning = false;
-            }
-            else if (IsKeyPressed(KEY_LEFT))
-            {
-                *warning = false;
-                (*TempTree) = (*TempTree)->Right;
-            }
-            EndDrawing();
-        }
+        *selectedsprite = 3;
     }
 }
 
-void AddLeftChild(CustomSceneTree *TempTree, SceneList *TempScene, bool *warning, int *control)
+void AddLeftChild(CustomSceneTree *TempTree, SceneList *TempScene, int *selectedsprite, bool *warning, int *control)
 {
     if ((*TempTree)->Left == NULL)
     {
@@ -511,58 +469,9 @@ void AddLeftChild(CustomSceneTree *TempTree, SceneList *TempScene, bool *warning
     }
     else
     {
+        (*TempTree) = (*TempTree)->Left;
         *warning = true;
-        while(*warning)
-        {
-            BeginDrawing();
-            ClearBackground(BLACK);
-            CustomStoryGUI(*control, 3, NULL, NULL, NULL);
-            if (IsKeyPressed(KEY_RIGHT))
-            {
-                (*TempTree) = (*TempTree)->Left;
-                (*TempScene) = (*TempTree)->NodeContents;
-                SceneList toDelete = (*TempScene);
-                SceneList next;
-                while (toDelete != NULL)
-                {
-                    next = toDelete->Next;
-
-                    if (toDelete->Data.Background) free(toDelete->Data.Background);
-                    if (toDelete->Data.Character) free(toDelete->Data.Character);
-                    if (toDelete->Data.Convo) free(toDelete->Data.Convo);
-                    free(toDelete);
-                    toDelete = next;
-                }
-                (*TempTree)->NodeContents = (SceneList)calloc(1, sizeof(struct ListElements));
-                (*TempScene) = (*TempTree)->NodeContents;
-                (*TempScene)->Next = NULL;
-                (*TempScene)->Before = NULL;
-                (*TempScene)->Data.Background = NULL;
-                (*TempScene)->Data.Character = NULL;
-                (*TempScene)->Data.Convo = NULL;
-                *control = CHOOSINGBACKGROUND;
-                *warning = false;
-            }
-            else if (IsKeyPressed(KEY_LEFT))
-            {
-                *warning = false;
-                (*TempTree) = (*TempTree)->Left;
-            }
-            else if (IsKeyPressed(KEY_BACKSPACE))
-            {
-                SceneList DeleteNode = (*TempTree)->NodeContents;
-                while (DeleteNode->Next != NULL)
-                {
-                    DeleteNode = DeleteNode->Next;
-                }
-                if (DeleteNode->Data.Background) free(DeleteNode->Data.Background);
-                if (DeleteNode->Data.Character) free(DeleteNode->Data.Character);
-                if (DeleteNode->Data.Convo) free(DeleteNode->Data.Convo);
-                free(DeleteNode);
-
-            }
-            EndDrawing();
-        }
+        *selectedsprite = 3;
     }
 }
 
@@ -581,81 +490,242 @@ void InitializeStoryTree(CustomSceneTree *ThisSlot)
     (*ThisSlot)->NodeContents->Data.Convo = NULL;
 }
 
-void PreviousScene(CustomSceneTree *TempTree, SceneList *TempScene, int *selectedsprite, bool *warning, int *control)
+void AddSceneLast(CustomSceneTree *TempTree, SceneList *TempScene, int *control)
 {
-    if ((*TempScene)->Before == NULL)
+    SceneList TravellingScene = (*TempTree)->NodeContents;
+
+    while ((TravellingScene)->Next != NULL)
     {
-        ShowRender = true;
-        *selectedsprite = 2;
-        RenderTimer = 2.0f;
+        TravellingScene = (TravellingScene)->Next;
+    }
+
+    TravellingScene->Next = (SceneList)malloc(sizeof(struct ListElements));
+    TravellingScene->Next->Before = TravellingScene;
+    TravellingScene->Next->Next = NULL;
+    TravellingScene->Next->Data.Background = NULL;
+    TravellingScene->Next->Data.Character = NULL;
+    TravellingScene->Next->Data.Convo = NULL;
+    (*TempScene) = TravellingScene->Next;
+    *control = CHOOSINGBACKGROUND;
+}
+
+void AddSceneFirst(CustomSceneTree *TempTree, SceneList *TempScene, bool *warning, int *control)
+{
+    SceneList TravellingScene = (*TempTree)->NodeContents;
+
+    TravellingScene->Before = (SceneList)malloc(sizeof(struct ListElements));
+    TravellingScene->Before->Next = TravellingScene;
+    TravellingScene->Before->Before = NULL;
+    TravellingScene->Before->Data.Background = NULL;
+    TravellingScene->Before->Data.Character = NULL;
+    TravellingScene->Before->Data.Convo = NULL;
+    (*TempTree)->NodeContents = TravellingScene->Before;
+    (*TempScene) = TravellingScene->Before;
+    *control = CHOOSINGBACKGROUND;
+}
+
+void DeleteSceneLast(CustomSceneTree *TempTree, SceneList *TempScene, int *selectedsprite, bool *warning, int *control)
+{
+    SceneList TravellingScene = (*TempTree)->NodeContents;
+
+    while ((TravellingScene)->Next != NULL)
+    {
+        TravellingScene = (TravellingScene)->Next;
+    }
+
+    if (TravellingScene->Before != NULL)
+    {
+        TravellingScene->Before->Next = NULL;
+        if (*TempScene == TravellingScene)
+        {
+            *TempScene = TravellingScene->Before;
+        }
     }
     else
     {
-        *warning = true;
-        (*TempScene) = (*TempScene)->Before;
-        while (*warning)
+        *selectedsprite = 2;
+        ShowRender = true;
+        RenderTimer = 2.0f;
+        *control = CONFIRMATION;
+        while (ShowRender)
         {
             BeginDrawing();
             ClearBackground(BLACK);
-            CustomStoryGUI(*control, 4, NULL, NULL, NULL);
-            if (IsKeyPressed(KEY_RIGHT))
+            if (ShowRender)
             {
-                if ((*TempScene)->Data.Background) free((*TempScene)->Data.Background);
-                if ((*TempScene)->Data.Character) free((*TempScene)->Data.Character);
-                if ((*TempScene)->Data.Convo) free((*TempScene)->Data.Convo);
-                (*TempScene)->Data.Background = NULL;
-                (*TempScene)->Data.Character = NULL;
-                (*TempScene)->Data.Convo = NULL;
-                *warning = false;
-                *control = CHOOSINGBACKGROUND;
-            }
-            else if (IsKeyPressed(KEY_LEFT))
-            {
-                *control = MODE_REVIEW_SCENE;
-                *warning = false;
-                CustomStoryGUI(*control, 0, (*TempScene)->Data.Convo, (*TempScene)->Data.Background, (*TempScene)->Data.Character);
-            }
-            else if (IsKeyPressed(KEY_SLASH))
-            {
-                SceneList DeleteTemp = (*TempScene);
-                if (DeleteTemp->Before != NULL)
-                {
-                    DeleteTemp->Before->Next = DeleteTemp->Next;
-                }
-                if (DeleteTemp->Next != NULL)
-                {
-                    DeleteTemp->Next->Before = DeleteTemp->Before;
-                }
-                if (DeleteTemp->Before != NULL)
-                {
-                    (*TempScene) = (*TempScene)->Before;
-                }
-                else if (DeleteTemp->Next != NULL)
-                {
-                    (*TempScene) = (*TempScene)->Next;
-                }
-                else
-                {
-                    (*TempTree)->NodeContents = (SceneList)malloc(sizeof(struct ListElements));
-                    (*TempScene) = (*TempTree)->NodeContents;
-                    (*TempScene)->Data.Background = NULL;
-                    (*TempScene)->Data.Character = NULL;
-                    (*TempScene)->Data.Convo = NULL;
-                    (*TempScene)->Next = NULL;
-                    (*TempScene)->Before = NULL;
-                }
-                if (DeleteTemp->Data.Background) free(DeleteTemp->Data.Background);
-                if (DeleteTemp->Data.Character) free(DeleteTemp->Data.Character);
-                if (DeleteTemp->Data.Convo) free(DeleteTemp->Data.Convo);
-                free(DeleteTemp);
-                *warning = false;
-                ShowRender = true;
-                *selectedsprite = 5;
-                RenderTimer = 2.0f;
                 CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL);
+                RenderTimer -= GetFrameTime();
+                if (RenderTimer <= 0.0f)
+                {
+                    ShowRender = false;
+                }
             }
             EndDrawing();
         }
+        return;
+    }
+    if (TravellingScene->Data.Background) free(TravellingScene->Data.Background);
+    if (TravellingScene->Data.Character) free(TravellingScene->Data.Character);
+    if (TravellingScene->Data.Convo) free(TravellingScene->Data.Convo);
+    free(TravellingScene);
+    *warning = false;
+    *selectedsprite = 5;
+    RenderTimer = 2.0f;
+    *control = CONFIRMATION;
+    while (RenderTimer > 0.0f)
+    {
+        BeginDrawing();
+        ClearBackground(BLACK);
+        CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL);
+        RenderTimer -= GetFrameTime();
+        EndDrawing();
+    }
+}
+
+void DeleteSceneFirst(CustomSceneTree *TempTree, SceneList *TempScene, int *selectedsprite, bool *warning, int *control)
+{
+    SceneList TravellingScene = (*TempTree)->NodeContents;
+
+    if (TravellingScene->Next != NULL)
+    {
+        TravellingScene->Next->Before = NULL;
+        (*TempTree)->NodeContents = TravellingScene->Next;
+    }
+    else
+    {
+        *selectedsprite = 2;
+        ShowRender = true;
+        RenderTimer = 2.0f;
+        *control = CONFIRMATION;
+        while (ShowRender)
+        {
+            BeginDrawing();
+            ClearBackground(BLACK);
+            if (ShowRender)
+            {
+                CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL);
+                RenderTimer -= GetFrameTime();
+                if (RenderTimer <= 0.0f)
+                {
+                    ShowRender = false;
+                }
+            }
+            EndDrawing();
+        }
+        return;
+    }
+    if (TravellingScene->Data.Background) free(TravellingScene->Data.Background);
+    if (TravellingScene->Data.Character) free(TravellingScene->Data.Character);
+    if (TravellingScene->Data.Convo) free(TravellingScene->Data.Convo);
+    free(TravellingScene);
+    *warning = false;
+    *selectedsprite = 5;
+    *control = CONFIRMATION;
+    RenderTimer = 2.0f;
+    while (RenderTimer > 0.0f)
+    {
+        BeginDrawing();
+        ClearBackground(BLACK);
+        CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL);
+        RenderTimer -= GetFrameTime();
+        EndDrawing();
+    }
+}
+
+void DeleteSceneList(SceneList sceneList) 
+{
+    SceneList current = sceneList;
+    while (current != NULL) {
+        SceneList next = current->Next;
+
+        free(current->Data.Background);
+        free(current->Data.Character);
+        free(current->Data.Convo);
+        free(current->Data.SFX);
+
+        free(current);
+        current = next;
+    }
+}
+
+void DeleteTreeNode(CustomSceneTree *nodeToDelete) 
+{
+    if (nodeToDelete == NULL || *nodeToDelete == NULL) return;
+
+    CustomSceneTree node = *nodeToDelete;
+
+    // Post-order traversal: delete children first
+    if (node->Left != NULL) DeleteTreeNode(&node->Left);
+    if (node->Right != NULL) DeleteTreeNode(&node->Right);
+
+    // Disconnect from parent
+    if (node->Parent != NULL) {
+        if (node->Parent->Left == node) node->Parent->Left = NULL;
+        else if (node->Parent->Right == node) node->Parent->Right = NULL;
+    }
+
+    // Delete node content
+    if (node->NodeContents) {
+        DeleteSceneList(node->NodeContents);
+        node->NodeContents = NULL;
+    }
+
+    free(node);
+    *nodeToDelete = NULL;
+}
+
+
+void HandleDeleteCurrentNode(CustomSceneTree *TempTree, SceneList *TempScene, int *control, int *selectedsprite) 
+{
+    if (TempTree == NULL || *TempTree == NULL) return;
+
+    CustomSceneTree nodeToDelete = *TempTree;
+
+    // Case 1: Root cannot be deleted
+    if (nodeToDelete->Parent == NULL) {
+        *selectedsprite = 1; // "Cannot delete root node"
+        *control = CONFIRMATION;
+        RenderTimer = 2.0f;
+
+        while (RenderTimer > 0.0f) {
+            BeginDrawing();
+            ClearBackground(BLACK);
+            CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL);
+            RenderTimer -= GetFrameTime();
+            EndDrawing();
+        }
+
+        return;
+    }
+
+    // Backup parent BEFORE deletion
+    CustomSceneTree parentNode = nodeToDelete->Parent;
+
+    // Safely delete current node and its subtree
+    DeleteTreeNode(&nodeToDelete);
+
+    // Update active node to parent
+    *TempTree = parentNode;
+
+    // Update TempScene as well
+    if (parentNode->NodeContents) {
+        *TempScene = parentNode->NodeContents;
+    } else {
+        parentNode->NodeContents = (SceneList)calloc(1, sizeof(struct ListElements));
+        *TempScene = parentNode->NodeContents;
+    }
+
+    // Confirmation message
+    *selectedsprite = 5; // "Scene successfully deleted"
+    *control = CONFIRMATION;
+
+    RenderTimer = 2.0f;
+    while (RenderTimer > 0.0f) {
+        BeginDrawing();
+        ClearBackground(BLACK);
+        CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL);
+        RenderTimer -= GetFrameTime();
+        EndDrawing();
     }
 }
 
@@ -683,6 +753,7 @@ void ReviewScene(int *control, SceneList *TempScene)
         }
         else if(IsKeyPressed(KEY_ENTER))
         {
+            ShowRender = false;
             *control = CONFIRMATION;
         }
         EndDrawing();
@@ -708,7 +779,7 @@ void InitiateAssets()
 }
 
 
-void SaveSlot(CustomSceneTree *ThisSlot)
+void PrintTree(CustomSceneTree *ThisSlot)
 {
     CustomSceneTree root = *ThisSlot;
     if (!root) 
@@ -789,10 +860,309 @@ void SaveSlot(CustomSceneTree *ThisSlot)
 
 }
 
+void SerializeSceneList(FILE *file, SceneList sceneList) {
+    SceneList current = sceneList;
+    int sceneCount = 0;
+    
+    // First, count the number of scenes
+    SceneList counter = sceneList;
+    while (counter != NULL) {
+        sceneCount++;
+        counter = counter->Next;
+    }
+    
+    // Write the scene count
+    fwrite(&sceneCount, sizeof(int), 1, file);
+    
+    // Write each scene
+    current = sceneList;
+    while (current != NULL) {
+        // Write Background string
+        int bgLen = current->Data.Background ? strlen(current->Data.Background) + 1 : 0;
+        fwrite(&bgLen, sizeof(int), 1, file);
+        if (bgLen > 0) {
+            fwrite(current->Data.Background, sizeof(char), bgLen, file);
+        }
+        
+        // Write Character string
+        int charLen = current->Data.Character ? strlen(current->Data.Character) + 1 : 0;
+        fwrite(&charLen, sizeof(int), 1, file);
+        if (charLen > 0) {
+            fwrite(current->Data.Character, sizeof(char), charLen, file);
+        }
+        
+        // Write Convo string
+        int convoLen = current->Data.Convo ? strlen(current->Data.Convo) + 1 : 0;
+        fwrite(&convoLen, sizeof(int), 1, file);
+        if (convoLen > 0) {
+            fwrite(current->Data.Convo, sizeof(char), convoLen, file);
+        }
+        
+        // Write SFX string
+        int sfxLen = current->Data.SFX ? strlen(current->Data.SFX) + 1 : 0;
+        fwrite(&sfxLen, sizeof(int), 1, file);
+        if (sfxLen > 0) {
+            fwrite(current->Data.SFX, sizeof(char), sfxLen, file);
+        }
+        
+        current = current->Next;
+    }
+}
 
+SceneList DeserializeSceneList(FILE *file) {
+    int sceneCount;
+    if (fread(&sceneCount, sizeof(int), 1, file) != 1) {
+        return NULL; // Failed to read scene count
+    }
+    
+    if (sceneCount == 0) {
+        return NULL;
+    }
+    
+    SceneList firstScene = NULL;
+    SceneList lastScene = NULL;
+    
+    for (int i = 0; i < sceneCount; i++) {
+        // Create new scene
+        SceneList newScene = (SceneList)malloc(sizeof(struct ListElements));
+        newScene->Next = NULL;
+        newScene->Before = lastScene;
+        newScene->Data.Background = NULL;
+        newScene->Data.Character = NULL;
+        newScene->Data.Convo = NULL;
+        newScene->Data.SFX = NULL;
+        
+        // Read Background string
+        int bgLen;
+        fread(&bgLen, sizeof(int), 1, file);
+        if (bgLen > 0) {
+            newScene->Data.Background = (char*)malloc(bgLen);
+            fread(newScene->Data.Background, sizeof(char), bgLen, file);
+        }
+        
+        // Read Character string
+        int charLen;
+        fread(&charLen, sizeof(int), 1, file);
+        if (charLen > 0) {
+            newScene->Data.Character = (char*)malloc(charLen);
+            fread(newScene->Data.Character, sizeof(char), charLen, file);
+        }
+        
+        // Read Convo string
+        int convoLen;
+        fread(&convoLen, sizeof(int), 1, file);
+        if (convoLen > 0) {
+            newScene->Data.Convo = (char*)malloc(convoLen);
+            fread(newScene->Data.Convo, sizeof(char), convoLen, file);
+        }
+        
+        // Read SFX string
+        int sfxLen;
+        fread(&sfxLen, sizeof(int), 1, file);
+        if (sfxLen > 0) {
+            newScene->Data.SFX = (char*)malloc(sfxLen);
+            fread(newScene->Data.SFX, sizeof(char), sfxLen, file);
+        }
+        
+        // Link the scenes
+        if (lastScene != NULL) {
+            lastScene->Next = newScene;
+        } else {
+            firstScene = newScene; // This is the first scene
+        }
+        lastScene = newScene;
+    }
+    
+    return firstScene;
+}
 
-void LoadSlot(CustomSceneTree *ThisSlot)
-{
+void SerializeTreeNode(FILE *file, CustomSceneTree node) {
+    if (node == NULL) {
+        // Write a marker for NULL node
+        int nullMarker = 0;
+        fwrite(&nullMarker, sizeof(int), 1, file);
+        return;
+    }
+    
+    // Write a marker for non-NULL node
+    int nodeMarker = 1;
+    fwrite(&nodeMarker, sizeof(int), 1, file);
+    
+    // Write node ID
+    fwrite(&(node->ID), sizeof(int), 1, file);
+    
+    // Write the scene list for this node
+    SerializeSceneList(file, node->NodeContents);
+    
+    // Recursively write left and right children
+    SerializeTreeNode(file, node->Left);
+    SerializeTreeNode(file, node->Right);
+}
 
+CustomSceneTree DeserializeTreeNode(FILE *file, CustomSceneTree parent) {
+    int nodeMarker;
+    if (fread(&nodeMarker, sizeof(int), 1, file) != 1) {
+        return NULL; // Failed to read marker
+    }
+    
+    if (nodeMarker == 0) {
+        return NULL; // This was a NULL node
+    }
+    
+    // Create new tree node
+    CustomSceneTree node = (CustomSceneTree)malloc(sizeof(struct Tree));
+    node->Parent = parent;
+    node->Left = NULL;
+    node->Right = NULL;
+    
+    // Read node ID
+    if (fread(&(node->ID), sizeof(int), 1, file) != 1) {
+        free(node);
+        return NULL;
+    }
+    
+    // Read the scene list
+    node->NodeContents = DeserializeSceneList(file);
+    
+    // Recursively read left and right children
+    node->Left = DeserializeTreeNode(file, node);
+    node->Right = DeserializeTreeNode(file, node);
+    
+    return node;
+}
+
+void SaveTreeToFile(CustomSceneTree tree, const char* filename) {
+    FILE *file = fopen(filename, "wb");
+    if (file == NULL) {
+        printf("Error: Could not open file '%s' for writing.\n", filename);
+        return;
+    }
+    
+    // Write a file header/version for future compatibility
+    char header[16] = "VSTORY_V1.0";
+    fwrite(header, sizeof(char), 16, file);
+    
+    // Serialize the entire tree
+    SerializeTreeNode(file, tree);
+    
+    fclose(file);
+    printf("Story tree saved to '%s' successfully.\n", filename);
+}
+
+CustomSceneTree LoadTreeFromFile(const char* filename) {
+    FILE *file = fopen(filename, "rb");
+    if (file == NULL) {
+        printf("Error: Could not open file '%s' for reading.\n", filename);
+        return NULL;
+    }
+    
+    // Read and verify the file header
+    char header[16];
+    if (fread(header, sizeof(char), 16, file) != 16) {
+        printf("Error: Invalid file format.\n");
+        fclose(file);
+        return NULL;
+    }
+    
+    if (strncmp(header, "VSTORY_V1.0", 11) != 0) {
+        printf("Error: Unsupported file version or corrupted file.\n");
+        fclose(file);
+        return NULL;
+    }
+    
+    // Deserialize the tree
+    CustomSceneTree tree = DeserializeTreeNode(file, NULL);
+    
+    fclose(file);
+    
+    if (tree != NULL) {
+        printf("Story tree loaded from '%s' successfully.\n", filename);
+    } else {
+        printf("Error: Failed to load story tree from '%s'.\n", filename);
+    }
+    
+    return tree;
+}
+
+void SaveSlotToFile(CustomSceneTree *ThisSlot, int slotNumber) {
+    if (ThisSlot == NULL || *ThisSlot == NULL) {
+        printf("Error: No story to save.\n");
+        return;
+    }
+    
+    if (slotNumber < 1 || slotNumber > 10) {
+        printf("Error: Invalid slot number. Use 1-10.\n");
+        return;
+    }
+    
+    char filename[64];
+    sprintf(filename, "saves/story_slot_%d.sav", slotNumber);
+    
+    // Create saves directory if it doesn't exist (platform dependent)
+    #ifdef _WIN32
+        system("mkdir saves 2>nul");
+    #else
+        system("mkdir -p saves");
+    #endif
+    
+    SaveTreeToFile(*ThisSlot, filename);
+}
+
+/**
+ * Loads a story from a numbered save file
+ * @param slotNumber - Save slot number to load (1-10)
+ * @return Loaded tree, or NULL if failed
+ */
+CustomSceneTree LoadSlotFromFile(int slotNumber) {
+    if (slotNumber < 1 || slotNumber > 10) {
+        printf("Error: Invalid slot number. Use 1-10.\n");
+        return NULL;
+    }
+    
+    char filename[64];
+    sprintf(filename, "saves/story_slot_%d.sav", slotNumber);
+    
+    return LoadTreeFromFile(filename);
+}
+
+void SaveSlot(CustomSceneTree *ThisSlot) {
+    if (ThisSlot == NULL || *ThisSlot == NULL) {
+        printf("Error: No story to save.\n");
+        return;
+    }
+    
+    // For now, save to slot 1 by default
+    // You can modify this to ask user for slot number
+    SaveSlotToFile(ThisSlot, 1);
+    
+    // Keep the existing debug output if needed
+    printf("===== SAVE SUCCESSFUL =====\n");
+    printf("Story saved to slot 1\n");
+    printf("===========================\n");
+}
+
+void LoadSlot(CustomSceneTree *ThisSlot) {
+    if (ThisSlot != NULL && *ThisSlot != NULL) {
+        // Clean up existing tree first
+        DeleteTreeNode(ThisSlot);
+    }
+    
+    // For now, load from slot 1 by default
+    // You can modify this to ask user for slot number
+    *ThisSlot = LoadSlotFromFile(1);
+    
+    if (*ThisSlot != NULL) {
+        printf("===== LOAD SUCCESSFUL =====\n");
+        printf("Story loaded from slot 1\n");
+        printf("===========================\n");
+    } else {
+        printf("===== LOAD FAILED =====\n");
+        printf("Could not load story from slot 1\n");
+        printf("Creating new story...\n");
+        printf("=======================\n");
+        
+        // Create a new empty tree if load failed
+        InitializeStoryTree(ThisSlot);
+    }
 }
 
