@@ -39,7 +39,7 @@ void InitDataCerita(TreeStory *SceneTree) {
     SceneTree[0].IdRightSon = 2;
 
     Scene scenes0[] = {
-        {NULL, "Girl : ......", "Assets/BackgroundSprites/background4.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {"Assets/Music/myinstants.mp3", "Girl : ......", "Assets/BackgroundSprites/background4.png", NULL, {0}, {0}, CHAR_POS_NONE},
         {NULL, "Girl : It is so cold here, but i have to sell all these matches", "Assets/BackgroundSprites/background3.png", "Assets/CharaSprites/chara3.png", {0}, {0}, CHAR_POS_CENTER},
         {NULL, "Girl : What should i go, Alleway?", "Assets/BackgroundSprites/background6.png", "Assets/CharaSprites/chara3.png", {0}, {0}, CHAR_POS_CENTER},
         {NULL, "Girl : Or the Street?", "Assets/BackgroundSprites/background7.png", "Assets/CharaSprites/chara3.png", {0}, {0}, CHAR_POS_CENTER}
@@ -287,6 +287,11 @@ void LoadNodeAssets(TreeStory SceneTree[], int nodeIndex) {
         } else {
             scene->characterTex = (Texture2D){0};
         }
+        if (scene->backgroundSound != NULL)
+        {
+            PlayMusicStream(LoadMusicStream(scene->backgroundSound));
+        }
+        
     }
 }
 

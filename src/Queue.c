@@ -12,13 +12,12 @@ bool isQueueEmpty(Queue Q) {
 }
 
 bool isQueueFull(Queue Q) {
-    return ((Q.rear + 1) % MAX_SCENE) == Q.front;
+    return Q.rear + 1 == MAX_SCENE - 1;
 }
 
 int QueueSize(Queue Q) {
     if (isQueueEmpty(Q)) return 0;
-    if (isQueueFull(Q)) return MAX_SCENE;
-    return (Q.rear - Q.front + MAX_SCENE) % MAX_SCENE + 1;
+    return (Q.rear - Q.front + 1);
 }
 
 void EnQueueLast(Queue *Q, Scene scene) {
@@ -31,7 +30,7 @@ void EnQueueLast(Queue *Q, Scene scene) {
         Q->front = 0;
         Q->rear = 0;
     } else {
-        Q->rear = (Q->rear + 1) % MAX_SCENE;
+        Q->rear++;
     }
     
     Q->data[Q->rear] = scene;
@@ -63,7 +62,7 @@ void DeQueueFirst(Queue *Q) {
         Q->front = -1;
         Q->rear = -1;
     } else {
-        Q->front = (Q->front + 1) % MAX_SCENE;
+        Q->front++;
     }
 }
 
