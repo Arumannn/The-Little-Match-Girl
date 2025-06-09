@@ -130,6 +130,14 @@ void InitButtonRects(GameState currentGameState) {
             }
             break;
 
+        case GAME_STATE_PLAY_CUSTOM_MENU:
+            printf("currentGameState PLAY_CUSTOM_MENU\n");
+            for (int i = 12, idx = 0; i <= 14; i++, idx++) {
+                SetButtonRect(i, startX, startY + idx * gapY);
+            }
+            SetButtonRect(15, startX, startY + 3 * gapY);
+            break;
+
         default:
             break;
     }
@@ -197,6 +205,13 @@ void DrawMainMenu(GameState currentGameState) {
             }
             break;
 
+        case GAME_STATE_PLAY_CUSTOM_MENU:
+            for (int i = 12; i <= 14; i++) {
+                DrawTexture(MenuButtons[i], (int)buttonRects[i].x, (int)buttonRects[i].y, WHITE);
+            }
+            DrawTexture(MenuButtons[15], (int)buttonRects[15].x, (int)buttonRects[15].y, WHITE);
+            break;
+
         default:
             break;
     }
@@ -247,6 +262,9 @@ void UpdateMainMenu(GameState *currentGameState) {
             break;
         case GAME_STATE_PAUSE:
             startIndex = 16; endIndex = 18;
+            break;
+        case GAME_STATE_PLAY_CUSTOM_MENU:
+            startIndex = 12; endIndex = 14;
             break;
         default:
             return;
@@ -335,7 +353,7 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
                     *currentGameState = GAME_STATE_CREATE_MENU;
                     return true;
                 case 8: // Continue
-                    *currentGameState = GAME_STATE_PLAY_CUSTOM_SLOT_1;
+                    *currentGameState = GAME_STATE_PLAY_CUSTOM_MENU;
                     return true;
                 case 15: // Back
                     *currentGameState = GAME_STATE_PLAY_GAME_MENU;
@@ -430,6 +448,15 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
                 case 18: // Main Menu
                     *currentGameState = GAME_STATE_MAIN_MENU;
                     return true;
+            }
+            break;
+
+        case GAME_STATE_PLAY_CUSTOM_MENU:
+            switch (index) {
+                case 12: *currentGameState = GAME_STATE_PLAY_CUSTOM_SLOT_1; return true;
+                case 13: *currentGameState = GAME_STATE_PLAY_CUSTOM_SLOT_2; return true;
+                case 14: *currentGameState = GAME_STATE_PLAY_CUSTOM_SLOT_3; return true;
+                case 15: *currentGameState = GAME_STATE_NEW_CONTINUE_CUSTOM; return true;
             }
             break;
     }

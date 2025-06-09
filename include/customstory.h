@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "Queue.h"
+#include "mainmenu.h"  // Include mainmenu.h to get game state definitions
 
 #define CHARA_AMMOUNT 11
 #define BACKGROUND_AMMOUNT 23
@@ -109,5 +110,13 @@ void SaveTreeToFile(CustomSceneTree tree, const char* filename);
 void SaveSlotToFile(CustomSceneTree *ThisSlot, int slotNumber);
 void SerializeTreeNode(FILE *file, CustomSceneTree node);
 void SerializeSceneList(FILE *file, SceneList sceneList);
+
+// Save/Load progress functions
+void SaveCustomStoryProgress(const char *filename, int node, int scene);
+void LoadCustomStoryProgress(const char *filename, int *node, int *scene);
+
+// Custom story playback functions
+int UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene);
+void DrawCustomStoryScreen(CustomSceneTree tree, int currentNode, int currentScene);
 
 #endif

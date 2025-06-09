@@ -19,6 +19,15 @@ bool exitProgram = false;
 CustomSceneTree customStorySlots[3] = {NULL, NULL, NULL};
 int currentCustomSlot = 0;
 
+// Tambahkan variabel global untuk progress custom story
+typedef struct {
+    int node;
+    int scene;
+} CustomProgress;
+
+int customCurrentNode = 0;
+int customCurrentScene = 0;
+
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "The Little Match Girl");
     SetTargetFPS(60);
@@ -59,11 +68,10 @@ int main() {
                 break;
 
             case GAME_STATE_PLAY_CUSTOM_STORY:
-                // Handle custom story playback
+                // Playback custom story sesuai progress
                 if (customStorySlots[currentCustomSlot] != NULL) {
-                    // TODO: Implement custom story playback
-                    // For now, just return to main menu
-                    currentGameState = GAME_STATE_MAIN_MENU;
+                    currentGameState = UpdateCustomStory(customStorySlots[currentCustomSlot], &customCurrentNode, &customCurrentScene);
+                    DrawCustomStoryScreen(customStorySlots[currentCustomSlot], customCurrentNode, customCurrentScene);
                 } else {
                     currentGameState = GAME_STATE_MAIN_MENU;
                 }
@@ -144,6 +152,9 @@ int main() {
             case GAME_STATE_PLAY_CUSTOM_SLOT_1:
                 currentCustomSlot = 0;
                 if (customStorySlots[0] != NULL) {
+                    char filename[64];
+                    sprintf(filename, "saves/custom_save_1.dat");
+                    LoadCustomStoryProgress(filename, &customCurrentNode, &customCurrentScene);
                     currentGameState = GAME_STATE_PLAY_CUSTOM_STORY;
                 } else {
                     currentGameState = GAME_STATE_MAIN_MENU;
@@ -154,6 +165,9 @@ int main() {
             case GAME_STATE_PLAY_CUSTOM_SLOT_2:
                 currentCustomSlot = 1;
                 if (customStorySlots[1] != NULL) {
+                    char filename[64];
+                    sprintf(filename, "saves/custom_save_2.dat");
+                    LoadCustomStoryProgress(filename, &customCurrentNode, &customCurrentScene);
                     currentGameState = GAME_STATE_PLAY_CUSTOM_STORY;
                 } else {
                     currentGameState = GAME_STATE_MAIN_MENU;
@@ -164,6 +178,9 @@ int main() {
             case GAME_STATE_PLAY_CUSTOM_SLOT_3:
                 currentCustomSlot = 2;
                 if (customStorySlots[2] != NULL) {
+                    char filename[64];
+                    sprintf(filename, "saves/custom_save_3.dat");
+                    LoadCustomStoryProgress(filename, &customCurrentNode, &customCurrentScene);
                     currentGameState = GAME_STATE_PLAY_CUSTOM_STORY;
                 } else {
                     currentGameState = GAME_STATE_MAIN_MENU;

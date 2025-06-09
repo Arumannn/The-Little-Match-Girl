@@ -1263,4 +1263,140 @@ void LoadSlot(CustomSceneTree *ThisSlot) {
     }
 }
 
+void SaveCustomStoryProgress(const char *filename, int node, int scene) {
+    // Create saves directory if it doesn't exist
+    #ifdef _WIN32
+        system("mkdir saves 2>nul");
+    #else
+        system("mkdir -p saves");
+    #endif
+
+    FILE *file = fopen(filename, "wb");
+    if (file == NULL) {
+        printf("Error: Could not save progress.\n");
+        return;
+    }
+
+    // Save node and scene indices
+    fwrite(&node, sizeof(int), 1, file);
+    fwrite(&scene, sizeof(int), 1, file);
+
+    fclose(file);
+}
+
+void LoadCustomStoryProgress(const char *filename, int *node, int *scene) {
+    FILE *file = fopen(filename, "rb");
+    if (file == NULL) {
+        printf("No saved progress found.\n");
+        return;
+    }
+
+    // Read node and scene indices
+    fread(node, sizeof(int), 1, file);
+    fread(scene, sizeof(int), 1, file);
+
+    fclose(file);
+}
+
+int UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene) {
+    // Navigasi node (LEFT/RIGHT) dan scene (UP/DOWN)
+    CustomSceneTree node = tree;
+    // Cari node saat ini berdasarkan ID
+    TempQueueNode *front = NULL, *rear = NULL;
+    Enqueue(&front, &rear, tree, 0);
+    while (front) {
+        TempQueueNode *qNode = Dequeue(&front, &rear);
+        CustomSceneTree current = qNode->treeNode;
+        if (current->ID == *currentNode) {
+            node = current;
+            free(qNode);
+            break;
+        }
+        if (current->Left) Enqueue(&front, &rear, current->Left, 0);
+        if (current->Right) Enqueue(&front, &rear, current->Right, 0);
+        free(qNode);
+    }
+    while (front) { TempQueueNode *temp = Dequeue(&front, &rear); free(temp); }
+
+    // Navigasi node
+    if (IsKeyPressed(KEY_LEFT) && node->Left != NULL) {
+        node = node->Left;
+        *currentNode = node->ID;
+        *currentScene = 0;
+    } else if (IsKeyPressed(KEY_RIGHT) && node->Right != NULL) {
+        node = node->Right;
+        *currentNode = node->ID;
+        *currentScene = 0;
+    }
+    // Navigasi scene
+    SceneList scene = node->NodeContents;
+    for (int i = 0; i < *currentScene && scene != NULL; i++) scene = scene->Next;
+    if (IsKeyPressed(KEY_UP) && scene && scene->Before != NULL) {
+        (*currentScene)--;
+    } else if (IsKeyPressed(KEY_DOWN) && scene && scene->Next != NULL) {
+        (*currentScene)++;
+    }
+    // Keluar
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        char filename[64];
+        sprintf(filename, "saves/custom_save_%d.dat", *currentNode);
+        SaveCustomStoryProgress(filename, *currentNode, *currentScene);
+        return GAME_STATE_MAIN_MENU;
+    }
+    return GAME_STATE_PLAY_CUSTOM_STORY;
+}
+
+void DrawCustomStoryScreen(CustomSceneTree tree, int currentNode, int currentScene) {
+    // Cari node saat ini berdasarkan ID
+    CustomSceneTree node = tree;
+    TempQueueNode *front = NULL, *rear = NULL;
+    Enqueue(&front, &rear, tree, 0);
+    while (front) {
+        TempQueueNode *qNode = Dequeue(&front, &rear);
+        CustomSceneTree current = qNode->treeNode;
+        if (current->ID == currentNode) {
+            node = current;
+            free(qNode);
+            break;
+        }
+        if (current->Left) Enqueue(&front, &rear, current->Left, 0);
+        if (current->Right) Enqueue(&front, &rear, current->Right, 0);
+        free(qNode);
+    }
+    while (front) { TempQueueNode *temp = Dequeue(&front, &rear); free(temp); }
+
+    // Ambil scene ke-currentScene
+    SceneList scene = node->NodeContents;
+    for (int i = 0; i < currentScene && scene != NULL; i++) scene = scene->Next;
+    if (!scene) return;
+
+    // Gambar background
+    Texture2D bgTex = {0};
+    if (scene->Data.Background && strlen(scene->Data.Background) > 0) {
+        bgTex = LoadTexture(scene->Data.Background);
+        bgTex.height = SCREEN_HEIGHT;
+        bgTex.width = SCREEN_WIDTH;
+        DrawTexture(bgTex, 0, 0, WHITE);
+    } else {
+        ClearBackground(RAYWHITE);
+    }
+    // Gambar karakter
+    Texture2D charTex = {0};
+    if (scene->Data.Character && strlen(scene->Data.Character) > 0) {
+        charTex = LoadTexture(scene->Data.Character);
+        charTex.height /= 2;
+        charTex.width /= 2;
+        DrawCharacterAtPosition(charTex, scene->Data.charPosition);
+    }
+    // Gambar kotak dialog
+    if (scene->Data.Convo && strlen(scene->Data.Convo) > 0) {
+        DrawRectangle(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, BLACK);
+        DrawRectangleLines(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, WHITE);
+        DrawText(scene->Data.Convo, 70, SCREEN_HEIGHT - 180, 30, WHITE);
+    }
+    // Petunjuk navigasi
+    DrawText("[LEFT/RIGHT]: Pindah node | [UP/DOWN]: Scene | [ESC]: Kembali", 60, 60, 28, YELLOW);
+    // Jangan unload texture di sini!
+}
+
 
