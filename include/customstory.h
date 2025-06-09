@@ -5,6 +5,7 @@
 
 #define CHARA_AMMOUNT 11
 #define BACKGROUND_AMMOUNT 23
+#define AUDIO_AMMOUNT 6
 
 typedef enum
 {
@@ -12,11 +13,13 @@ typedef enum
     CHOOSINGCHARA,
     CHOOSINGDIALOGUE,
     CONFIRMATION,
+    ALLDONE,
+    ADDFIRSTSCENE,
+    ADDLASTSCENE,
+    DELETEFIRSTSCENE,
+    DELETELASTSCENE,
     MODE_REVIEW_SCENE,
-    MODE_MOVE_TREE,
-    CHANGE_TREENODE,
-    CHANGE_LINKEDNODE,
-    ALLDONE
+    MODE_OVERWRITING,
 };
 
 typedef struct BackgroundFileData
@@ -31,16 +34,24 @@ typedef struct CharaFileData
     char FileName[124];
 }CharaArr;
 
+typedef struct AudioFileData
+{
+    Texture2D Audio;
+    char FileName[124];
+}AudioArr;
+
 struct SceneNode
 {
     char *Background;
     char *Character;
     char *Convo;
+    char *SFX;
 };
 
 typedef struct ListElements 
 {
     struct ListElements *Next;
+    struct ListElements *Before;
     struct SceneNode Data;
 } *SceneList;
 
@@ -57,18 +68,37 @@ typedef struct Tree
 
 extern CharaArr FileChara[CHARA_AMMOUNT];
 extern BackgroundArr FileBackground[BACKGROUND_AMMOUNT];
+extern AudioArr FileAudio[AUDIO_AMMOUNT];
 static Texture2D MenuBackground;
 
-void CustomStoryGUI(int state, int currentsprite, char *Dialogue);
+CustomSceneTree LoadTreeFromFile(const char* filename);
+CustomSceneTree LoadSlotFromFile(int slotNumber);
+CustomSceneTree DeserializeTreeNode(FILE *file, CustomSceneTree parent);
+SceneList DeserializeSceneList(FILE *file);
+
+void InitializeStoryTree(CustomSceneTree *ThisSlot);
+void CustomStoryGUI(int state, int currentsprite, char *Dialogue, char *BackSprite, char *CharaSprite);
 void InitiateAssets();
-void SaveSlot(CustomSceneTree *ThisSlot);
-void MakeCustomStory(CustomSceneTree *ThisSlot);
-void LoadSlot(CustomSceneTree *ThisSlot);
-
-
-// void StoryCreator(VNTreeNode *currentNodePtr, AssetLibraryArr assets);
-// void LoadAssetsSimple(AssetLibraryArr assets);
-// void UnloadAssetsSimple(AssetLibraryArr assets);
-// void CustomPrintTree(VNTreeNode *node);
+void PrintTree(CustomSceneTree *ThisSlot);
+void ChoosingBackground(int *selectedsprite, int *control, SceneList *TempScene);
+void ChoosingChara(int *selectedsprite, int *control, SceneList *TempScene);
+void ChoosingDialogue(char *Convo, int *selectedsprite, int *control, SceneList *TempScene);
+void MakeCustomStory(CustomSceneTree *ThisSlot, int SlotNumber);
+void OverwriteTree(SceneList *TempScene, CustomSceneTree *TempTree, int *control);
+void AddLeftChild(CustomSceneTree *TempTree, SceneList *TempScene, int *selectedsprite, bool *warning, int *control);
+void AddRightChild(CustomSceneTree *TempTree, SceneList *TempScene, bool *warning, int *control, int *selectedsprite);
+void PreviousTree(CustomSceneTree *TempTree, SceneList *TempScene, int *selectedsprite, bool *warning, int *control);
+void AddSceneLast(CustomSceneTree *TempTree, SceneList *TempScene, int *control);
+void AddSceneFirst(CustomSceneTree *TempTree, SceneList *TempScene, bool *warning, int *control);
+void DeleteSceneFirst(CustomSceneTree *TempTree, SceneList *TempScene, int *selectedsprite, bool *warning, int *control);
+void DeleteSceneLast(CustomSceneTree *TempTree, SceneList *TempScene, int *selectedsprite, bool *warning, int *control);
+void ReviewScene(int *control, SceneList *TempScene);
+void DeleteTreeNode(CustomSceneTree *nodeToDelete);
+void DeleteSceneList(SceneList sceneList);
+void HandleDeleteCurrentNode(CustomSceneTree *TempTree, SceneList *TempScene, int *control, int *selectedsprite);
+void SaveTreeToFile(CustomSceneTree tree, const char* filename);
+void SaveSlotToFile(CustomSceneTree *ThisSlot, int slotNumber);
+void SerializeTreeNode(FILE *file, CustomSceneTree node);
+void SerializeSceneList(FILE *file, SceneList sceneList);
 
 #endif
