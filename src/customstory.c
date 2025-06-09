@@ -171,8 +171,14 @@ void MakeCustomStory(CustomSceneTree *ThisSlot, int SlotNumber)
                 ChoosingChara(&selectedsprite, &control, &TempScene);
             break;
 
+            case CHOOSINGCHARPOSITION:
+                ChoosingCharaPosition(&selectedsprite, &control, &TempScene);
+            break;
+
             case CHOOSINGDIALOGUE:
-                ChoosingDialogue(Convo, &selectedsprite, &control, &TempScene);
+                printf("Masuk ChoosingDialogue, control = %d\n", control);
+                memset(Convo, 0, sizeof(Convo));
+                control = ChoosingDialogue(Convo, &selectedsprite, &TempScene);
             break;
 
             case CONFIRMATION:
@@ -299,19 +305,22 @@ void MakeCustomStory(CustomSceneTree *ThisSlot, int SlotNumber)
     EndDrawing();
 }
 
-void ChoosingDialogue(char *Convo, int *selectedsprite, int *control, SceneList *TempScene)
+int ChoosingDialogue(char *Convo, int *selectedsprite, SceneList *TempScene)
 {
+    printf("Masuk ChoosingDialogue\n");
     int letterCount = 0;
     int key = 0;
-    memset(Convo, 0, sizeof(Convo));
-    while (*control == CHOOSINGDIALOGUE)
+    int control = CHOOSINGDIALOGUE;
+    memset(Convo, 0, DUMMY_MAX_CONVO);
+    while (control == CHOOSINGDIALOGUE)
     {
+        printf("Loop ChoosingDialogue, control = %d, Convo='%s'\n", control, Convo);
         BeginDrawing();
         ClearBackground(BLACK);
         key = GetCharPressed();
         while (key > 0)
         {
-            if (letterCount < 127 && key >= 32 && key <= 125)
+            if (letterCount < DUMMY_MAX_CONVO-1 && key >= 32 && key <= 125)
             {
                 Convo[letterCount++] = (char)key;
                 Convo[letterCount] = '\0';
@@ -324,23 +333,30 @@ void ChoosingDialogue(char *Convo, int *selectedsprite, int *control, SceneList 
         }
         if (IsKeyPressed(KEY_ENTER))
         {
-            (*TempScene)->Data.Convo = malloc(strlen(Convo) + 1);
-            strcpy((*TempScene)->Data.Convo, Convo);
-            *control = CONFIRMATION;
-            *selectedsprite = 4;
-            RenderTimer = 2.0f;
-            while (RenderTimer > 0.0f)
-            {
-                BeginDrawing();
-                ClearBackground(BLACK);
-                CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL, CHAR_POS_CENTER);
-                RenderTimer -= GetFrameTime();
-                EndDrawing();
+            printf("User tekan ENTER, Convo='%s'\n", Convo);
+            if (strlen(Convo) > 0) {
+                (*TempScene)->Data.Convo = malloc(strlen(Convo) + 1);
+                strcpy((*TempScene)->Data.Convo, Convo);
+                control = CONFIRMATION;
+                *selectedsprite = 4;
+                RenderTimer = 2.0f;
+                while (RenderTimer > 0.0f)
+                {
+                    BeginDrawing();
+                    ClearBackground(BLACK);
+                    CustomStoryGUI(control, *selectedsprite, NULL, NULL, NULL, CHAR_POS_CENTER);
+                    RenderTimer -= GetFrameTime();
+                    EndDrawing();
+                }
+            } else {
+                // Tampilkan pesan error
+                DrawText("Dialog tidak boleh kosong!", 100, 200, 30, RED);
             }
         }
-        CustomStoryGUI(*control, *selectedsprite, Convo, NULL, NULL, CHAR_POS_CENTER);
+        CustomStoryGUI(control, *selectedsprite, Convo, NULL, NULL, CHAR_POS_CENTER);
         EndDrawing();
     }
+    return control;
 }
 
 void ChoosingChara(int *selectedsprite, int *control, SceneList *TempScene)
@@ -357,7 +373,7 @@ void ChoosingChara(int *selectedsprite, int *control, SceneList *TempScene)
             sprintf(TempFileName, "Assets/CharaSprites/chara%i.png", (*selectedsprite)+1);
             (*TempScene)->Data.Character = malloc(strlen(TempFileName) + 1);
             strcpy((*TempScene)->Data.Character, TempFileName);
-            *control = CHOOSINGDIALOGUE;
+            *control = CHOOSINGCHARPOSITION;
         }
         else if (IsKeyPressed(KEY_LEFT))
         {
@@ -374,6 +390,36 @@ void ChoosingChara(int *selectedsprite, int *control, SceneList *TempScene)
             }
         }
         EndDrawing();
+    }
+}
+
+void ChoosingCharaPosition(int *selectedsprite, int *control, SceneList *TempScene) {
+    int pos = CHAR_POS_CENTER;
+    while (*control == CHOOSINGCHARPOSITION) {
+        BeginDrawing();
+        ClearBackground(BLACK);
+        DrawText("Pilih posisi karakter: [LEFT: <-] [CENTER: UP] [RIGHT: ->] [ENTER: OK]", 100, 100, 30, WHITE);
+
+        // Preview posisi karakter
+        Texture2D charTex = {0};
+        if ((*TempScene)->Data.Character && strlen((*TempScene)->Data.Character) > 0) {
+            charTex = LoadTexture((*TempScene)->Data.Character);
+            charTex.height /= 2;
+            charTex.width /= 2;
+            DrawCharacterAtPosition(charTex, pos);
+            // UnloadTexture(charTex); // optional
+        }
+
+        EndDrawing();
+
+        if (IsKeyPressed(KEY_LEFT)) pos = CHAR_POS_LEFT;
+        if (IsKeyPressed(KEY_UP)) pos = CHAR_POS_CENTER;
+        if (IsKeyPressed(KEY_RIGHT)) pos = CHAR_POS_RIGHT;
+        if (IsKeyPressed(KEY_ENTER)) {
+            printf("KEY_ENTER detected, lanjut ke CHOOSINGDIALOGUE\n");
+            (*TempScene)->Data.charPosition = pos;
+            *control = CHOOSINGDIALOGUE;
+        }
     }
 }
 
