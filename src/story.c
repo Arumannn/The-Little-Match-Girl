@@ -1,5 +1,6 @@
 #include "story.h"
 #include "mainmenu.h"
+#include "Queue.h"
 #include <raylib.h>
 #include <stdio.h>
 #include <stdlib.h>

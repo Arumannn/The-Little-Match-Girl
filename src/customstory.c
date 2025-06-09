@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <math.h>
+#include "story.h"
 #include "customstory.h"
 
 CharaArr FileChara[CHARA_AMMOUNT];
@@ -13,7 +14,35 @@ Texture2D Background, Character;
 float RenderTimer = 2.0f;
 bool ShowRender;
 
-void CustomStoryGUI(int state, int currentsprite, char *Dialogue, char *BackSprite, char *CharaSprite) {
+// Helper functions for PrintTree
+typedef struct TempQueueNode {
+    CustomSceneTree treeNode;
+    int level;
+    struct TempQueueNode *next;
+} TempQueueNode;
+
+static void Enqueue(TempQueueNode **front, TempQueueNode **rear, CustomSceneTree treeNode, int level) {
+    TempQueueNode *newNode = (TempQueueNode *)malloc(sizeof(TempQueueNode));
+    newNode->treeNode = treeNode;
+    newNode->level = level;
+    newNode->next = NULL;
+    if (!*rear) {
+        *front = *rear = newNode;
+    } else {
+        (*rear)->next = newNode;
+        *rear = newNode;
+    }
+}
+
+static TempQueueNode *Dequeue(TempQueueNode **front, TempQueueNode **rear) {
+    if (!*front) return NULL;
+    TempQueueNode *temp = *front;
+    *front = (*front)->next;
+    if (!*front) *rear = NULL;
+    return temp;
+}
+
+void CustomStoryGUI(int state, int currentsprite, char *Dialogue, char *BackSprite, char *CharaSprite, CharacterPosition charPosition) {
     char buffer[128];
     Vector2 position;
     switch (state) {
@@ -88,13 +117,29 @@ void CustomStoryGUI(int state, int currentsprite, char *Dialogue, char *BackSpri
             position.x = GetScreenWidth() - Background.width * 0.75f / 2.0f;
             position.y = GetScreenHeight()- Background.height * 0.75f / 2.0f;
             DrawTextureEx(Background, position, 0, 0.75, WHITE);
-            position.x = GetScreenWidth()/2.0f - Character.width * 0.75f / 2.0f;
+            
+            // Draw character at the specified position
+            float charX;
+            switch (charPosition) {
+                case CHAR_POS_LEFT:
+                    charX = position.x + 100;
+                    break;
+                case CHAR_POS_CENTER:
+                    charX = GetScreenWidth()/2.0f - Character.width * 0.75f / 2.0f;
+                    break;
+                case CHAR_POS_RIGHT:
+                    charX = position.x + Background.width * 0.75f - Character.width * 0.75f - 100;
+                    break;
+                default:
+                    charX = GetScreenWidth()/2.0f - Character.width * 0.75f / 2.0f;
+                    break;
+            }
+            position.x = charX;
             position.y = GetScreenHeight()/2.0f - Character.height * 0.75f / 2.0f;
             DrawTextureEx(Character, position, 0, 0.75f, WHITE);
+            
             DrawText(Dialogue, position.x, position.y-50, 20, WHITE);
             DrawText("Press <-- to go to previous scene, and press --> to go to the next scene", position.x, position.y-80, 20, WHITE);
-            // UnloadTexture(Background);
-            // UnloadTexture(Character);
             break;
     }
 }
@@ -141,7 +186,7 @@ void MakeCustomStory(CustomSceneTree *ThisSlot, int SlotNumber)
                     ClearBackground(BLACK);
                     if (ShowRender)
                     {
-                        CustomStoryGUI(control, selectedsprite, NULL, NULL, NULL);
+                        CustomStoryGUI(control, selectedsprite, NULL, NULL, NULL, CHAR_POS_CENTER);
                         RenderTimer -= GetFrameTime();
                         if (RenderTimer <= 0.0f)
                         {
@@ -150,7 +195,7 @@ void MakeCustomStory(CustomSceneTree *ThisSlot, int SlotNumber)
                     }
                     else
                     {
-                        CustomStoryGUI(control, selectedsprite, NULL, NULL, NULL);
+                        CustomStoryGUI(control, selectedsprite, NULL, NULL, NULL, CHAR_POS_CENTER);
                     }
                     switch (KeyPad)
                     {
@@ -199,7 +244,7 @@ void MakeCustomStory(CustomSceneTree *ThisSlot, int SlotNumber)
                                 ClearBackground(BLACK);
                                 if (ShowRender)
                                 {
-                                    CustomStoryGUI(control, selectedsprite, NULL, NULL, NULL);
+                                    CustomStoryGUI(control, selectedsprite, NULL, NULL, NULL, CHAR_POS_CENTER);
                                     RenderTimer -= GetFrameTime();
                                     if (RenderTimer <= 0.0f)
                                     {
@@ -288,12 +333,12 @@ void ChoosingDialogue(char *Convo, int *selectedsprite, int *control, SceneList 
             {
                 BeginDrawing();
                 ClearBackground(BLACK);
-                CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL);
+                CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL, CHAR_POS_CENTER);
                 RenderTimer -= GetFrameTime();
                 EndDrawing();
             }
         }
-        CustomStoryGUI(*control, *selectedsprite, Convo, NULL, NULL);
+        CustomStoryGUI(*control, *selectedsprite, Convo, NULL, NULL, CHAR_POS_CENTER);
         EndDrawing();
     }
 }
@@ -305,7 +350,7 @@ void ChoosingChara(int *selectedsprite, int *control, SceneList *TempScene)
     {
         BeginDrawing();
         ClearBackground(BLACK);
-        CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL);
+        CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL, CHAR_POS_CENTER);
         if (IsKeyPressed(KEY_ENTER))
         {
             char TempFileName[128];
@@ -339,7 +384,7 @@ void ChoosingBackground(int *selectedsprite, int *control, SceneList *TempScene)
     {
         BeginDrawing();
         ClearBackground(BLACK);
-        CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL);
+        CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL, CHAR_POS_CENTER);
         if (IsKeyPressed(KEY_ENTER))
         {
             char TempFileName[128];
@@ -388,6 +433,7 @@ void OverwriteTree(SceneList *TempScene, CustomSceneTree *TempTree, int *control
     (*TempScene)->Data.Background = NULL;
     (*TempScene)->Data.Character = NULL;
     (*TempScene)->Data.Convo = NULL;
+    (*TempScene)->Data.charPosition = CHAR_POS_CENTER;
 
     *control = CONFIRMATION;
     RenderTimer = 2.0f;
@@ -395,7 +441,7 @@ void OverwriteTree(SceneList *TempScene, CustomSceneTree *TempTree, int *control
     {
         BeginDrawing();
         ClearBackground(BLACK);
-        CustomStoryGUI(*control, 7, NULL, NULL, NULL);
+        CustomStoryGUI(*control, 7, NULL, NULL, NULL, CHAR_POS_CENTER);
         RenderTimer -= GetFrameTime();
         EndDrawing();
     }
@@ -438,6 +484,7 @@ void AddRightChild(CustomSceneTree *TempTree, SceneList *TempScene, bool *warnin
         (*TempScene)->Data.Background = NULL;
         (*TempScene)->Data.Character = NULL;
         (*TempScene)->Data.Convo = NULL;
+        (*TempScene)->Data.charPosition = CHAR_POS_CENTER;
         *control = CHOOSINGBACKGROUND;
     }
     else
@@ -465,6 +512,7 @@ void AddLeftChild(CustomSceneTree *TempTree, SceneList *TempScene, int *selected
         (*TempScene)->Data.Background = NULL;
         (*TempScene)->Data.Character = NULL;
         (*TempScene)->Data.Convo = NULL;
+        (*TempScene)->Data.charPosition = CHAR_POS_CENTER;
         *control = CHOOSINGBACKGROUND;
     }
     else
@@ -488,6 +536,7 @@ void InitializeStoryTree(CustomSceneTree *ThisSlot)
     (*ThisSlot)->NodeContents->Data.Background = NULL;
     (*ThisSlot)->NodeContents->Data.Character = NULL;
     (*ThisSlot)->NodeContents->Data.Convo = NULL;
+    (*ThisSlot)->NodeContents->Data.charPosition = CHAR_POS_CENTER;
 }
 
 void AddSceneLast(CustomSceneTree *TempTree, SceneList *TempScene, int *control)
@@ -505,6 +554,7 @@ void AddSceneLast(CustomSceneTree *TempTree, SceneList *TempScene, int *control)
     TravellingScene->Next->Data.Background = NULL;
     TravellingScene->Next->Data.Character = NULL;
     TravellingScene->Next->Data.Convo = NULL;
+    TravellingScene->Next->Data.charPosition = CHAR_POS_CENTER;
     (*TempScene) = TravellingScene->Next;
     *control = CHOOSINGBACKGROUND;
 }
@@ -519,6 +569,7 @@ void AddSceneFirst(CustomSceneTree *TempTree, SceneList *TempScene, bool *warnin
     TravellingScene->Before->Data.Background = NULL;
     TravellingScene->Before->Data.Character = NULL;
     TravellingScene->Before->Data.Convo = NULL;
+    TravellingScene->Before->Data.charPosition = CHAR_POS_CENTER;
     (*TempTree)->NodeContents = TravellingScene->Before;
     (*TempScene) = TravellingScene->Before;
     *control = CHOOSINGBACKGROUND;
@@ -553,7 +604,7 @@ void DeleteSceneLast(CustomSceneTree *TempTree, SceneList *TempScene, int *selec
             ClearBackground(BLACK);
             if (ShowRender)
             {
-                CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL);
+                CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL, CHAR_POS_CENTER);
                 RenderTimer -= GetFrameTime();
                 if (RenderTimer <= 0.0f)
                 {
@@ -576,7 +627,7 @@ void DeleteSceneLast(CustomSceneTree *TempTree, SceneList *TempScene, int *selec
     {
         BeginDrawing();
         ClearBackground(BLACK);
-        CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL);
+        CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL, CHAR_POS_CENTER);
         RenderTimer -= GetFrameTime();
         EndDrawing();
     }
@@ -603,7 +654,7 @@ void DeleteSceneFirst(CustomSceneTree *TempTree, SceneList *TempScene, int *sele
             ClearBackground(BLACK);
             if (ShowRender)
             {
-                CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL);
+                CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL, CHAR_POS_CENTER);
                 RenderTimer -= GetFrameTime();
                 if (RenderTimer <= 0.0f)
                 {
@@ -626,7 +677,7 @@ void DeleteSceneFirst(CustomSceneTree *TempTree, SceneList *TempScene, int *sele
     {
         BeginDrawing();
         ClearBackground(BLACK);
-        CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL);
+        CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL, CHAR_POS_CENTER);
         RenderTimer -= GetFrameTime();
         EndDrawing();
     }
@@ -690,7 +741,7 @@ void HandleDeleteCurrentNode(CustomSceneTree *TempTree, SceneList *TempScene, in
         while (RenderTimer > 0.0f) {
             BeginDrawing();
             ClearBackground(BLACK);
-            CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL);
+            CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL, CHAR_POS_CENTER);
             RenderTimer -= GetFrameTime();
             EndDrawing();
         }
@@ -723,26 +774,61 @@ void HandleDeleteCurrentNode(CustomSceneTree *TempTree, SceneList *TempScene, in
     while (RenderTimer > 0.0f) {
         BeginDrawing();
         ClearBackground(BLACK);
-        CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL);
+        CustomStoryGUI(*control, *selectedsprite, NULL, NULL, NULL, CHAR_POS_CENTER);
         RenderTimer -= GetFrameTime();
         EndDrawing();
     }
 }
 
+
+void DrawCustomStoryScene(SceneList scene) {
+    // Debug print
+    printf("BG: %s | CHAR: %s | POS: %d\n", scene->Data.Background ? scene->Data.Background : "(null)", scene->Data.Character ? scene->Data.Character : "(null)", scene->Data.charPosition);
+    // Load background jika ada
+    Texture2D bgTex = {0};
+    if (scene->Data.Background && strlen(scene->Data.Background) > 0) {
+        bgTex = LoadTexture(scene->Data.Background);
+        if (bgTex.id == 0) printf("Gagal load background: %s\n", scene->Data.Background);
+        bgTex.height = SCREEN_HEIGHT;
+        bgTex.width = SCREEN_WIDTH;
+        DrawTexture(bgTex, 0, 0, WHITE);
+    } else {
+        ClearBackground(RAYWHITE);
+    }
+
+    // Load karakter jika ada
+    Texture2D charTex = {0};
+    if (scene->Data.Character && strlen(scene->Data.Character) > 0) {
+        charTex = LoadTexture(scene->Data.Character);
+        if (charTex.id == 0) printf("Gagal load karakter: %s\n", scene->Data.Character);
+        charTex.height /= 2;
+        charTex.width /= 2;
+        DrawCharacterAtPosition(charTex, scene->Data.charPosition);
+    }
+
+    // Gambar kotak dialog dan teks
+    if (scene->Data.Convo && strlen(scene->Data.Convo) > 0) {
+        DrawRectangle(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, BLACK);
+        DrawRectangleLines(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, WHITE);
+        DrawText(scene->Data.Convo, 70, SCREEN_HEIGHT - 180, 30, WHITE);
+    }
+
+    // Jangan unload texture di sini!
+    // if (bgTex.id) UnloadTexture(bgTex);
+    // if (charTex.id) UnloadTexture(charTex);
+}
+
 void ReviewScene(int *control, SceneList *TempScene)
 {
-    char LinkBack[128];
-    char LinkChara[128];
-    char LinkAudio[128];
-    char LinkConvo[128];
     while (*control == MODE_REVIEW_SCENE)
     {
         BeginDrawing();
         ClearBackground(BLACK);
-        sprintf(LinkBack, (*TempScene)->Data.Background);
-        sprintf(LinkChara, (*TempScene)->Data.Character);
-        sprintf(LinkConvo, (*TempScene)->Data.Convo);
-        CustomStoryGUI(*control, 0, LinkConvo, LinkBack, LinkChara);
+
+        // Gambar scene dengan layout seperti story.c
+        DrawCustomStoryScene(*TempScene);
+
+        // Navigasi scene
         if (IsKeyPressed(KEY_RIGHT) && (*TempScene)->Next != NULL)
         {
             (*TempScene) = (*TempScene)->Next;
@@ -778,9 +864,7 @@ void InitiateAssets()
     }
 }
 
-
-void PrintTree(CustomSceneTree *ThisSlot)
-{
+void PrintTree(CustomSceneTree *ThisSlot) {
     CustomSceneTree root = *ThisSlot;
     if (!root) 
     {
@@ -788,45 +872,13 @@ void PrintTree(CustomSceneTree *ThisSlot)
         return;
     }
 
-
     printf("===== DEBUG TREE LOG START =====\n");
 
-    // Define queue inside this function
-    typedef struct TempQueueNode {
-        CustomSceneTree treeNode;
-        int level;
-        struct TempQueueNode *next;
-    } TempQueueNode;
-
     TempQueueNode *front = NULL, *rear = NULL;
-
-    // Enqueue function
-    auto void Enqueue(CustomSceneTree treeNode, int level) {
-        TempQueueNode *newNode = (TempQueueNode *)malloc(sizeof(TempQueueNode));
-        newNode->treeNode = treeNode;
-        newNode->level = level;
-        newNode->next = NULL;
-        if (!rear) {
-            front = rear = newNode;
-        } else {
-            rear->next = newNode;
-            rear = newNode;
-        }
-    }
-
-    // Dequeue function
-    auto TempQueueNode *Dequeue() {
-        if (!front) return NULL;
-        TempQueueNode *temp = front;
-        front = front->next;
-        if (!front) rear = NULL;
-        return temp;
-    }
-
-    Enqueue(root, 0);
+    Enqueue(&front, &rear, root, 0);
 
     while (front) {
-        TempQueueNode *qNode = Dequeue();
+        TempQueueNode *qNode = Dequeue(&front, &rear);
         CustomSceneTree current = qNode->treeNode;
         int level = qNode->level;
 
@@ -849,15 +901,14 @@ void PrintTree(CustomSceneTree *ThisSlot)
         }
 
         if (current->Left)
-            Enqueue(current->Left, level + 1);
+            Enqueue(&front, &rear, current->Left, level + 1);
         if (current->Right)
-            Enqueue(current->Right, level + 1);
+            Enqueue(&front, &rear, current->Right, level + 1);
 
         free(qNode);
     }
 
     printf("===== DEBUG TREE LOG END =====\n\n");
-
 }
 
 void SerializeSceneList(FILE *file, SceneList sceneList) {
@@ -1165,4 +1216,5 @@ void LoadSlot(CustomSceneTree *ThisSlot) {
         InitializeStoryTree(ThisSlot);
     }
 }
+
 

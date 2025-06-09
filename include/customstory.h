@@ -2,15 +2,21 @@
 #define CUSTOMSTORY_H
 #include <raylib.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include "Queue.h"
 
 #define CHARA_AMMOUNT 11
 #define BACKGROUND_AMMOUNT 23
 #define AUDIO_AMMOUNT 6
 
+#define SCREEN_WIDTH 1920
+#define SCREEN_HEIGHT 1080
+
 typedef enum
 {
     CHOOSINGBACKGROUND,
     CHOOSINGCHARA,
+    CHOOSINGCHARPOSITION,
     CHOOSINGDIALOGUE,
     CONFIRMATION,
     ALLDONE,
@@ -20,7 +26,7 @@ typedef enum
     DELETELASTSCENE,
     MODE_REVIEW_SCENE,
     MODE_OVERWRITING,
-};
+} CustomStoryState;
 
 typedef struct BackgroundFileData
 {
@@ -46,6 +52,7 @@ struct SceneNode
     char *Character;
     char *Convo;
     char *SFX;
+    CharacterPosition charPosition;
 };
 
 typedef struct ListElements 
@@ -77,12 +84,13 @@ CustomSceneTree DeserializeTreeNode(FILE *file, CustomSceneTree parent);
 SceneList DeserializeSceneList(FILE *file);
 
 void InitializeStoryTree(CustomSceneTree *ThisSlot);
-void CustomStoryGUI(int state, int currentsprite, char *Dialogue, char *BackSprite, char *CharaSprite);
+void CustomStoryGUI(int state, int currentsprite, char *Dialogue, char *BackSprite, char *CharaSprite, CharacterPosition charPosition);
 void InitiateAssets();
 void PrintTree(CustomSceneTree *ThisSlot);
 void ChoosingBackground(int *selectedsprite, int *control, SceneList *TempScene);
 void ChoosingChara(int *selectedsprite, int *control, SceneList *TempScene);
 void ChoosingDialogue(char *Convo, int *selectedsprite, int *control, SceneList *TempScene);
+void ChoosingCharaPosition(int *selectedsprite, int *control, SceneList *TempScene);
 void MakeCustomStory(CustomSceneTree *ThisSlot, int SlotNumber);
 void OverwriteTree(SceneList *TempScene, CustomSceneTree *TempTree, int *control);
 void AddLeftChild(CustomSceneTree *TempTree, SceneList *TempScene, int *selectedsprite, bool *warning, int *control);

@@ -15,22 +15,27 @@ extern TreeStory Mytree[MAX_NODE_TREE];
 extern int currentScene;
 extern int currentFrame;
 extern bool exitProgram;
-bool showSaveMessage = false; 
-float saveMessageTimer = 0.0f; 
+bool showSaveMessage = false;
+float saveMessageTimer = 0.0f;
 
-void InitAssets(){
+void InitAssets() {
+    // =================================== MENU STATE 0 ===================================
     MenuButtons[0] = LoadTexture("Assets/BackSprites/customstorymenu.png");
     MenuButtons[1] = LoadTexture("Assets/mainmenu/Start.png");
     MenuButtons[2] = LoadTexture("Assets/mainmenu/Studio_Game.png");
     MenuButtons[3] = LoadTexture("Assets/mainmenu/About.png");
     MenuButtons[4] = LoadTexture("Assets/mainmenu/Exit.png");
+    // =================================== MENU STATE 1 ===================================
     MenuButtons[5] = LoadTexture("Assets/mainmenu/Play_Game.png");
     MenuButtons[6] = LoadTexture("Assets/mainmenu/Custom_Game.png");
+    // =================================== MENU STATE 2 ===================================
     MenuButtons[7] = LoadTexture("Assets/mainmenu/New_Game.png");
     MenuButtons[8] = LoadTexture("Assets/mainmenu/Continue.png");
+    // =================================== MENU STATE 3 ===================================
     MenuButtons[9] = LoadTexture("Assets/mainmenu/Create_Game.png");
     MenuButtons[10] = LoadTexture("Assets/mainmenu/Edit_Game.png");
     MenuButtons[11] = LoadTexture("Assets/mainmenu/Delete_Game.png");
+    // =================================== MENU STATE 4 ===================================
     MenuButtons[12] = LoadTexture("Assets/mainmenu/Slot_1.png");
     MenuButtons[13] = LoadTexture("Assets/mainmenu/Slot_2.png");
     MenuButtons[14] = LoadTexture("Assets/mainmenu/Slot_3.png");
@@ -39,12 +44,14 @@ void InitAssets(){
     MenuButtons[17] = LoadTexture("Assets/mainmenu/Save_Game.png");
     MenuButtons[18] = LoadTexture("Assets/mainmenu/Main_Menu.png");
 
+    // Set background image menjadi full Screen
     MenuButtons[0].height = SCREEN_HEIGHT;
     MenuButtons[0].width = SCREEN_WIDTH;
 
-    for (int i = 1; i <= MAX_MENU; i++) {
-        MenuButtons[i].height = MenuButtons[i].height / 2;
-        MenuButtons[i].width = MenuButtons[i].width / 2;
+    // Set semua button dengan ukuran yang sama
+    for (int i = 1; i < MAX_MENU; i++) {
+        MenuButtons[i].height = 230 / 2;
+        MenuButtons[i].width = 630 / 2;
     }
 }
 
@@ -58,26 +65,27 @@ void SetButtonRect(int id, int x, int y) {
 void InitButtonRects(GameState currentGameState) {
     int startX = 100;
     int startY = 300;
-    int gapY = 120;
+    int gapY = 150;
 
     switch (currentGameState) {
         case GAME_STATE_MAIN_MENU:
-            printf("InitButtonRects: GAME_STATE_MAIN_MENU\n");
+            printf("currentGameState MAIN_MENU\n");
             for (int i = 1, idx = 0; i <= 4; i++, idx++) {
                 SetButtonRect(i, startX, startY + idx * gapY);
             }
             break;
 
         case GAME_STATE_PLAY_GAME_MENU:
-            printf("InitButtonRects: GAME_STATE_PLAY_GAME_MENU\n");
+            printf("currentGameState PLAY_GAME_MENU\n");
             for (int i = 5, idx = 0; i <= 6; i++, idx++) {
                 SetButtonRect(i, startX, startY + idx * gapY);
             }
             SetButtonRect(15, startX, startY + 2 * gapY);
             break;
-        case GAME_STATE_NEW_CONTINUE_CUSTOM:
+
         case GAME_STATE_NEW_CONTINUE_NON_CUSTOM:
-            printf("InitButtonRects: GAME_STATE_NEW_CONTINUE_NON_CUSTOM\n");
+        case GAME_STATE_NEW_CONTINUE_CUSTOM:
+            printf("currentGameState NEW_CONTINUE_MENU\n");
             for (int i = 7, idx = 0; i <= 8; i++, idx++) {
                 SetButtonRect(i, startX, startY + idx * gapY);
             }
@@ -85,7 +93,7 @@ void InitButtonRects(GameState currentGameState) {
             break;
 
         case GAME_STATE_STUDIO_MENU:
-            printf("InitButtonRects: GAME_STATE_STUDIO_MENU\n");
+            printf("currentGameState STUDIO_MENU\n");
             for (int i = 9, idx = 0; i <= 11; i++, idx++) {
                 SetButtonRect(i, startX, startY + idx * gapY);
             }
@@ -95,7 +103,7 @@ void InitButtonRects(GameState currentGameState) {
         case GAME_STATE_CREATE_MENU:
         case GAME_STATE_EDIT_MENU:
         case GAME_STATE_DELETE_MENU:
-            printf("InitButtonRects: GAME_STATE_CREATE_MENU/EDIT/DELETE (SLOTS)\n");
+            printf("currentGameState CREATE/EDIT/DELETE (SLOTS)\n");
             for (int i = 12, idx = 0; i <= 14; i++, idx++) {
                 SetButtonRect(i, startX, startY + idx * gapY);
             }
@@ -103,17 +111,17 @@ void InitButtonRects(GameState currentGameState) {
             break;
 
         case GAME_STATE_ABOUT:
-            printf("InitButtonRects: GAME_STATE_ABOUT\n");
-            SetButtonRect(15, SCREEN_WIDTH / 2 - MenuButtons[15].width / 2, SCREEN_HEIGHT / 2 + 100);
+            printf("currentGameState ABOUT\n");
+            SetButtonRect(15, SCREEN_WIDTH / 2 - MenuButtons[15].width / 2, SCREEN_HEIGHT - 500);
             break;
 
         case GAME_STATE_PLAY_GAME:
         case GAME_STATE_MINI_GAME_STACK:
-            printf("InitButtonRects: GAME_STATE_PLAY_GAME or MINIGAME (no main menu buttons)\n");
+            printf("currentGameState PLAY_GAME or MINIGAME\n");
             break;
 
         case GAME_STATE_PAUSE:
-            printf("InitButtonRects: GAME_STATE_PAUSE\n");
+            printf("currentGameState PAUSE\n");
             for (int i = 16, idx = 0; i <= 18; i++, idx++) {
                 buttonRects[i].height = (float)MenuButtons[i].height;
                 buttonRects[i].width = (float)MenuButtons[i].width;
@@ -123,17 +131,14 @@ void InitButtonRects(GameState currentGameState) {
             break;
 
         default:
-            printf("InitButtonRects: DEFAULT (no specific initialization)\n");
             break;
     }
 }
 
-void DrawMainMenu(GameState currentGameState){
-
+void DrawMainMenu(GameState currentGameState) {
     if (currentGameState != GAME_STATE_PAUSE &&
         currentGameState != GAME_STATE_PLAY_GAME &&
-        currentGameState != GAME_STATE_MINI_GAME_STACK)
-    {
+        currentGameState != GAME_STATE_MINI_GAME_STACK) {
         DrawTexture(MenuButtons[0], 0, 0, WHITE);
     }
 
@@ -151,8 +156,9 @@ void DrawMainMenu(GameState currentGameState){
             }
             DrawTexture(MenuButtons[15], (int)buttonRects[15].x, (int)buttonRects[15].y, WHITE);
             break;
-        case GAME_STATE_NEW_CONTINUE_CUSTOM:
+
         case GAME_STATE_NEW_CONTINUE_NON_CUSTOM:
+        case GAME_STATE_NEW_CONTINUE_CUSTOM:
             printf("DRAWING MENU STATE NEW CONTINUE\n");
             for (int i = 7; i <= 8; i++) {
                 DrawTexture(MenuButtons[i], (int)buttonRects[i].x, (int)buttonRects[i].y, WHITE);
@@ -180,14 +186,17 @@ void DrawMainMenu(GameState currentGameState){
             printf("DRAWING MENU STATE ABOUT\n");
             DrawTexture(MenuButtons[15], (int)buttonRects[15].x, (int)buttonRects[15].y, WHITE);
             break;
-        case GAME_STATE_PLAY_GAME:
-            printf("DRAWING GAME STATE PLAY GAME (no main menu buttons)\n");
-            break;
-        case GAME_STATE_MINI_GAME_STACK:
-            break;
+
         case GAME_STATE_PAUSE:
-            printf("DRAWING GAME STATE PAUSE (handled by DrawPauseMenu)\n");
+            printf("DRAWING GAME STATE PAUSE\n");
+            for (int i = 16; i <= 18; i++) {
+                DrawTexture(MenuButtons[i], (int)buttonRects[i].x, (int)buttonRects[i].y, WHITE);
+            }
+            if (showSaveMessage) {
+                DrawText("Game Saved!", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 200, 40, GREEN);
+            }
             break;
+
         default:
             break;
     }
@@ -202,63 +211,70 @@ void DrawMainMenu(GameState currentGameState){
 }
 
 void UpdateMainMenu(GameState *currentGameState) {
-    Vector2 mousePos = GetMousePosition();
+    Vector2 mousePoint = GetMousePosition();
     selectedMenu = -1;
 
-    if (*currentGameState == GAME_STATE_PLAY_GAME ||
-        *currentGameState == GAME_STATE_MINI_GAME_STACK ||
-        *currentGameState == GAME_STATE_PAUSE) {
+    // Don't update menu if in story or minigame states
+    if (*currentGameState == GAME_STATE_PLAY_GAME || 
+        *currentGameState == GAME_STATE_MINI_GAME_STACK) {
         return;
     }
 
     int startIndex = 0, endIndex = 0;
-    int backButtonIndex = -1;
 
+    // Determine which buttons are active based on current state
     switch (*currentGameState) {
         case GAME_STATE_MAIN_MENU:
             startIndex = 1; endIndex = 4;
             break;
         case GAME_STATE_PLAY_GAME_MENU:
             startIndex = 5; endIndex = 6;
-            backButtonIndex = 15;
             break;
-        case GAME_STATE_NEW_CONTINUE_CUSTOM:
         case GAME_STATE_NEW_CONTINUE_NON_CUSTOM:
+        case GAME_STATE_NEW_CONTINUE_CUSTOM:
             startIndex = 7; endIndex = 8;
-            backButtonIndex = 15;
             break;
         case GAME_STATE_STUDIO_MENU:
             startIndex = 9; endIndex = 11;
-            backButtonIndex = 15;
             break;
-        case GAME_STATE_DELETE_MENU:
         case GAME_STATE_CREATE_MENU:
         case GAME_STATE_EDIT_MENU:
+        case GAME_STATE_DELETE_MENU:
             startIndex = 12; endIndex = 14;
-            backButtonIndex = 15;
             break;
         case GAME_STATE_ABOUT:
             startIndex = 15; endIndex = 15;
-            backButtonIndex = 15;
+            break;
+        case GAME_STATE_PAUSE:
+            startIndex = 16; endIndex = 18;
             break;
         default:
             return;
     }
 
+    // Check main button interactions
     for (int i = startIndex; i <= endIndex; i++) {
-        if (CheckCollisionPointRec(mousePos, buttonRects[i])) {
+        if (CheckCollisionPointRec(mousePoint, buttonRects[i])) {
             selectedMenu = i;
-            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-                CheckMenuClick(i, currentGameState);
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                if (CheckMenuClick(i, currentGameState)) {
+                    InitButtonRects(*currentGameState);
+                }
+                return;
             }
         }
     }
 
-    if (backButtonIndex != -1) {
-        if (CheckCollisionPointRec(mousePos, buttonRects[backButtonIndex])) {
-            selectedMenu = backButtonIndex;
-            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-                CheckMenuClick(backButtonIndex, currentGameState);
+    // Check back button interaction (except for main menu and about states)
+    if (*currentGameState != GAME_STATE_MAIN_MENU && 
+        *currentGameState != GAME_STATE_ABOUT && 
+        *currentGameState != GAME_STATE_PAUSE) {
+        if (CheckCollisionPointRec(mousePoint, buttonRects[15])) {
+            selectedMenu = 15;
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                if (CheckMenuClick(15, currentGameState)) {
+                    InitButtonRects(*currentGameState);
+                }
             }
         }
     }
@@ -267,155 +283,183 @@ void UpdateMainMenu(GameState *currentGameState) {
 bool CheckMenuClick(int index, GameState *currentGameState) {
     printf("Button %d clicked in state %d\n", index, *currentGameState);
 
-    GameState previousState = *currentGameState;
-
     switch (*currentGameState) {
         case GAME_STATE_MAIN_MENU:
             switch (index) {
-                case 1:
+                case 1: // Start
                     *currentGameState = GAME_STATE_PLAY_GAME_MENU;
-                    break;
-                case 2:
+                    return true;
+                case 2: // Studio
                     *currentGameState = GAME_STATE_STUDIO_MENU;
-                    break;
-                case 3:
+                    return true;
+                case 3: // About
                     *currentGameState = GAME_STATE_ABOUT;
-                    break;
-                case 4:
+                    return true;
+                case 4: // Exit
                     exitProgram = true;
-                    return false;
+                    return true;
             }
             break;
 
         case GAME_STATE_PLAY_GAME_MENU:
             switch (index) {
-                case 5:
+                case 5: // Play Game
                     *currentGameState = GAME_STATE_NEW_CONTINUE_NON_CUSTOM;
-                    break;
-                case 6:
+                    return true;
+                case 6: // Custom Game
                     *currentGameState = GAME_STATE_NEW_CONTINUE_CUSTOM;
-                    break;
-                case 15:
+                    return true;
+                case 15: // Back
                     *currentGameState = GAME_STATE_MAIN_MENU;
-                    break;
+                    return true;
             }
             break;
 
         case GAME_STATE_NEW_CONTINUE_NON_CUSTOM:
-            switch(index){
-                case 7:
-                    *currentGameState = GAME_STATE_MINI_GAME_STACK;
-                    currentScene = 0;
-                    currentFrame = 0;
-                    break;
-                case 8:
-                    LoadGameStory("savefile.txt", &currentScene, &currentFrame);
-                    LoadNodeAssets(Mytree, currentScene);
+            switch (index) {
+                case 7: // New Game
                     *currentGameState = GAME_STATE_PLAY_GAME;
-                    break;
-                case 15:
+                    return true;
+                case 8: // Continue
+                    *currentGameState = GAME_STATE_PLAY_GAME;
+                    return true;
+                case 15: // Back
                     *currentGameState = GAME_STATE_PLAY_GAME_MENU;
-                    break;
+                    return true;
             }
             break;
-            case GAME_STATE_NEW_CONTINUE_CUSTOM:
-            switch(index){
-                case 7:
-                    *currentGameState = GAME_STATE_MAIN_MENU;
-                    break;
-                case 8:
-                    *currentGameState = GAME_STATE_MAIN_MENU;
-                    break;
-                case 15:
+
+        case GAME_STATE_NEW_CONTINUE_CUSTOM:
+            switch (index) {
+                case 7: // New Game
+                    *currentGameState = GAME_STATE_CREATE_MENU;
+                    return true;
+                case 8: // Continue
+                    *currentGameState = GAME_STATE_PLAY_CUSTOM_SLOT_1;
+                    return true;
+                case 15: // Back
                     *currentGameState = GAME_STATE_PLAY_GAME_MENU;
-                    break;
+                    return true;
             }
             break;
 
         case GAME_STATE_STUDIO_MENU:
             switch (index) {
-                case 9:
+                case 9: // Create
                     *currentGameState = GAME_STATE_CREATE_MENU;
-                    break;
-                case 10:
+                    return true;
+                case 10: // Edit
                     *currentGameState = GAME_STATE_EDIT_MENU;
-                    break;
-                case 11:
+                    return true;
+                case 11: // Delete
                     *currentGameState = GAME_STATE_DELETE_MENU;
-                    break;
-                case 15:
+                    return true;
+                case 15: // Back
                     *currentGameState = GAME_STATE_MAIN_MENU;
-                    break;
+                    return true;
             }
             break;
 
         case GAME_STATE_CREATE_MENU:
             switch (index) {
-                case 12: printf("CREATE SLOT 1 selected\n"); *currentGameState = GAME_STATE_STUDIO_MENU; break;
-                case 13: printf("CREATE SLOT 2 selected\n"); *currentGameState = GAME_STATE_STUDIO_MENU; break;
-                case 14: printf("CREATE SLOT 3 selected\n"); *currentGameState = GAME_STATE_STUDIO_MENU; break;
-                case 15: *currentGameState = GAME_STATE_STUDIO_MENU; break;
+                case 12: // Slot 1
+                    *currentGameState = GAME_STATE_CREATE_SLOT_1;
+                    return true;
+                case 13: // Slot 2
+                    *currentGameState = GAME_STATE_CREATE_SLOT_2;
+                    return true;
+                case 14: // Slot 3
+                    *currentGameState = GAME_STATE_CREATE_SLOT_3;
+                    return true;
+                case 15: // Back
+                    *currentGameState = GAME_STATE_STUDIO_MENU;
+                    return true;
             }
             break;
 
         case GAME_STATE_EDIT_MENU:
             switch (index) {
-                case 12: printf("EDIT SLOT 1 selected\n"); *currentGameState = GAME_STATE_STUDIO_MENU; break;
-                case 13: printf("EDIT SLOT 2 selected\n"); *currentGameState = GAME_STATE_STUDIO_MENU; break;
-                case 14: printf("EDIT SLOT 3 selected\n"); *currentGameState = GAME_STATE_STUDIO_MENU; break;
-                case 15: *currentGameState = GAME_STATE_STUDIO_MENU; break;
+                case 12: // Slot 1
+                    *currentGameState = GAME_STATE_EDIT_SLOT_1;
+                    return true;
+                case 13: // Slot 2
+                    *currentGameState = GAME_STATE_EDIT_SLOT_2;
+                    return true;
+                case 14: // Slot 3
+                    *currentGameState = GAME_STATE_EDIT_SLOT_3;
+                    return true;
+                case 15: // Back
+                    *currentGameState = GAME_STATE_STUDIO_MENU;
+                    return true;
             }
             break;
 
         case GAME_STATE_DELETE_MENU:
             switch (index) {
-                case 12: printf("DELETE SLOT 1 selected\n"); *currentGameState = GAME_STATE_STUDIO_MENU; break;
-                case 13: printf("DELETE SLOT 2 selected\n"); *currentGameState = GAME_STATE_STUDIO_MENU; break;
-                case 14: printf("DELETE SLOT 3 selected\n"); *currentGameState = GAME_STATE_STUDIO_MENU; break;
-                case 15: *currentGameState = GAME_STATE_STUDIO_MENU; break;
+                case 12: // Slot 1
+                    *currentGameState = GAME_STATE_DELETE_SLOT_1;
+                    return true;
+                case 13: // Slot 2
+                    *currentGameState = GAME_STATE_DELETE_SLOT_2;
+                    return true;
+                case 14: // Slot 3
+                    *currentGameState = GAME_STATE_DELETE_SLOT_3;
+                    return true;
+                case 15: // Back
+                    *currentGameState = GAME_STATE_STUDIO_MENU;
+                    return true;
             }
             break;
 
-        case GAME_STATE_CONTINUE_SLOT_1:
-        case GAME_STATE_CONTINUE_SLOT_2:
-        case GAME_STATE_CONTINUE_SLOT_3:
-            printf("Attempted to click in a CONTINUE_SLOT state, unexpected.\n");
-            *currentGameState = GAME_STATE_PLAY_GAME;
-            break;
-
         case GAME_STATE_ABOUT:
-            if (index == 15) {
+            if (index == 15) { // Back
                 *currentGameState = GAME_STATE_MAIN_MENU;
+                return true;
             }
             break;
 
         case GAME_STATE_PAUSE:
             switch (index) {
-                case 16:
+                case 16: // Continue
                     *currentGameState = GAME_STATE_PLAY_GAME;
-                    break;
-                case 17:
-                    SaveGameStory("savefile.txt", currentScene, currentFrame);
+                    return true;
+                case 17: // Save Game
                     showSaveMessage = true;
                     saveMessageTimer = 0.0f;
-                    break;
-                case 18:
+                    return true;
+                case 18: // Main Menu
                     *currentGameState = GAME_STATE_MAIN_MENU;
-                    currentFrame = 0;
-                    currentScene = 0;
-                    break;
-                default:
-                    break;
+                    return true;
             }
             break;
     }
+    return false;
+}
 
-    if (previousState != *currentGameState) {
-        InitButtonRects(*currentGameState);
-        selectedMenu = -1;
+void UpdatePauseMenu(GameState *currentGameState) {
+    Vector2 mousePoint = GetMousePosition();
+    selectedMenu = -1;
+
+    // Check if mouse is over any button
+    for (int i = 16; i <= 18; i++) {
+        if (CheckCollisionPointRec(mousePoint, buttonRects[i])) {
+            selectedMenu = i;
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                if (CheckMenuClick(i, currentGameState)) {
+                    InitButtonRects(*currentGameState);
+                }
+                return;
+            }
+        }
     }
 
-    return true;
+    if (showSaveMessage) {
+        saveMessageTimer += GetFrameTime();
+        if (saveMessageTimer >= 2.0f) {
+            showSaveMessage = false;
+            saveMessageTimer = 0.0f;
+        }
+    }
 }
 
 void UnloadAssets() {
@@ -427,37 +471,16 @@ void UnloadAssets() {
 void DrawDebugGrid(int gridSize) {
     Color gridColor = DARKGRAY;
 
+    // Draw vertical lines
     for (int x = 0; x <= SCREEN_WIDTH; x += gridSize) {
         DrawLine(x, 0, x, SCREEN_HEIGHT, gridColor);
         DrawText(TextFormat("%d", x), x + 2, 0, 10, GRAY);
     }
 
+    // Draw horizontal lines
     for (int y = 0; y <= SCREEN_HEIGHT; y += gridSize) {
         DrawLine(0, y, SCREEN_WIDTH, y, gridColor);
         DrawText(TextFormat("%d", y), 0, y + 2, 10, GRAY);
-    }
-}
-
-void UpdatePauseMenu(GameState * currentGameState){
-    Vector2 mousePos = GetMousePosition();
-    selectedMenu = -1;
-
-    if (showSaveMessage) {
-        saveMessageTimer += GetFrameTime();
-        if (saveMessageTimer >= 2.0f) { 
-            showSaveMessage = false;
-            saveMessageTimer = 0.0f;
-        }
-    }
-
-    for (int i = 16; i <= 18; i++) {
-        if (CheckCollisionPointRec(mousePos, buttonRects[i])) {
-            selectedMenu = i;
-            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-                CheckMenuClick(i, currentGameState);
-                return;
-            }
-        }
     }
 }
 
@@ -478,6 +501,6 @@ void DrawPauseMenu() {
     if (showSaveMessage) {
         DrawText("Story Has Been Saved", 
                  SCREEN_WIDTH / 2 - MeasureText("Story Has Been Saved", 50) / 2, 
-                 SCREEN_HEIGHT / 2 - 175, 50, WHITE) ; 
+                 SCREEN_HEIGHT / 2 - 175, 50, WHITE);
     }
 }

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <raylib.h>
-//#include "customstory.h"
+#include "customstory.h"
 #include "minigame.h"
 #include "story.h"
 #include "mainmenu.h"
@@ -15,6 +15,10 @@ GameState currentGameState = GAME_STATE_MAIN_MENU;
 bool minigameInitialized = false; 
 bool exitProgram = false;
 
+// Custom story slots
+CustomSceneTree customStorySlots[3] = {NULL, NULL, NULL};
+int currentCustomSlot = 0;
+
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "The Little Match Girl");
     SetTargetFPS(60);
@@ -22,13 +26,13 @@ int main() {
     InitDataCerita(Mytree);
     InitAudioDevice();
     InitButtonRects(currentGameState);
+    InitiateAssets(); // Initialize custom story assets
 
     Music Pusic = LoadMusicStream("Assets/Music/SilentNight.mp3");
     PlayMusicStream(Pusic); 
     SetMusicVolume(Pusic, 1.0f);
     
     while (!WindowShouldClose() && !exitProgram) {
-        
         UpdateMusicStream(Pusic); 
         
         BeginDrawing();
@@ -42,9 +46,6 @@ int main() {
             case GAME_STATE_CREATE_MENU:
             case GAME_STATE_EDIT_MENU:
             case GAME_STATE_DELETE_MENU:
-            // case GAME_STATE_CONTINUE_SLOT_1:
-            // case GAME_STATE_CONTINUE_SLOT_2:
-            // case GAME_STATE_CONTINUE_SLOT_3:
             case GAME_STATE_ABOUT:
                 ClearBackground(WHITE); 
                 UpdateMainMenu(&currentGameState); 
@@ -56,10 +57,125 @@ int main() {
                 UpdateCerita(Mytree, &currentGameState); 
                 DrawCurrentNodeScreen(Mytree);
                 break;
+
+            case GAME_STATE_PLAY_CUSTOM_STORY:
+                // Handle custom story playback
+                if (customStorySlots[currentCustomSlot] != NULL) {
+                    // TODO: Implement custom story playback
+                    // For now, just return to main menu
+                    currentGameState = GAME_STATE_MAIN_MENU;
+                } else {
+                    currentGameState = GAME_STATE_MAIN_MENU;
+                }
+                break;
+
+            case GAME_STATE_CREATE_SLOT_1:
+                currentCustomSlot = 0;
+                MakeCustomStory(&customStorySlots[0], 1);
+                currentGameState = GAME_STATE_MAIN_MENU;
+                InitButtonRects(currentGameState);
+                break;
+
+            case GAME_STATE_CREATE_SLOT_2:
+                currentCustomSlot = 1;
+                MakeCustomStory(&customStorySlots[1], 2);
+                currentGameState = GAME_STATE_MAIN_MENU;
+                InitButtonRects(currentGameState);
+                break;
+
+            case GAME_STATE_CREATE_SLOT_3:
+                currentCustomSlot = 2;
+                MakeCustomStory(&customStorySlots[2], 3);
+                currentGameState = GAME_STATE_MAIN_MENU;
+                InitButtonRects(currentGameState);
+                break;
+
+            case GAME_STATE_EDIT_SLOT_1:
+                currentCustomSlot = 0;
+                if (customStorySlots[0] != NULL) {
+                    MakeCustomStory(&customStorySlots[0], 1);
+                }
+                currentGameState = GAME_STATE_MAIN_MENU;
+                InitButtonRects(currentGameState);
+                break;
+
+            case GAME_STATE_EDIT_SLOT_2:
+                currentCustomSlot = 1;
+                if (customStorySlots[1] != NULL) {
+                    MakeCustomStory(&customStorySlots[1], 2);
+                }
+                currentGameState = GAME_STATE_MAIN_MENU;
+                InitButtonRects(currentGameState);
+                break;
+
+            case GAME_STATE_EDIT_SLOT_3:
+                currentCustomSlot = 2;
+                if (customStorySlots[2] != NULL) {
+                    MakeCustomStory(&customStorySlots[2], 3);
+                }
+                currentGameState = GAME_STATE_MAIN_MENU;
+                InitButtonRects(currentGameState);
+                break;
+
+            case GAME_STATE_DELETE_SLOT_1:
+                if (customStorySlots[0] != NULL) {
+                    DeleteTreeNode(&customStorySlots[0]);
+                }
+                currentGameState = GAME_STATE_MAIN_MENU;
+                InitButtonRects(currentGameState);
+                break;
+
+            case GAME_STATE_DELETE_SLOT_2:
+                if (customStorySlots[1] != NULL) {
+                    DeleteTreeNode(&customStorySlots[1]);
+                }
+                currentGameState = GAME_STATE_MAIN_MENU;
+                InitButtonRects(currentGameState);
+                break;
+
+            case GAME_STATE_DELETE_SLOT_3:
+                if (customStorySlots[2] != NULL) {
+                    DeleteTreeNode(&customStorySlots[2]);
+                }
+                currentGameState = GAME_STATE_MAIN_MENU;
+                InitButtonRects(currentGameState);
+                break;
+
+            case GAME_STATE_PLAY_CUSTOM_SLOT_1:
+                currentCustomSlot = 0;
+                if (customStorySlots[0] != NULL) {
+                    currentGameState = GAME_STATE_PLAY_CUSTOM_STORY;
+                } else {
+                    currentGameState = GAME_STATE_MAIN_MENU;
+                }
+                InitButtonRects(currentGameState);
+                break;
+
+            case GAME_STATE_PLAY_CUSTOM_SLOT_2:
+                currentCustomSlot = 1;
+                if (customStorySlots[1] != NULL) {
+                    currentGameState = GAME_STATE_PLAY_CUSTOM_STORY;
+                } else {
+                    currentGameState = GAME_STATE_MAIN_MENU;
+                }
+                InitButtonRects(currentGameState);
+                break;
+
+            case GAME_STATE_PLAY_CUSTOM_SLOT_3:
+                currentCustomSlot = 2;
+                if (customStorySlots[2] != NULL) {
+                    currentGameState = GAME_STATE_PLAY_CUSTOM_STORY;
+                } else {
+                    currentGameState = GAME_STATE_MAIN_MENU;
+                }
+                InitButtonRects(currentGameState);
+                break;
+
             case GAME_STATE_PAUSE:
                 UpdatePauseMenu(&currentGameState);
                 DrawPauseMenu();
                 break;
+
             case GAME_STATE_MINI_GAME_STACK:
                 if (!minigameInitialized) {
                     InitMiniGameStack();
@@ -74,24 +190,9 @@ int main() {
                     minigameInitialized = false;
                     printf("Exiting minigame, transitioning to story\n");
                     LoadNodeAssets(Mytree, currentScene); 
-                    
                 }
                 break;   
-            case GAME_STATE_CREATE_SLOT_1:
-            //MakeCustomStory(&Slot_1);
-            case GAME_STATE_CREATE_SLOT_2:
-            //MakeCustomStory(&Slot_2);
-            case GAME_STATE_CREATE_SLOT_3:
-            case GAME_STATE_EDIT_SLOT_1:
-            case GAME_STATE_EDIT_SLOT_2:
-            case GAME_STATE_EDIT_SLOT_3:
-            case GAME_STATE_DELETE_SLOT_1:
-            case GAME_STATE_DELETE_SLOT_2:
-            case GAME_STATE_DELETE_SLOT_3:
-                currentGameState = GAME_STATE_MAIN_MENU;
-                InitButtonRects(currentGameState);
-                break;
-                
+
             default:
                 currentGameState = GAME_STATE_MAIN_MENU;
                 InitButtonRects(currentGameState);
@@ -99,10 +200,17 @@ int main() {
         }
         
         Vector2 mouse = GetMousePosition();
-        DrawText(TextFormat("Mouse: [%.0f, %.0f]", mouse.x, mouse.y), 10, 10, 20, WHITE     );
+        DrawText(TextFormat("Mouse: [%.0f, %.0f]", mouse.x, mouse.y), 10, 10, 20, WHITE);
         DrawText(TextFormat("Current State: %d", currentGameState), 10, 40, 20, BLACK);
         
         EndDrawing();
+    }
+
+    // Cleanup
+    for (int i = 0; i < 3; i++) {
+        if (customStorySlots[i] != NULL) {
+            DeleteTreeNode(&customStorySlots[i]);
+        }
     }
 
     UnloadNodeAssets(Mytree, currentScene);

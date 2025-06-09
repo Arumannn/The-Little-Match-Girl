@@ -30,5 +30,6 @@ void ProsesChoice(TreeStory SceneTree[], int choice);
 void SaveGameStory(const char *filename, int Node, int Scene);
 void LoadGameStory(const char *filename, int *Node, int *Scene);
 void UnloadStoryAudio(void);
+void DrawCharacterAtPosition(Texture2D tex, CharacterPosition pos);
 
 #endif
