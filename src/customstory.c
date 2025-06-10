@@ -968,17 +968,27 @@ void SerializeSceneList(FILE *file, SceneList sceneList) {
         counter = counter->Next;
     }
     
+    printf("Serializing %d scenes\n", sceneCount);
+    
     // Write the scene count
     fwrite(&sceneCount, sizeof(int), 1, file);
     
     // Write each scene
     current = sceneList;
+    int sceneIndex = 0;
     while (current != NULL) {
+        printf("Serializing scene %d\n", sceneIndex + 1);
+        
+        // Write character position first
+        fwrite(&(current->Data.charPosition), sizeof(CharacterPosition), 1, file);
+        printf("  Character Position: %d\n", current->Data.charPosition);
+        
         // Write Background string
         int bgLen = current->Data.Background ? strlen(current->Data.Background) + 1 : 0;
         fwrite(&bgLen, sizeof(int), 1, file);
         if (bgLen > 0) {
             fwrite(current->Data.Background, sizeof(char), bgLen, file);
+            printf("  Background: %s\n", current->Data.Background);
         }
         
         // Write Character string
@@ -986,6 +996,7 @@ void SerializeSceneList(FILE *file, SceneList sceneList) {
         fwrite(&charLen, sizeof(int), 1, file);
         if (charLen > 0) {
             fwrite(current->Data.Character, sizeof(char), charLen, file);
+            printf("  Character: %s\n", current->Data.Character);
         }
         
         // Write Convo string
@@ -993,6 +1004,7 @@ void SerializeSceneList(FILE *file, SceneList sceneList) {
         fwrite(&convoLen, sizeof(int), 1, file);
         if (convoLen > 0) {
             fwrite(current->Data.Convo, sizeof(char), convoLen, file);
+            printf("  Convo: %s\n", current->Data.Convo);
         }
         
         // Write SFX string
@@ -1000,17 +1012,22 @@ void SerializeSceneList(FILE *file, SceneList sceneList) {
         fwrite(&sfxLen, sizeof(int), 1, file);
         if (sfxLen > 0) {
             fwrite(current->Data.SFX, sizeof(char), sfxLen, file);
+            printf("  SFX: %s\n", current->Data.SFX);
         }
         
         current = current->Next;
+        sceneIndex++;
     }
 }
 
 SceneList DeserializeSceneList(FILE *file) {
     int sceneCount;
     if (fread(&sceneCount, sizeof(int), 1, file) != 1) {
+        printf("Error: Failed to read scene count\n");
         return NULL; // Failed to read scene count
     }
+    
+    printf("Deserializing %d scenes\n", sceneCount);
     
     if (sceneCount == 0) {
         return NULL;
@@ -1020,8 +1037,26 @@ SceneList DeserializeSceneList(FILE *file) {
     SceneList lastScene = NULL;
     
     for (int i = 0; i < sceneCount; i++) {
+        printf("Deserializing scene %d\n", i + 1);
+        
         // Create new scene
         SceneList newScene = (SceneList)malloc(sizeof(struct ListElements));
+        if (!newScene) {
+            printf("Error: Failed to allocate memory for scene\n");
+            // Clean up previously allocated scenes
+            while (firstScene != NULL) {
+                SceneList temp = firstScene;
+                firstScene = firstScene->Next;
+                if (temp->Data.Background) free(temp->Data.Background);
+                if (temp->Data.Character) free(temp->Data.Character);
+                if (temp->Data.Convo) free(temp->Data.Convo);
+                if (temp->Data.SFX) free(temp->Data.SFX);
+                free(temp);
+            }
+            return NULL;
+        }
+        
+        // Initialize all pointers to NULL
         newScene->Next = NULL;
         newScene->Before = lastScene;
         newScene->Data.Background = NULL;
@@ -1029,36 +1064,104 @@ SceneList DeserializeSceneList(FILE *file) {
         newScene->Data.Convo = NULL;
         newScene->Data.SFX = NULL;
         
+        // Read character position first
+        if (fread(&(newScene->Data.charPosition), sizeof(CharacterPosition), 1, file) != 1) {
+            printf("Error: Failed to read character position\n");
+            // Clean up
+            if (newScene->Data.Background) free(newScene->Data.Background);
+            if (newScene->Data.Character) free(newScene->Data.Character);
+            if (newScene->Data.Convo) free(newScene->Data.Convo);
+            if (newScene->Data.SFX) free(newScene->Data.SFX);
+            free(newScene);
+            
+            // Clean up previously allocated scenes
+            while (firstScene != NULL) {
+                SceneList temp = firstScene;
+                firstScene = firstScene->Next;
+                if (temp->Data.Background) free(temp->Data.Background);
+                if (temp->Data.Character) free(temp->Data.Character);
+                if (temp->Data.Convo) free(temp->Data.Convo);
+                if (temp->Data.SFX) free(temp->Data.SFX);
+                free(temp);
+            }
+            return NULL;
+        }
+        printf("  Character Position: %d\n", newScene->Data.charPosition);
+        
         // Read Background string
         int bgLen;
-        fread(&bgLen, sizeof(int), 1, file);
+        if (fread(&bgLen, sizeof(int), 1, file) != 1) {
+            printf("Error: Failed to read background length\n");
+            goto cleanup;
+        }
         if (bgLen > 0) {
             newScene->Data.Background = (char*)malloc(bgLen);
-            fread(newScene->Data.Background, sizeof(char), bgLen, file);
+            if (!newScene->Data.Background) {
+                printf("Error: Failed to allocate memory for background\n");
+                goto cleanup;
+            }
+            if (fread(newScene->Data.Background, sizeof(char), bgLen, file) != bgLen) {
+                printf("Error: Failed to read background data\n");
+                goto cleanup;
+            }
+            printf("  Background: %s\n", newScene->Data.Background);
         }
         
         // Read Character string
         int charLen;
-        fread(&charLen, sizeof(int), 1, file);
+        if (fread(&charLen, sizeof(int), 1, file) != 1) {
+            printf("Error: Failed to read character length\n");
+            goto cleanup;
+        }
         if (charLen > 0) {
             newScene->Data.Character = (char*)malloc(charLen);
-            fread(newScene->Data.Character, sizeof(char), charLen, file);
+            if (!newScene->Data.Character) {
+                printf("Error: Failed to allocate memory for character\n");
+                goto cleanup;
+            }
+            if (fread(newScene->Data.Character, sizeof(char), charLen, file) != charLen) {
+                printf("Error: Failed to read character data\n");
+                goto cleanup;
+            }
+            printf("  Character: %s\n", newScene->Data.Character);
         }
         
         // Read Convo string
         int convoLen;
-        fread(&convoLen, sizeof(int), 1, file);
+        if (fread(&convoLen, sizeof(int), 1, file) != 1) {
+            printf("Error: Failed to read convo length\n");
+            goto cleanup;
+        }
         if (convoLen > 0) {
             newScene->Data.Convo = (char*)malloc(convoLen);
-            fread(newScene->Data.Convo, sizeof(char), convoLen, file);
+            if (!newScene->Data.Convo) {
+                printf("Error: Failed to allocate memory for convo\n");
+                goto cleanup;
+            }
+            if (fread(newScene->Data.Convo, sizeof(char), convoLen, file) != convoLen) {
+                printf("Error: Failed to read convo data\n");
+                goto cleanup;
+            }
+            printf("  Convo: %s\n", newScene->Data.Convo);
         }
         
         // Read SFX string
         int sfxLen;
-        fread(&sfxLen, sizeof(int), 1, file);
+        if (fread(&sfxLen, sizeof(int), 1, file) != 1) {
+            printf("Error: Failed to read SFX length\n");
+            goto cleanup;
+        }
         if (sfxLen > 0) {
             newScene->Data.SFX = (char*)malloc(sfxLen);
-            fread(newScene->Data.SFX, sizeof(char), sfxLen, file);
+            if (!newScene->Data.SFX) {
+                printf("Error: Failed to allocate memory for SFX\n");
+                goto cleanup;
+            }
+            if (fread(newScene->Data.SFX, sizeof(char), sfxLen, file) != sfxLen) {
+                printf("Error: Failed to read SFX data\n");
+                goto cleanup;
+            }
+            printf("  SFX: %s\n", newScene->Data.SFX);
         }
         
         // Link the scenes
@@ -1068,6 +1171,27 @@ SceneList DeserializeSceneList(FILE *file) {
             firstScene = newScene; // This is the first scene
         }
         lastScene = newScene;
+        continue;
+        
+    cleanup:
+        // Clean up the current scene
+        if (newScene->Data.Background) free(newScene->Data.Background);
+        if (newScene->Data.Character) free(newScene->Data.Character);
+        if (newScene->Data.Convo) free(newScene->Data.Convo);
+        if (newScene->Data.SFX) free(newScene->Data.SFX);
+        free(newScene);
+        
+        // Clean up previously allocated scenes
+        while (firstScene != NULL) {
+            SceneList temp = firstScene;
+            firstScene = firstScene->Next;
+            if (temp->Data.Background) free(temp->Data.Background);
+            if (temp->Data.Character) free(temp->Data.Character);
+            if (temp->Data.Convo) free(temp->Data.Convo);
+            if (temp->Data.SFX) free(temp->Data.SFX);
+            free(temp);
+        }
+        return NULL;
     }
     
     return firstScene;
@@ -1091,6 +1215,9 @@ void SerializeTreeNode(FILE *file, CustomSceneTree node) {
     // Write the scene list for this node
     SerializeSceneList(file, node->NodeContents);
     
+    // Debug: Print node info
+    printf("Serializing node ID: %d\n", node->ID);
+    
     // Recursively write left and right children
     SerializeTreeNode(file, node->Left);
     SerializeTreeNode(file, node->Right);
@@ -1099,6 +1226,7 @@ void SerializeTreeNode(FILE *file, CustomSceneTree node) {
 CustomSceneTree DeserializeTreeNode(FILE *file, CustomSceneTree parent) {
     int nodeMarker;
     if (fread(&nodeMarker, sizeof(int), 1, file) != 1) {
+        printf("Error: Failed to read node marker\n");
         return NULL; // Failed to read marker
     }
     
@@ -1108,18 +1236,30 @@ CustomSceneTree DeserializeTreeNode(FILE *file, CustomSceneTree parent) {
     
     // Create new tree node
     CustomSceneTree node = (CustomSceneTree)malloc(sizeof(struct Tree));
+    if (!node) {
+        printf("Error: Failed to allocate memory for tree node\n");
+        return NULL;
+    }
+    
     node->Parent = parent;
     node->Left = NULL;
     node->Right = NULL;
     
     // Read node ID
     if (fread(&(node->ID), sizeof(int), 1, file) != 1) {
+        printf("Error: Failed to read node ID\n");
         free(node);
         return NULL;
     }
     
+    // Debug: Print node info
+    printf("Deserializing node ID: %d\n", node->ID);
+    
     // Read the scene list
     node->NodeContents = DeserializeSceneList(file);
+    if (!node->NodeContents) {
+        printf("Warning: No scenes in node %d\n", node->ID);
+    }
     
     // Recursively read left and right children
     node->Left = DeserializeTreeNode(file, node);
@@ -1138,6 +1278,10 @@ void SaveTreeToFile(CustomSceneTree tree, const char* filename) {
     // Write a file header/version for future compatibility
     char header[16] = "VSTORY_V1.0";
     fwrite(header, sizeof(char), 16, file);
+    
+    // Debug: Print tree before saving
+    printf("===== SAVING TREE =====\n");
+    PrintTree(&tree);
     
     // Serialize the entire tree
     SerializeTreeNode(file, tree);
@@ -1173,6 +1317,8 @@ CustomSceneTree LoadTreeFromFile(const char* filename) {
     fclose(file);
     
     if (tree != NULL) {
+        printf("===== LOADED TREE =====\n");
+        PrintTree(&tree);
         printf("Story tree loaded from '%s' successfully.\n", filename);
     } else {
         printf("Error: Failed to load story tree from '%s'.\n", filename);
