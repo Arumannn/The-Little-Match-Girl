@@ -201,8 +201,9 @@ int main() {
                 if (currentGameState != GAME_STATE_MINI_GAME_STACK) {
                     minigameInitialized = false;
                     printf("Exiting minigame, transitioning to story\n");
-                    LoadNodeAssets(Mytree, currentScene); 
-
+                    currentScene = 0;  // Reset to first scene
+                    currentFrame = 0;  // Reset to first frame
+                    LoadNodeAssets(Mytree, currentScene);  // Load assets for the first scene
                 }
                 break;   
 

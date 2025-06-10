@@ -52,6 +52,7 @@ void UnloadAssets();
 void DrawDebugGrid(int gridSize);
 void UpdatePauseMenu(GameState * GameState);
 void DrawPauseMenu();
+
 Music PlayBackgroundMusic(const char * pathMusic);
 
 // Variabel global yang digunakan di mainmenu.c

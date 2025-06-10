@@ -237,7 +237,7 @@ void UpdateMainMenu(GameState *currentGameState) {
     }
 
     int startIndex = 0, endIndex = 0;
-    int backButtonIndex = -1;
+    int backButtonIndex = 15;
 
     // Determine which buttons are active based on current state
     switch (*currentGameState) {
@@ -335,6 +335,7 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
                     *currentGameState = GAME_STATE_MINI_GAME_STACK;
                     currentScene = 0;
                     currentFrame = 0;
+                    LoadNodeAssets(Mytree, currentScene);
                     break;
                 case 8: // Continue
                     LoadGameStory("savefile.txt", &currentScene, &currentFrame);
@@ -541,3 +542,4 @@ void DrawPauseMenu() {
                  SCREEN_HEIGHT / 2 - 175, 50, WHITE);
     }
 }
+

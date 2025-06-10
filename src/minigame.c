@@ -56,8 +56,11 @@ void InitMiniGameStack() {
     currentMemoryIndex = 0;
     currentChoiceCount = 0;
     memoryDisplayTimer = 0;
-    PlayMusicStream(LoadMusicStream("Assets/Music/Melody of  Memories.mp3"));
-
+    
+    // Load music once
+    static Music minigameMusic;
+    minigameMusic = LoadMusicStream("Assets/Music/Melody of Memories.mp3");
+    PlayMusicStream(minigameMusic);
     
     // Reset array correctChoices
     for (int i = 0; i < MAX_STACK; i++) {
@@ -77,7 +80,8 @@ void InitMiniGameStack() {
 }
 
 void UpdateMiniGameStack(GameState *currentGameState) {
-    UpdateMusicStream(LoadMusicStream("Assets/Music/Melody of Memories.mp3"));
+    static Music minigameMusic;
+    UpdateMusicStream(minigameMusic);  // Update existing music stream
     if (!minigameActive) return;
 
     static Stack TempStack; // Stack sementara untuk perbandingan dengan Pop
