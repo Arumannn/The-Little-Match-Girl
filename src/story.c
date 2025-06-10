@@ -18,6 +18,7 @@ TreeStory SceneTree[MAX_NODE_TREE];
 
 // Inisialisasi Data Cerita
 void InitDataCerita(TreeStory *SceneTree) {
+    printf("Initializing story data...\n");
     // Inisialisasi queue untuk setiap node
     for (int i = 0; i < MAX_NODE_TREE; i++) {
         CreateQueue(&SceneTree[i].Frame);
@@ -31,6 +32,7 @@ void InitDataCerita(TreeStory *SceneTree) {
     }
 
     // Node 0
+    printf("Setting up Node 0...\n");
     SceneTree[0].id = 0;
     SceneTree[0].TotalScene = 4;
     SceneTree[0].numChoices = 2;
@@ -45,10 +47,17 @@ void InitDataCerita(TreeStory *SceneTree) {
         {NULL, "Girl : What should i go, Alleway?", "Assets/BackgroundSprites/background6.png", "Assets/CharaSprites/chara3.png", {0}, {0}, CHAR_POS_CENTER},
         {NULL, "Girl : Or the Street?", "Assets/BackgroundSprites/background7.png", "Assets/CharaSprites/chara3.png", {0}, {0}, CHAR_POS_CENTER}
     };
+    printf("Adding scenes to Node 0...\n");
     for (int i = 0; i < SceneTree[0].TotalScene; i++) {
+        printf("  Scene %d:\n", i);
+        printf("    Background path: %s\n", scenes0[i].backgroundPath ? scenes0[i].backgroundPath : "NULL");
+        printf("    Character path: %s\n", scenes0[i].characterPath ? scenes0[i].characterPath : "NULL");
+        printf("    Dialogue: %s\n", scenes0[i].dialogue ? scenes0[i].dialogue : "NULL");
+        printf("    Position: %d\n", scenes0[i].CharPosition);
         EnQueueLast(&SceneTree[0].Frame, scenes0[i]);
     }
     SceneTree[0].TotalScene = QueueSize(SceneTree[0].Frame);
+    printf("Node 0 setup complete. Total scenes: %d\n", SceneTree[0].TotalScene);
 
     // Node 1
     SceneTree[1].id = 1;
@@ -272,28 +281,46 @@ void LoadNodeAssets(TreeStory SceneTree[], int nodeIndex) {
     TreeStory *node = &SceneTree[nodeIndex];
     Queue *queue = &node->Frame;
 
+    printf("\n=== Loading assets for node %d ===\n", nodeIndex);
+    printf("Queue size: %d\n", QueueSize(*queue));
+
     for (int i = 0; i < QueueSize(*queue); i++) {
         Scene *scene = &queue->data[(queue->front + i) % MAX_SCENE];
+        printf("\nScene %d:\n", i);
+        printf("  Background path: %s\n", scene->backgroundPath ? scene->backgroundPath : "NULL");
+        printf("  Character path: %s\n", scene->characterPath ? scene->characterPath : "NULL");
+        
         if (scene->backgroundPath != NULL) {
             scene->backgroundTex = LoadTexture(scene->backgroundPath);
+            if (scene->backgroundTex.id == 0) {
+                printf("  ERROR: Failed to load background texture: %s\n", scene->backgroundPath);
+            } else {
+                printf("  Background texture loaded successfully (ID: %d)\n", scene->backgroundTex.id);
+            }
             scene->backgroundTex.height = SCREEN_HEIGHT;
             scene->backgroundTex.width = SCREEN_WIDTH;
         } else {
             scene->backgroundTex = (Texture2D){0};
         }
+        
         if (scene->characterPath != NULL) {
             scene->characterTex = LoadTexture(scene->characterPath);
+            if (scene->characterTex.id == 0) {
+                printf("  ERROR: Failed to load character texture: %s\n", scene->characterPath);
+            } else {
+                printf("  Character texture loaded successfully (ID: %d)\n", scene->characterTex.id);
+            }
             scene->characterTex.height /= 2;
             scene->characterTex.width /= 2;
         } else {
             scene->characterTex = (Texture2D){0};
         }
-        if (scene->backgroundSound != NULL)
-        {
+        
+        if (scene->backgroundSound != NULL) {
             PlayMusicStream(LoadMusicStream(scene->backgroundSound));
         }
-        
     }
+    printf("=== Finished loading assets for node %d ===\n\n", nodeIndex);
 }
 
 // Menghapus aset dari node tertentu
@@ -318,14 +345,21 @@ void DrawCurrentNodeScreen(TreeStory SceneTree[]) {
     TreeStory *node = &SceneTree[currentScene];
     Scene current = Peek(node->Frame);
 
+    printf("Drawing scene %d, frame %d\n", currentScene, currentFrame);
+    printf("Background texture ID: %d\n", current.backgroundTex.id);
+    printf("Character texture ID: %d\n", current.characterTex.id);
+
     if (currentGameState == GAME_STATE_PLAY_GAME) {
         if (current.backgroundTex.id != 0) {
+            printf("Drawing background texture\n");
             DrawTexture(current.backgroundTex, 0, 0, WHITE);
         } else {
+            printf("No background texture, clearing to white\n");
             ClearBackground(RAYWHITE);
         }
 
         if (node->id != 4 && node->id != 5) {
+            printf("Drawing character at position %d\n", current.CharPosition);
             DrawCharacterAtPosition(current.characterTex, current.CharPosition);
 
             if (current.dialogue != NULL || (currentFrame == node->TotalScene - 1 && node->numChoices > 0)) {
@@ -492,7 +526,6 @@ void ProsesChoice(TreeStory SceneTree[], int choice) {
     if (nextNodeIndex < 0 || nextNodeIndex >= MAX_NODE_TREE || SceneTree[nextNodeIndex].TotalScene == 0) {
         return;
     }
-
     UnloadNodeAssets(SceneTree, currentScene);
     currentScene = nextNodeIndex;
     currentFrame = 0;
@@ -512,6 +545,7 @@ void SaveGameStory(const char *filename, int Node, int Scene) {
     fwrite(&Scene, sizeof(int), 1, file);
     fclose(file);
 }
+
 
 // Memuat progres cerita
 void LoadGameStory(const char *filename, int *Node, int *Scene) {

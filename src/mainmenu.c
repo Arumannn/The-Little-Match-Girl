@@ -336,10 +336,12 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
         case GAME_STATE_NEW_CONTINUE_NON_CUSTOM:
             switch (index) {
                 case 7: // New Game
-                    *currentGameState = GAME_STATE_PLAY_GAME;
+                    *currentGameState = GAME_STATE_MINI_GAME_STACK;
+                    LoadNodeAssets(Mytree, currentScene);
                     return true;
                 case 8: // Continue
                     *currentGameState = GAME_STATE_PLAY_GAME;
+                    LoadNodeAssets(Mytree, currentScene);
                     return true;
                 case 15: // Back
                     *currentGameState = GAME_STATE_PLAY_GAME_MENU;
@@ -350,7 +352,7 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
         case GAME_STATE_NEW_CONTINUE_CUSTOM:
             switch (index) {
                 case 7: // New Game
-                    *currentGameState = GAME_STATE_CREATE_MENU;
+                    *currentGameState = GAME_STATE_PLAY_CUSTOM_STORY;
                     return true;
                 case 8: // Continue
                     *currentGameState = GAME_STATE_PLAY_CUSTOM_MENU;

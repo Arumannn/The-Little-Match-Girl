@@ -63,6 +63,11 @@ int main() {
                 break;
                 
             case GAME_STATE_PLAY_GAME:
+                if (!minigameInitialized) {  // Use this flag to track if we need to load assets
+                    printf("Loading initial game assets...\n");
+                    LoadNodeAssets(Mytree, currentScene);
+                    minigameInitialized = true;
+                }
                 UpdateCerita(Mytree, &currentGameState); 
                 DrawCurrentNodeScreen(Mytree);
                 break;
@@ -206,7 +211,6 @@ int main() {
                 if (currentGameState != GAME_STATE_MINI_GAME_STACK) {
                     minigameInitialized = false;
                     printf("Exiting minigame, transitioning to story\n");
-                    LoadNodeAssets(Mytree, currentScene); 
                 }
                 break;   
 
