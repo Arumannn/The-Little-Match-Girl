@@ -18,7 +18,7 @@ extern bool exitProgram;
 bool showSaveMessage = false;
 float saveMessageTimer = 0.0f;
 
-void InitAssets() {
+void InitAssetsMenu() {
     // =================================== MENU STATE 0 ===================================
     MenuButtons[0] = LoadTexture("Assets/BackSprites/customstorymenu.png");
     MenuButtons[1] = LoadTexture("Assets/mainmenu/Start.png");
@@ -231,11 +231,13 @@ void UpdateMainMenu(GameState *currentGameState) {
 
     // Don't update menu if in story or minigame states
     if (*currentGameState == GAME_STATE_PLAY_GAME || 
-        *currentGameState == GAME_STATE_MINI_GAME_STACK) {
+        *currentGameState == GAME_STATE_MINI_GAME_STACK ||
+        *currentGameState == GAME_STATE_PAUSE) {
         return;
     }
 
     int startIndex = 0, endIndex = 0;
+    int backButtonIndex = -1;
 
     // Determine which buttons are active based on current state
     switch (*currentGameState) {
@@ -271,28 +273,20 @@ void UpdateMainMenu(GameState *currentGameState) {
     }
 
     // Check main button interactions
-    for (int i = startIndex; i <= endIndex; i++) {
+   for (int i = startIndex; i <= endIndex; i++) {
         if (CheckCollisionPointRec(mousePoint, buttonRects[i])) {
             selectedMenu = i;
-            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-                if (CheckMenuClick(i, currentGameState)) {
-                    InitButtonRects(*currentGameState);
-                }
-                return;
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                CheckMenuClick(i, currentGameState);
             }
         }
     }
 
-    // Check back button interaction (except for main menu and about states)
-    if (*currentGameState != GAME_STATE_MAIN_MENU && 
-        *currentGameState != GAME_STATE_ABOUT && 
-        *currentGameState != GAME_STATE_PAUSE) {
-        if (CheckCollisionPointRec(mousePoint, buttonRects[15])) {
-            selectedMenu = 15;
-            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-                if (CheckMenuClick(15, currentGameState)) {
-                    InitButtonRects(*currentGameState);
-                }
+    if (backButtonIndex != -1) {
+        if (CheckCollisionPointRec(mousePoint, buttonRects[backButtonIndex])) {
+            selectedMenu = backButtonIndex;
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                CheckMenuClick(backButtonIndex, currentGameState);
             }
         }
     }
@@ -301,21 +295,23 @@ void UpdateMainMenu(GameState *currentGameState) {
 bool CheckMenuClick(int index, GameState *currentGameState) {
     printf("Button %d clicked in state %d\n", index, *currentGameState);
 
+    GameState previousState = *currentGameState;
+
     switch (*currentGameState) {
         case GAME_STATE_MAIN_MENU:
             switch (index) {
                 case 1: // Start
                     *currentGameState = GAME_STATE_PLAY_GAME_MENU;
-                    return true;
+                    break;
                 case 2: // Studio
                     *currentGameState = GAME_STATE_STUDIO_MENU;
-                    return true;
+                    break;
                 case 3: // About
                     *currentGameState = GAME_STATE_ABOUT;
-                    return true;
+                    break;
                 case 4: // Exit
                     exitProgram = true;
-                    return true;
+                    return false;
             }
             break;
 
@@ -323,13 +319,13 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
             switch (index) {
                 case 5: // Play Game
                     *currentGameState = GAME_STATE_NEW_CONTINUE_NON_CUSTOM;
-                    return true;
+                    break;
                 case 6: // Custom Game
                     *currentGameState = GAME_STATE_NEW_CONTINUE_CUSTOM;
-                    return true;
+                    break;
                 case 15: // Back
                     *currentGameState = GAME_STATE_MAIN_MENU;
-                    return true;
+                    break;
             }
             break;
 
@@ -337,15 +333,17 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
             switch (index) {
                 case 7: // New Game
                     *currentGameState = GAME_STATE_MINI_GAME_STACK;
-                    LoadNodeAssets(Mytree, currentScene);
-                    return true;
+                    currentScene = 0;
+                    currentFrame = 0;
+                    break;
                 case 8: // Continue
-                    *currentGameState = GAME_STATE_PLAY_GAME;
+                    LoadGameStory("savefile.txt", &currentScene, &currentFrame);
                     LoadNodeAssets(Mytree, currentScene);
-                    return true;
+                    *currentGameState = GAME_STATE_PLAY_GAME;
+                    break;
                 case 15: // Back
                     *currentGameState = GAME_STATE_PLAY_GAME_MENU;
-                    return true;
+                    break;
             }
             break;
 
@@ -353,13 +351,13 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
             switch (index) {
                 case 7: // New Game
                     *currentGameState = GAME_STATE_PLAY_CUSTOM_STORY;
-                    return true;
+                    break;
                 case 8: // Continue
                     *currentGameState = GAME_STATE_PLAY_CUSTOM_MENU;
-                    return true;
+                    break;
                 case 15: // Back
                     *currentGameState = GAME_STATE_PLAY_GAME_MENU;
-                    return true;
+                    break;
             }
             break;
 
@@ -367,16 +365,16 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
             switch (index) {
                 case 9: // Create
                     *currentGameState = GAME_STATE_CREATE_MENU;
-                    return true;
+                    break;
                 case 10: // Edit
                     *currentGameState = GAME_STATE_EDIT_MENU;
-                    return true;
+                    break;
                 case 11: // Delete
                     *currentGameState = GAME_STATE_DELETE_MENU;
-                    return true;
+                    break;
                 case 15: // Back
                     *currentGameState = GAME_STATE_MAIN_MENU;
-                    return true;
+                    break;
             }
             break;
 
@@ -384,16 +382,16 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
             switch (index) {
                 case 12: // Slot 1
                     *currentGameState = GAME_STATE_CREATE_SLOT_1;
-                    return true;
+                    break;
                 case 13: // Slot 2
                     *currentGameState = GAME_STATE_CREATE_SLOT_2;
-                    return true;
+                    break;
                 case 14: // Slot 3
                     *currentGameState = GAME_STATE_CREATE_SLOT_3;
-                    return true;
+                    break;
                 case 15: // Back
                     *currentGameState = GAME_STATE_STUDIO_MENU;
-                    return true;
+                    break;
             }
             break;
 
@@ -401,16 +399,16 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
             switch (index) {
                 case 12: // Slot 1
                     *currentGameState = GAME_STATE_EDIT_SLOT_1;
-                    return true;
+                    break;
                 case 13: // Slot 2
                     *currentGameState = GAME_STATE_EDIT_SLOT_2;
-                    return true;
+                    break;
                 case 14: // Slot 3
                     *currentGameState = GAME_STATE_EDIT_SLOT_3;
-                    return true;
+                    break;
                 case 15: // Back
                     *currentGameState = GAME_STATE_STUDIO_MENU;
-                    return true;
+                    break;
             }
             break;
 
@@ -418,23 +416,23 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
             switch (index) {
                 case 12: // Slot 1
                     *currentGameState = GAME_STATE_DELETE_SLOT_1;
-                    return true;
+                    break;
                 case 13: // Slot 2
                     *currentGameState = GAME_STATE_DELETE_SLOT_2;
-                    return true;
+                    break;
                 case 14: // Slot 3
                     *currentGameState = GAME_STATE_DELETE_SLOT_3;
-                    return true;
+                    break;
                 case 15: // Back
                     *currentGameState = GAME_STATE_STUDIO_MENU;
-                    return true;
+                    break;
             }
             break;
 
         case GAME_STATE_ABOUT:
             if (index == 15) { // Back
                 *currentGameState = GAME_STATE_MAIN_MENU;
-                return true;
+                break;
             }
             break;
 
@@ -442,27 +440,37 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
             switch (index) {
                 case 16: // Continue
                     *currentGameState = GAME_STATE_PLAY_GAME;
-                    return true;
+                    break;
                 case 17: // Save Game
+                    SaveGameStory("savefile.txt", currentScene, currentFrame);
                     showSaveMessage = true;
                     saveMessageTimer = 0.0f;
-                    return true;
+                    break;
                 case 18: // Main Menu
                     *currentGameState = GAME_STATE_MAIN_MENU;
-                    return true;
+                    currentFrame = 0;
+                    currentScene = 0;
+                    break;
             }
             break;
 
         case GAME_STATE_PLAY_CUSTOM_MENU:
             switch (index) {
-                case 12: *currentGameState = GAME_STATE_PLAY_CUSTOM_SLOT_1; return true;
-                case 13: *currentGameState = GAME_STATE_PLAY_CUSTOM_SLOT_2; return true;
-                case 14: *currentGameState = GAME_STATE_PLAY_CUSTOM_SLOT_3; return true;
-                case 15: *currentGameState = GAME_STATE_NEW_CONTINUE_CUSTOM; return true;
+                case 12: *currentGameState = GAME_STATE_PLAY_CUSTOM_SLOT_1; break;
+                case 13: *currentGameState = GAME_STATE_PLAY_CUSTOM_SLOT_2; break;
+                case 14: *currentGameState = GAME_STATE_PLAY_CUSTOM_SLOT_3; break;
+                case 15: *currentGameState = GAME_STATE_NEW_CONTINUE_CUSTOM; break;
             }
             break;
+        default:
+            break;
     }
-    return false;
+    if (previousState != *currentGameState) {
+        InitButtonRects(*currentGameState);
+        selectedMenu = -1;
+    }
+
+    return true;
 }
 
 void UpdatePauseMenu(GameState *currentGameState) {

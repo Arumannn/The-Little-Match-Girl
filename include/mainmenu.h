@@ -43,7 +43,7 @@ typedef enum{
 }GameState;
 
 // Fungsi utama menu
-void InitAssets();
+void InitAssetsMenu();
 void InitButtonRects(GameState currentGameState);
 void DrawMainMenu(GameState currentGameState);
 void UpdateMainMenu(GameState * currentGameState);

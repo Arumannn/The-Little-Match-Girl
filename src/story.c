@@ -271,6 +271,7 @@ void DrawCharacterAtPosition(Texture2D tex, CharacterPosition pos) {
     DrawTexture(tex, (int)charX, (int)charY, WHITE);
 }
 
+
 // Memuat aset untuk node
 void LoadNodeAssets(TreeStory SceneTree[], int nodeIndex) {
     if (nodeIndex < 0 || nodeIndex >= MAX_NODE_TREE) {
@@ -281,46 +282,23 @@ void LoadNodeAssets(TreeStory SceneTree[], int nodeIndex) {
     TreeStory *node = &SceneTree[nodeIndex];
     Queue *queue = &node->Frame;
 
-    printf("\n=== Loading assets for node %d ===\n", nodeIndex);
-    printf("Queue size: %d\n", QueueSize(*queue));
-
     for (int i = 0; i < QueueSize(*queue); i++) {
         Scene *scene = &queue->data[(queue->front + i) % MAX_SCENE];
-        printf("\nScene %d:\n", i);
-        printf("  Background path: %s\n", scene->backgroundPath ? scene->backgroundPath : "NULL");
-        printf("  Character path: %s\n", scene->characterPath ? scene->characterPath : "NULL");
-        
         if (scene->backgroundPath != NULL) {
             scene->backgroundTex = LoadTexture(scene->backgroundPath);
-            if (scene->backgroundTex.id == 0) {
-                printf("  ERROR: Failed to load background texture: %s\n", scene->backgroundPath);
-            } else {
-                printf("  Background texture loaded successfully (ID: %d)\n", scene->backgroundTex.id);
-            }
             scene->backgroundTex.height = SCREEN_HEIGHT;
             scene->backgroundTex.width = SCREEN_WIDTH;
         } else {
             scene->backgroundTex = (Texture2D){0};
         }
-        
         if (scene->characterPath != NULL) {
             scene->characterTex = LoadTexture(scene->characterPath);
-            if (scene->characterTex.id == 0) {
-                printf("  ERROR: Failed to load character texture: %s\n", scene->characterPath);
-            } else {
-                printf("  Character texture loaded successfully (ID: %d)\n", scene->characterTex.id);
-            }
             scene->characterTex.height /= 2;
             scene->characterTex.width /= 2;
         } else {
             scene->characterTex = (Texture2D){0};
         }
-        
-        if (scene->backgroundSound != NULL) {
-            PlayMusicStream(LoadMusicStream(scene->backgroundSound));
-        }
     }
-    printf("=== Finished loading assets for node %d ===\n\n", nodeIndex);
 }
 
 // Menghapus aset dari node tertentu
@@ -345,21 +323,14 @@ void DrawCurrentNodeScreen(TreeStory SceneTree[]) {
     TreeStory *node = &SceneTree[currentScene];
     Scene current = Peek(node->Frame);
 
-    printf("Drawing scene %d, frame %d\n", currentScene, currentFrame);
-    printf("Background texture ID: %d\n", current.backgroundTex.id);
-    printf("Character texture ID: %d\n", current.characterTex.id);
-
     if (currentGameState == GAME_STATE_PLAY_GAME) {
         if (current.backgroundTex.id != 0) {
-            printf("Drawing background texture\n");
             DrawTexture(current.backgroundTex, 0, 0, WHITE);
         } else {
-            printf("No background texture, clearing to white\n");
             ClearBackground(RAYWHITE);
         }
 
         if (node->id != 4 && node->id != 5) {
-            printf("Drawing character at position %d\n", current.CharPosition);
             DrawCharacterAtPosition(current.characterTex, current.CharPosition);
 
             if (current.dialogue != NULL || (currentFrame == node->TotalScene - 1 && node->numChoices > 0)) {

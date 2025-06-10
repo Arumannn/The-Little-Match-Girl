@@ -19,11 +19,6 @@ bool exitProgram = false;
 CustomSceneTree customStorySlots[3] = {NULL, NULL, NULL};
 int currentCustomSlot = 0;
 
-// Tambahkan variabel global untuk progress custom story
-typedef struct {
-    int node;
-    int scene;
-} CustomProgress;
 
 int customCurrentNode = 0;
 int customCurrentScene = 0;
@@ -31,7 +26,7 @@ int customCurrentScene = 0;
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "The Little Match Girl");
     SetTargetFPS(60);
-    InitAssets();
+    InitAssetsMenu();
     InitDataCerita(Mytree);
     InitAudioDevice();
     InitButtonRects(currentGameState);
@@ -63,11 +58,6 @@ int main() {
                 break;
                 
             case GAME_STATE_PLAY_GAME:
-                if (!minigameInitialized) {  // Use this flag to track if we need to load assets
-                    printf("Loading initial game assets...\n");
-                    LoadNodeAssets(Mytree, currentScene);
-                    minigameInitialized = true;
-                }
                 UpdateCerita(Mytree, &currentGameState); 
                 DrawCurrentNodeScreen(Mytree);
                 break;
@@ -211,6 +201,8 @@ int main() {
                 if (currentGameState != GAME_STATE_MINI_GAME_STACK) {
                     minigameInitialized = false;
                     printf("Exiting minigame, transitioning to story\n");
+                    LoadNodeAssets(Mytree, currentScene); 
+
                 }
                 break;   
 
