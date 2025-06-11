@@ -48,9 +48,13 @@ int main() {
             case GAME_STATE_EDIT_MENU:
             case GAME_STATE_DELETE_MENU:
             case GAME_STATE_ABOUT:
+                printf("Current Game State: %d\n", currentGameState);
                 ClearBackground(WHITE); 
-                UpdateMainMenu(&currentGameState); 
+                printf("Updating main menu...\n");
+                UpdateMainMenu(&currentGameState);
+                printf("Drawing main menu...\n"); 
                 DrawMainMenu(currentGameState);
+                printf("Main menu drawn.\n");
                 DrawDebugGrid(GRID_SIZE);
                 break;
                 

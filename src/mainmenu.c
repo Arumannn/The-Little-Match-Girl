@@ -150,14 +150,16 @@ void InitButtonRects(GameState currentGameState) {
 }
 
 void DrawMainMenu(GameState currentGameState) {
+    printf("Drawing main menu with currentGameState: %d\n", currentGameState);
     if (currentGameState != GAME_STATE_PAUSE &&
         currentGameState != GAME_STATE_PLAY_GAME &&
         currentGameState != GAME_STATE_MINI_GAME_STACK) {
         DrawTexture(MenuButtons[0], 0, 0, WHITE);
     }
-
+    printf("Switch case currentGameState: %d\n", currentGameState);
     switch (currentGameState) {
         case GAME_STATE_MAIN_MENU:
+        printf("Entering switch case for currentGameState: %d\n", currentGameState);
             for (int i = 1; i <= 4; i++) {
                 DrawTexture(MenuButtons[i], (int)buttonRects[i].x, (int)buttonRects[i].y, WHITE);
             }
@@ -232,8 +234,9 @@ void DrawMainMenu(GameState currentGameState) {
 }
 
 void UpdateMainMenu(GameState *currentGameState) {
-    // Update main menu music
+    printf("Updating main menu with currentGameState: %d\n", *currentGameState);
     UpdateMusicStream(BGMusic);
+    // Update main menu music
     
     Vector2 mousePoint = GetMousePosition();
     selectedMenu = -1;
@@ -241,10 +244,11 @@ void UpdateMainMenu(GameState *currentGameState) {
     // Don't update menu if in story or minigame states
     if (*currentGameState == GAME_STATE_PLAY_GAME || 
         *currentGameState == GAME_STATE_MINI_GAME_STACK ||
-        *currentGameState == GAME_STATE_PAUSE) {
+        *currentGameState == GAME_STATE_PAUSE ) {
+        printf("Skipping main menu update in GAME_STATE_PLAY_GAME or GAME_STATE_MINI_GAME_STACK\n");
         return;
     }
-
+    printf("Indexing buttonRects based on currentGameState: %d\n", *currentGameState);
     int startIndex = 0, endIndex = 0;
     int backButtonIndex = 15;
 
@@ -444,7 +448,8 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
                 *currentGameState = GAME_STATE_MAIN_MENU;
                 break;
             }
-            break;        case GAME_STATE_PAUSE:
+            break;        
+        case GAME_STATE_PAUSE:
             switch (index) {
                 case 16: // Continue
                     *currentGameState = GAME_STATE_PLAY_GAME;
@@ -456,21 +461,19 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
                     break;
                 case 18: // Main Menu
                     printf("Transitioning to main menu...\n");
-                    // Cleanup first
-                    UnloadNodeAssets(Mytree, currentScene);
-                    UnloadStoryAudio();
-                    StopMusicStream(BGMusic);
+                    // Re-initialize the BGMusic before going back to main menu
+                    BGMusic = LoadMusicStream("Assets/Music/SilentNight.mp3");
+                    SetMusicVolume(BGMusic, 0.5f);
+                    PlayMusicStream(BGMusic);
+                    BGMusic.looping = true;
                     
                     // Reset game state
                     currentFrame = 0;
                     currentScene = 0;
-                    
-                    // Change state and reinitialize
+                    printf("Resetting currentScene and currentFrame to 0\n");
                     *currentGameState = GAME_STATE_MAIN_MENU;
-                    InitAssetsMenu();
-                    InitButtonRects(GAME_STATE_MAIN_MENU);
                     printf("Main menu initialized\n");
-                    return true;
+                    break;
             }
             break;
 
@@ -490,11 +493,11 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
         selectedMenu = -1;
     }
 
-    return true;
+    return false;
 }
 
 void UpdatePauseMenu(GameState *currentGameState) {
-    Vector2 mousePoint = GetMousePosition();
+        Vector2 mousePoint = GetMousePosition();
     selectedMenu = -1;    // Check if mouse is over any button
     for (int i = 16; i <= 18; i++) {
         if (CheckCollisionPointRec(mousePoint, buttonRects[i])) {
