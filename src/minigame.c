@@ -4,6 +4,7 @@
 Stack MemoryStack;
 Stack PlayerChoiceStack;
 Texture2D memoryImages[MAX_STACK];
+Music minigameMusic;
 float memoryDisplayTimer = 0;
 float displayDurationPerMemory = 1.5f; 
 int currentMemoryIndex = 0;
@@ -58,9 +59,10 @@ void InitMiniGameStack() {
     memoryDisplayTimer = 0;
     
     // Load music once
-    static Music minigameMusic;
     minigameMusic = LoadMusicStream("Assets/Music/Melody of Memories.mp3");
+    SetMusicVolume(minigameMusic, 0.5f);
     PlayMusicStream(minigameMusic);
+    minigameMusic.looping = true;
     
     // Reset array correctChoices
     for (int i = 0; i < MAX_STACK; i++) {
@@ -80,7 +82,6 @@ void InitMiniGameStack() {
 }
 
 void UpdateMiniGameStack(GameState *currentGameState) {
-    static Music minigameMusic;
     UpdateMusicStream(minigameMusic);  // Update existing music stream
     if (!minigameActive) return;
 
@@ -285,5 +286,6 @@ void DrawMiniGameStack() {
 }
 
 void UnloadMiniGameStackAssets(Stack *S) {
+    UnloadMusicStream(minigameMusic);
     CreateEmptyStack(S);
 }

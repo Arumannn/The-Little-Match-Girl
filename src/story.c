@@ -13,12 +13,15 @@ int currentScene = 0;
 int currentFrame = 0;
 float frameDelay = 3.5f;
 float frameTimer = 0.0f;
+bool isMusicPlaying = false;
+Music currentSceneMusic;
 
 TreeStory SceneTree[MAX_NODE_TREE];
 
 // Inisialisasi Data Cerita
 void InitDataCerita(TreeStory *SceneTree) {
     printf("Initializing story data...\n");
+
     // Inisialisasi queue untuk setiap node
     for (int i = 0; i < MAX_NODE_TREE; i++) {
         CreateQueue(&SceneTree[i].Frame);
@@ -398,11 +401,29 @@ void DrawCurrentNodeScreen(TreeStory SceneTree[]) {
 // Mengupdate logika cerita
 void UpdateCerita(TreeStory SceneTree[], GameState *gameState) {
     if (currentScene < 0 || currentScene >= MAX_NODE_TREE) {
-        *gameState = GAME_STATE_MAIN_MENU;
         return;
     }
 
     TreeStory *node = &SceneTree[currentScene];
+    Scene current = Peek(node->Frame);
+      // Update music if it's playing
+    if (isMusicPlaying) {
+        UpdateMusicStream(currentSceneMusic);
+        if (!IsMusicStreamPlaying(currentSceneMusic)) {
+            isMusicPlaying = false;
+        }
+    }
+    
+    // Check if this scene has music and should start playing
+    if (current.backgroundSound != NULL && !isMusicPlaying) {
+        UnloadMusicStream(currentSceneMusic);
+        currentSceneMusic = LoadMusicStream(current.backgroundSound);
+        SetMusicVolume(currentSceneMusic, 0.5f);
+        PlayMusicStream(currentSceneMusic);
+        isMusicPlaying = true;
+        currentSceneMusic.looping = false;
+    }
+
     Vector2 mouse = GetMousePosition();
 
     if (IsKeyPressed(KEY_F1)) {
@@ -534,5 +555,8 @@ void LoadGameStory(const char *filename, int *Node, int *Scene) {
 }
 
 void UnloadStoryAudio() {
-    // Implementasi untuk melepaskan sumber daya audio jika diperlukan
+    if (isMusicPlaying) {
+        UnloadMusicStream(currentSceneMusic);
+        isMusicPlaying = false;
+    }
 }

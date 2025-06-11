@@ -19,6 +19,12 @@ bool showSaveMessage = false;
 float saveMessageTimer = 0.0f;
 
 void InitAssetsMenu() {
+    // Initialize menu BGM
+    BGMusic = LoadMusicStream("Assets/Music/SilentNight.mp3");
+    SetMusicVolume(BGMusic, 0.5f);
+    PlayMusicStream(BGMusic);
+    BGMusic.looping = true;
+
     // =================================== MENU STATE 0 ===================================
     MenuButtons[0] = LoadTexture("Assets/BackSprites/customstorymenu.png");
     MenuButtons[1] = LoadTexture("Assets/mainmenu/Start.png");
@@ -49,7 +55,7 @@ void InitAssetsMenu() {
     MenuButtons[0].width = SCREEN_WIDTH;
 
     // Set semua button dengan ukuran yang sama
-    for (int i = 1; i < MAX_MENU; i++) {
+    for (int i = 1; i <= MAX_MENU; i++) {
         MenuButtons[i].height = 230 / 2;
         MenuButtons[i].width = 630 / 2;
     }
@@ -226,6 +232,9 @@ void DrawMainMenu(GameState currentGameState) {
 }
 
 void UpdateMainMenu(GameState *currentGameState) {
+    // Update main menu music
+    UpdateMusicStream(BGMusic);
+    
     Vector2 mousePoint = GetMousePosition();
     selectedMenu = -1;
 
@@ -435,9 +444,7 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
                 *currentGameState = GAME_STATE_MAIN_MENU;
                 break;
             }
-            break;
-
-        case GAME_STATE_PAUSE:
+            break;        case GAME_STATE_PAUSE:
             switch (index) {
                 case 16: // Continue
                     *currentGameState = GAME_STATE_PLAY_GAME;
@@ -448,10 +455,22 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
                     saveMessageTimer = 0.0f;
                     break;
                 case 18: // Main Menu
-                    *currentGameState = GAME_STATE_MAIN_MENU;
+                    printf("Transitioning to main menu...\n");
+                    // Cleanup first
+                    UnloadNodeAssets(Mytree, currentScene);
+                    UnloadStoryAudio();
+                    StopMusicStream(BGMusic);
+                    
+                    // Reset game state
                     currentFrame = 0;
                     currentScene = 0;
-                    break;
+                    
+                    // Change state and reinitialize
+                    *currentGameState = GAME_STATE_MAIN_MENU;
+                    InitAssetsMenu();
+                    InitButtonRects(GAME_STATE_MAIN_MENU);
+                    printf("Main menu initialized\n");
+                    return true;
             }
             break;
 
@@ -476,16 +495,13 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
 
 void UpdatePauseMenu(GameState *currentGameState) {
     Vector2 mousePoint = GetMousePosition();
-    selectedMenu = -1;
-
-    // Check if mouse is over any button
+    selectedMenu = -1;    // Check if mouse is over any button
     for (int i = 16; i <= 18; i++) {
         if (CheckCollisionPointRec(mousePoint, buttonRects[i])) {
             selectedMenu = i;
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-                if (CheckMenuClick(i, currentGameState)) {
-                    InitButtonRects(*currentGameState);
-                }
+                printf("Clicked pause menu button %d\n", i);
+                CheckMenuClick(i, currentGameState);
                 return;
             }
         }
@@ -501,6 +517,7 @@ void UpdatePauseMenu(GameState *currentGameState) {
 }
 
 void UnloadAssets() {
+    UnloadMusicStream(BGMusic);
     for (int i = 0; i < MAX_MENU; i++) {
         UnloadTexture(MenuButtons[i]);
     }

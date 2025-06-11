@@ -14,7 +14,6 @@ TreeStory Mytree[MAX_NODE_TREE];
 GameState currentGameState = GAME_STATE_MAIN_MENU; 
 bool minigameInitialized = false; 
 bool exitProgram = false;
-
 // Custom story slots
 CustomSceneTree customStorySlots[3] = {NULL, NULL, NULL};
 int currentCustomSlot = 0;
@@ -25,19 +24,17 @@ int customCurrentScene = 0;
 
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "The Little Match Girl");
+    InitAudioDevice();
     SetTargetFPS(60);
     InitAssetsMenu();
     InitDataCerita(Mytree);
-    InitAudioDevice();
     InitButtonRects(currentGameState);
     InitiateAssets(); // Initialize custom story assets
 
-    Music Pusic = LoadMusicStream("Assets/Music/SilentNight.mp3");
-    PlayMusicStream(Pusic); 
-    SetMusicVolume(Pusic, 1.0f);
+    
     
     while (!WindowShouldClose() && !exitProgram) {
-        UpdateMusicStream(Pusic); 
+         
         
         BeginDrawing();
         
@@ -228,7 +225,6 @@ int main() {
     }
 
     UnloadNodeAssets(Mytree, currentScene);
-    UnloadMusicStream(Pusic);
     CloseWindow();
     CloseAudioDevice();
     UnloadAssets();
