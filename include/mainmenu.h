@@ -2,7 +2,6 @@
 #define MAINMENU_H
 
 #include <raylib.h>
-#include "customstory.h"
 
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
@@ -61,4 +60,8 @@ extern Rectangle buttonRects[MAX_MENU];
 extern int selectedMenu;
 extern GameState currentGameState;
 
-#endif 
+// Declare extern variables to be used in menu logic
+extern int storyCurrentScene;
+extern int storyCurrentFrame;
+
+#endif

@@ -12,8 +12,8 @@ Music BGMusic;
 int selectedMenu = -1;
 
 extern TreeStory Mytree[MAX_NODE_TREE];
-extern int currentScene;
-extern int currentFrame;
+extern int storyCurrentScene;
+extern int storyCurrentFrame;
 extern bool exitProgram;
 bool showSaveMessage = false;
 float saveMessageTimer = 0.0f;
@@ -343,16 +343,15 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
             break;
 
         case GAME_STATE_NEW_CONTINUE_NON_CUSTOM:
-            switch (index) {
-                case 7: // New Game
+            switch (index) {                case 7: // New Game
                     *currentGameState = GAME_STATE_MINI_GAME_STACK;
-                    currentScene = 0;
-                    currentFrame = 0;
-                    LoadNodeAssets(Mytree, currentScene);
+                    storyCurrentScene = 0;
+                    storyCurrentFrame = 0;
+                    LoadNodeAssets(Mytree, storyCurrentScene);
                     break;
                 case 8: // Continue
-                    LoadGameStory("savefile.txt", &currentScene, &currentFrame);
-                    LoadNodeAssets(Mytree, currentScene);
+                    LoadGameStory("savefile.txt", &storyCurrentScene, &storyCurrentFrame);
+                    LoadNodeAssets(Mytree, storyCurrentScene);
                     *currentGameState = GAME_STATE_PLAY_GAME;
                     break;
                 case 15: // Back
@@ -453,9 +452,8 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
             switch (index) {
                 case 16: // Continue
                     *currentGameState = GAME_STATE_PLAY_GAME;
-                    break;
-                case 17: // Save Game
-                    SaveGameStory("savefile.txt", currentScene, currentFrame);
+                    break;                case 17: // Save Game
+                    SaveGameStory("savefile.txt", storyCurrentScene, storyCurrentFrame);
                     showSaveMessage = true;
                     saveMessageTimer = 0.0f;
                     break;
@@ -468,9 +466,9 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
                     BGMusic.looping = true;
                     
                     // Reset game state
-                    currentFrame = 0;
-                    currentScene = 0;
-                    printf("Resetting currentScene and currentFrame to 0\n");
+                    storyCurrentFrame = 0;
+                    storyCurrentScene = 0;
+                    printf("Resetting storyCurrentScene and storyCurrentFrame to 0\n");
                     *currentGameState = GAME_STATE_MAIN_MENU;
                     printf("Main menu initialized\n");
                     break;

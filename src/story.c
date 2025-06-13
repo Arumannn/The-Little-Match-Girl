@@ -1,20 +1,17 @@
 #include "story.h"
 #include "mainmenu.h"
-#include "Queue.h"
 #include <raylib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_SCENE 10
-#define MAX_NODE_TREE 28
-
-int currentScene = 0;
-int currentFrame = 0;
+// Global state
 float frameDelay = 3.5f;
 float frameTimer = 0.0f;
 bool isMusicPlaying = false;
 Music currentSceneMusic;
+extern int storyCurrentScene;  // Declared in main.c
+extern int storyCurrentFrame;  // Declared in main.c
 
 TreeStory SceneTree[MAX_NODE_TREE];
 
@@ -22,16 +19,21 @@ TreeStory SceneTree[MAX_NODE_TREE];
 void InitDataCerita(TreeStory *SceneTree) {
     printf("Initializing story data...\n");
 
-    // Inisialisasi queue untuk setiap node
+    // Inisialisasi scenes untuk setiap node
     for (int i = 0; i < MAX_NODE_TREE; i++) {
-        CreateQueue(&SceneTree[i].Frame);
         SceneTree[i].id = i;
         SceneTree[i].TotalScene = 0;
+        SceneTree[i].currentSceneIndex = 0;
         SceneTree[i].numChoices = 0;
         SceneTree[i].choiceLeftSon = NULL;
         SceneTree[i].choiceRightSon = NULL;
         SceneTree[i].IdLeftSon = -1;
         SceneTree[i].IdRightSon = -1;
+        
+        // Initialize all scenes to empty
+        for (int j = 0; j < MAX_SCENE; j++) {
+            SceneTree[i].scenes[j] = (Scene){NULL, NULL, NULL, NULL, {0}, {0}, CHAR_POS_NONE};
+        }
     }
 
     // Node 0
@@ -50,17 +52,9 @@ void InitDataCerita(TreeStory *SceneTree) {
         {NULL, "Girl : What should i go, Alleway?", "Assets/BackgroundSprites/background6.png", "Assets/CharaSprites/chara3.png", {0}, {0}, CHAR_POS_CENTER},
         {NULL, "Girl : Or the Street?", "Assets/BackgroundSprites/background7.png", "Assets/CharaSprites/chara3.png", {0}, {0}, CHAR_POS_CENTER}
     };
-    printf("Adding scenes to Node 0...\n");
     for (int i = 0; i < SceneTree[0].TotalScene; i++) {
-        printf("  Scene %d:\n", i);
-        printf("    Background path: %s\n", scenes0[i].backgroundPath ? scenes0[i].backgroundPath : "NULL");
-        printf("    Character path: %s\n", scenes0[i].characterPath ? scenes0[i].characterPath : "NULL");
-        printf("    Dialogue: %s\n", scenes0[i].dialogue ? scenes0[i].dialogue : "NULL");
-        printf("    Position: %d\n", scenes0[i].CharPosition);
-        EnQueueLast(&SceneTree[0].Frame, scenes0[i]);
+        SceneTree[0].scenes[i] = scenes0[i];
     }
-    SceneTree[0].TotalScene = QueueSize(SceneTree[0].Frame);
-    printf("Node 0 setup complete. Total scenes: %d\n", SceneTree[0].TotalScene);
 
     // Node 1
     SceneTree[1].id = 1;
@@ -76,9 +70,8 @@ void InitDataCerita(TreeStory *SceneTree) {
         {NULL, "", "Assets/BackgroundSprites/background6.png", "Assets/CharaSprites/chara5.png", {0}, {0}, CHAR_POS_LEFT}
     };
     for (int i = 0; i < SceneTree[1].TotalScene; i++) {
-        EnQueueLast(&SceneTree[1].Frame, scenes1[i]);
+        SceneTree[1].scenes[i] = scenes1[i];
     }
-    SceneTree[1].TotalScene = QueueSize(SceneTree[1].Frame);
 
     // Node 2
     SceneTree[2].id = 2;
@@ -94,9 +87,8 @@ void InitDataCerita(TreeStory *SceneTree) {
         {NULL, "Girl : Would these people be in need of matches?", "Assets/BackgroundSprites/background8.png", "Assets/CharaSprites/chara5.png", {0}, {0}, CHAR_POS_LEFT}
     };
     for (int i = 0; i < SceneTree[2].TotalScene; i++) {
-        EnQueueLast(&SceneTree[2].Frame, scenes2[i]);
+        SceneTree[2].scenes[i] = scenes2[i];
     }
-    SceneTree[2].TotalScene = QueueSize(SceneTree[2].Frame);
 
     // Node 3
     SceneTree[3].id = 3;
@@ -115,9 +107,8 @@ void InitDataCerita(TreeStory *SceneTree) {
         {NULL, "Girl : I'm Scared, please don't hurt me", "Assets/BackgroundSprites/background6.png", "Assets/CharaSprites/chara5.png", {0}, {0}, CHAR_POS_LEFT}
     };
     for (int i = 0; i < SceneTree[3].TotalScene; i++) {
-        EnQueueLast(&SceneTree[3].Frame, scenes3[i]);
+        SceneTree[3].scenes[i] = scenes3[i];
     }
-    SceneTree[3].TotalScene = QueueSize(SceneTree[3].Frame);
 
     // Node 4 (Ending: Die Alone)
     SceneTree[4].id = 4;
@@ -136,9 +127,8 @@ void InitDataCerita(TreeStory *SceneTree) {
         {NULL, NULL, "Assets/Endings/diecoldalone2.png", NULL, {0}, {0}, CHAR_POS_NONE}
     };
     for (int i = 0; i < SceneTree[4].TotalScene; i++) {
-        EnQueueLast(&SceneTree[4].Frame, scenes4[i]);
+        SceneTree[4].scenes[i] = scenes4[i];
     }
-    SceneTree[4].TotalScene = QueueSize(SceneTree[4].Frame);
 
     // Node 5 (Ending: Crushed by a Car)
     SceneTree[5].id = 5;
@@ -156,9 +146,8 @@ void InitDataCerita(TreeStory *SceneTree) {
         {NULL, NULL, "Assets/Endings/crossingtheroad4.png", NULL, {0}, {0}, CHAR_POS_NONE}
     };
     for (int i = 0; i < SceneTree[5].TotalScene; i++) {
-        EnQueueLast(&SceneTree[5].Frame, scenes5[i]);
+        SceneTree[5].scenes[i] = scenes5[i];
     }
-    SceneTree[5].TotalScene = QueueSize(SceneTree[5].Frame);
 
     // Node 6
     SceneTree[6].id = 6;
@@ -177,9 +166,8 @@ void InitDataCerita(TreeStory *SceneTree) {
         {NULL, "Girl : Should i offer one to that man?", "Assets/BackgroundSprites/background13.png", "Assets/CharaSprites/chara5.png", {0}, {0}, CHAR_POS_LEFT}
     };
     for (int i = 0; i < SceneTree[6].TotalScene; i++) {
-        EnQueueLast(&SceneTree[6].Frame, scenes6[i]);
+        SceneTree[6].scenes[i] = scenes6[i];
     }
-    SceneTree[6].TotalScene = QueueSize(SceneTree[6].Frame);
 
     // Node 7
     SceneTree[7].id = 7;
@@ -197,9 +185,8 @@ void InitDataCerita(TreeStory *SceneTree) {
         {NULL, "Homeless Man : You know how desperate we bums are. Here's your match back. If you want,\n we have some food for you—it's our way of apologizing", "Assets/BackgroundSprites/background6.png", "Assets/CharaSprites/chara4.png", {0}, {0}, CHAR_POS_RIGHT}
     };
     for (int i = 0; i < SceneTree[7].TotalScene; i++) {
-        EnQueueLast(&SceneTree[7].Frame, scenes7[i]);
+        SceneTree[7].scenes[i] = scenes7[i];
     }
-    SceneTree[7].TotalScene = QueueSize(SceneTree[7].Frame);
 
     // Node 8 (Ending: Rumbling) - Kosong
     SceneTree[8].id = 8;
@@ -226,9 +213,8 @@ void InitDataCerita(TreeStory *SceneTree) {
         {NULL, NULL, "Assets/Endings/crossingtheroad4.png", NULL, {0}, {0}, CHAR_POS_NONE}
     };
     for (int i = 0; i < SceneTree[9].TotalScene; i++) {
-        EnQueueLast(&SceneTree[9].Frame, scenes9[i]);
+        SceneTree[9].scenes[i] = scenes9[i];
     }
-    SceneTree[9].TotalScene = QueueSize(SceneTree[9].Frame);
 
     // Node 10
     SceneTree[10].id = 10;
@@ -246,10 +232,10 @@ void InitDataCerita(TreeStory *SceneTree) {
         {NULL, "Homeless Man : You know how desperate we bums are. Here's your match back. If you want,\n we have some food for you—it's our way of apologizing", "Assets/BackgroundSprites/background6.png", "Assets/CharaSprites/chara4.png", {0}, {0}, CHAR_POS_RIGHT}
     };
     for (int i = 0; i < SceneTree[10].TotalScene; i++) {
-        EnQueueLast(&SceneTree[10].Frame, scenes10[i]);
+        SceneTree[10].scenes[i] = scenes10[i];
     }
-    SceneTree[10].TotalScene = QueueSize(SceneTree[10].Frame);
 }
+
 
 // Menentukan posisi karakter ketika digambar
 void DrawCharacterAtPosition(Texture2D tex, CharacterPosition pos) {
@@ -283,10 +269,9 @@ void LoadNodeAssets(TreeStory SceneTree[], int nodeIndex) {
     }
 
     TreeStory *node = &SceneTree[nodeIndex];
-    Queue *queue = &node->Frame;
-
-    for (int i = 0; i < QueueSize(*queue); i++) {
-        Scene *scene = &queue->data[(queue->front + i) % MAX_SCENE];
+    
+    for (int i = 0; i < node->TotalScene; i++) {
+        Scene *scene = &node->scenes[i];
         if (scene->backgroundPath != NULL) {
             scene->backgroundTex = LoadTexture(scene->backgroundPath);
             scene->backgroundTex.height = SCREEN_HEIGHT;
@@ -312,101 +297,97 @@ void UnloadNodeAssets(TreeStory SceneTree[], int nodeIndex) {
     }
 
     TreeStory *node = &SceneTree[nodeIndex];
-    Queue *queue = &node->Frame;
-
-    while (!isQueueEmpty(*queue)) {
-        DeQueueFirst(queue);
+    
+    for (int i = 0; i < node->TotalScene; i++) {
+        Scene *scene = &node->scenes[i];
+        if (scene->backgroundTex.id != 0) {
+            UnloadTexture(scene->backgroundTex);
+            scene->backgroundTex = (Texture2D){0};
+        }
+        if (scene->characterTex.id != 0) {
+            UnloadTexture(scene->characterTex);
+            scene->characterTex = (Texture2D){0};
+        }
     }
+    node->currentSceneIndex = 0;
 }
 
 // Menggambar scene
 void DrawCurrentNodeScreen(TreeStory SceneTree[]) {
-    if (currentScene < 0 || currentScene >= MAX_NODE_TREE) return;
+    if (storyCurrentScene < 0 || storyCurrentScene >= MAX_NODE_TREE) return;
 
-    TreeStory *node = &SceneTree[currentScene];
-    Scene current = Peek(node->Frame);
+    TreeStory *node = &SceneTree[storyCurrentScene];
+    Scene *current = &node->scenes[storyCurrentFrame];
 
-    if (currentGameState == GAME_STATE_PLAY_GAME) {
-        if (current.backgroundTex.id != 0) {
-            DrawTexture(current.backgroundTex, 0, 0, WHITE);
-        } else {
-            ClearBackground(RAYWHITE);
+    // Draw current scene assets
+    if (current->backgroundTex.id != 0) {
+        DrawTexture(current->backgroundTex, 0, 0, WHITE);
+    }
+    if (current->characterTex.id != 0) {
+        DrawCharacterAtPosition(current->characterTex, current->CharPosition);
+    }
+
+    // Draw dialogue
+    if (current->dialogue != NULL) {
+        DrawRectangle(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, Fade(BLACK, 0.8f));
+        DrawRectangleLines(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, WHITE);
+        DrawText(current->dialogue, 70, SCREEN_HEIGHT - 180, 30, WHITE);
+    }
+
+    // Draw choice buttons if this is the final scene and there are choices
+    if (storyCurrentFrame == node->TotalScene - 1 && node->numChoices > 0) {
+        int choiceButtonWidth = 400;
+        int choiceButtonHeight = 60;
+        int choiceStartY = SCREEN_HEIGHT / 2 + 275;
+
+        // Draw left choice
+        Rectangle choiceRectLeft = {
+            SCREEN_WIDTH / 2 - choiceButtonWidth / 2 - 715,
+            choiceStartY,
+            (float)choiceButtonWidth,
+            (float)choiceButtonHeight
+        };
+        DrawRectangleRec(choiceRectLeft, Fade(GRAY, 0.8f));
+        DrawRectangleLinesEx(choiceRectLeft, 2, WHITE);
+        if (node->choiceLeftSon != NULL) {
+            Vector2 textPos = {
+                choiceRectLeft.x + choiceButtonWidth/2 - MeasureText(node->choiceLeftSon, 25)/2,
+                choiceRectLeft.y + choiceButtonHeight/2 - 25/2
+            };
+            DrawText(node->choiceLeftSon, textPos.x, textPos.y, 25, WHITE);
         }
 
-        if (node->id != 4 && node->id != 5) {
-            DrawCharacterAtPosition(current.characterTex, current.CharPosition);
-
-            if (current.dialogue != NULL || (currentFrame == node->TotalScene - 1 && node->numChoices > 0)) {
-                DrawRectangle(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, BLACK);
-                DrawRectangleLines(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, WHITE);
-
-                if (current.dialogue != NULL) {
-                    DrawText(current.dialogue, 70, SCREEN_HEIGHT - 180, 30, WHITE);
-                }
+        // Draw right choice if it exists
+        if (node->numChoices == 2) {
+            Rectangle choiceRectRight = {
+                SCREEN_WIDTH / 2 - choiceButtonWidth / 2 + 715,
+                choiceStartY,
+                (float)choiceButtonWidth,
+                (float)choiceButtonHeight
+            };
+            DrawRectangleRec(choiceRectRight, Fade(GRAY, 0.8f));
+            DrawRectangleLinesEx(choiceRectRight, 2, WHITE);
+            if (node->choiceRightSon != NULL) {
+                Vector2 textPos = {
+                    choiceRectRight.x + choiceButtonWidth/2 - MeasureText(node->choiceRightSon, 25)/2,
+                    choiceRectRight.y + choiceButtonHeight/2 - 25/2
+                };
+                DrawText(node->choiceRightSon, textPos.x, textPos.y, 25, WHITE);
             }
-
-            if (currentFrame == node->TotalScene - 1 && node->numChoices > 0) {
-                int choiceButtonWidth = 400;
-                int choiceButtonHeight = 60;
-                int yButton = SCREEN_HEIGHT / 2 + 275;
-
-                if (node->numChoices >= 1) {
-                    Rectangle choiceRectLeft = {
-                        SCREEN_WIDTH / 2 - choiceButtonWidth / 2 - 715,
-                        yButton,
-                        (float)choiceButtonWidth,
-                        (float)choiceButtonHeight
-                    };
-                    DrawRectangleRec(choiceRectLeft, Fade(GRAY, 0.8f));
-                    DrawRectangleLinesEx(choiceRectLeft, 2, WHITE);
-                    DrawText(node->choiceLeftSon,
-                             (int)(choiceRectLeft.x + choiceButtonWidth / 2 - MeasureText(node->choiceLeftSon, 25) / 2),
-                             (int)(choiceRectLeft.y + choiceButtonHeight / 2 - 25 / 2),
-                             25, WHITE);
-                }
-
-                if (node->numChoices == 2) {
-                    Rectangle choiceRectRight = {
-                        SCREEN_WIDTH / 2 - choiceButtonWidth / 2 + 715,
-                        yButton,
-                        (float)choiceButtonWidth,
-                        (float)choiceButtonHeight
-                    };
-                    DrawRectangleRec(choiceRectRight, Fade(GRAY, 0.8f));
-                    DrawRectangleLinesEx(choiceRectRight, 2, WHITE);
-                    DrawText(node->choiceRightSon,
-                             (int)(choiceRectRight.x + choiceButtonWidth / 2 - MeasureText(node->choiceRightSon, 25) / 2),
-                             (int)(choiceRectRight.y + choiceButtonHeight / 2 - 25 / 2),
-                             25, WHITE);
-                }
-            }
-        } else {
-            DrawCharacterAtPosition(current.characterTex, current.CharPosition);
-
-            if (currentFrame < node->TotalScene - 1 && current.dialogue != NULL) {
-                DrawRectangle(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, BLACK);
-                DrawRectangleLines(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, WHITE);
-                DrawText(current.dialogue, 70, SCREEN_HEIGHT - 180, 30, WHITE);
-            }
-        }
-    } else {
-        if (current.backgroundTex.id != 0) {
-            DrawTexture(current.backgroundTex, 0, 0, WHITE);
-        } else {
-            ClearBackground(RAYWHITE);
         }
     }
 }
 
 // Mengupdate logika cerita
 void UpdateCerita(TreeStory SceneTree[], GameState *gameState) {
-    if (currentScene < 0 || currentScene >= MAX_NODE_TREE) {
+    if (storyCurrentScene < 0 || storyCurrentScene >= MAX_NODE_TREE) {
         return;
     }
 
-    TreeStory *node = &SceneTree[currentScene];
-    Scene current = Peek(node->Frame);
-      // Update music if it's playing
+    TreeStory *node = &SceneTree[storyCurrentScene];
+    Scene *current = &node->scenes[storyCurrentFrame];
+
+    // Update music if it's playing
     if (isMusicPlaying) {
         UpdateMusicStream(currentSceneMusic);
         if (!IsMusicStreamPlaying(currentSceneMusic)) {
@@ -415,9 +396,11 @@ void UpdateCerita(TreeStory SceneTree[], GameState *gameState) {
     }
     
     // Check if this scene has music and should start playing
-    if (current.backgroundSound != NULL && !isMusicPlaying) {
-        UnloadMusicStream(currentSceneMusic);
-        currentSceneMusic = LoadMusicStream(current.backgroundSound);
+    if (current->backgroundSound != NULL && !isMusicPlaying) {
+        if (isMusicPlaying) {
+            UnloadMusicStream(currentSceneMusic);
+        }
+        currentSceneMusic = LoadMusicStream(current->backgroundSound);
         SetMusicVolume(currentSceneMusic, 0.5f);
         PlayMusicStream(currentSceneMusic);
         isMusicPlaying = true;
@@ -437,30 +420,17 @@ void UpdateCerita(TreeStory SceneTree[], GameState *gameState) {
 
         if (frameTimer >= frameDelay) {
             frameTimer = 0.0f;
-            if (currentFrame < node->TotalScene - 1) {
-                currentFrame++;
-                DeQueueFirst(&node->Frame);
-                Scene nextScene = Peek(node->Frame);
-                if (nextScene.backgroundPath != NULL) {
-                    nextScene.backgroundTex = LoadTexture(nextScene.backgroundPath);
-                    nextScene.backgroundTex.height = SCREEN_HEIGHT;
-                    nextScene.backgroundTex.width = SCREEN_WIDTH;
-                }
-                if (nextScene.characterPath != NULL) {
-                    nextScene.characterTex = LoadTexture(nextScene.characterPath);
-                    nextScene.characterTex.height /= 2;
-                    nextScene.characterTex.width /= 2;
-                }
-                EnQueueLast(&node->Frame, nextScene);
+            if (storyCurrentFrame < node->TotalScene - 1) {
+                storyCurrentFrame++;
             } else {
-                UnloadNodeAssets(SceneTree, currentScene);
+                UnloadNodeAssets(SceneTree, storyCurrentScene);
                 *gameState = GAME_STATE_MAIN_MENU;
-                currentScene = 0;
-                currentFrame = 0;
+                storyCurrentScene = 0;
+                storyCurrentFrame = 0;
             }
         }
     } else {
-        if (currentFrame == node->TotalScene - 1 && node->numChoices > 0) {
+        if (storyCurrentFrame == node->TotalScene - 1 && node->numChoices > 0) {
             int choiceButtonWidth = 400;
             int choiceButtonHeight = 60;
             int choiceStartY = SCREEN_HEIGHT / 2 + 275;
@@ -490,21 +460,8 @@ void UpdateCerita(TreeStory SceneTree[], GameState *gameState) {
             }
         } else {
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
-                if (currentFrame < node->TotalScene - 1) {
-                    currentFrame++;
-                    DeQueueFirst(&node->Frame);
-                    Scene nextScene = Peek(node->Frame);
-                    if (nextScene.backgroundPath != NULL) {
-                        nextScene.backgroundTex = LoadTexture(nextScene.backgroundPath);
-                        nextScene.backgroundTex.height = SCREEN_HEIGHT;
-                        nextScene.backgroundTex.width = SCREEN_WIDTH;
-                    }
-                    if (nextScene.characterPath != NULL) {
-                        nextScene.characterTex = LoadTexture(nextScene.characterPath);
-                        nextScene.characterTex.height /= 2;
-                        nextScene.characterTex.width /= 2;
-                    }
-                    EnQueueLast(&node->Frame, nextScene);
+                if (storyCurrentFrame < node->TotalScene - 1) {
+                    storyCurrentFrame++;
                 }
             }
         }
@@ -513,16 +470,17 @@ void UpdateCerita(TreeStory SceneTree[], GameState *gameState) {
 
 // Memproses pilihan pemain
 void ProsesChoice(TreeStory SceneTree[], int choice) {
-    int nextNodeIndex = (choice == 0) ? SceneTree[currentScene].IdLeftSon : SceneTree[currentScene].IdRightSon;
+    int nextNodeIndex = (choice == 0) ? SceneTree[storyCurrentScene].IdLeftSon : SceneTree[storyCurrentScene].IdRightSon;
 
     if (nextNodeIndex < 0 || nextNodeIndex >= MAX_NODE_TREE || SceneTree[nextNodeIndex].TotalScene == 0) {
         return;
     }
-    UnloadNodeAssets(SceneTree, currentScene);
-    currentScene = nextNodeIndex;
-    currentFrame = 0;
-    LoadNodeAssets(SceneTree, currentScene);
-    printf("Berpindah ke scene %d\n", currentScene);
+    
+    UnloadNodeAssets(SceneTree, storyCurrentScene);
+    storyCurrentScene = nextNodeIndex;
+    storyCurrentFrame = 0;
+    LoadNodeAssets(SceneTree, storyCurrentScene);
+    printf("Berpindah ke scene %d\n", storyCurrentScene);
 }
 
 // Menyimpan progres cerita
@@ -537,7 +495,6 @@ void SaveGameStory(const char *filename, int Node, int Scene) {
     fwrite(&Scene, sizeof(int), 1, file);
     fclose(file);
 }
-
 
 // Memuat progres cerita
 void LoadGameStory(const char *filename, int *Node, int *Scene) {

@@ -1,7 +1,7 @@
 #ifndef MINIGAME_H
 #define MINIGAME_H
 #include <raylib.h>
-#include "queue.h"
+
 #include "mainmenu.h"
 #include "Stack.h"
 

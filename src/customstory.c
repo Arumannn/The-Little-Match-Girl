@@ -14,6 +14,11 @@ Texture2D Background, Character;
 float RenderTimer = 2.0f;
 bool ShowRender;
 
+// Global variables for custom story management
+int KeyPad;  // For keyboard input
+int storedKeyPad;  // For storing branch direction
+bool warning = false;  // For error states and warnings
+
 // Helper functions for PrintTree
 typedef struct TempQueueNode {
     CustomSceneTree treeNode;
@@ -80,8 +85,12 @@ void CustomStoryGUI(int state, int currentsprite, char *Dialogue, char *BackSpri
             else if (!ShowRender && currentsprite < 3)
             {
                 DrawText("Where do you want to go next?", 40, 30, 30, WHITE);
-                DrawText("<-- Go to Next Left Option | Go to Next Right Option --> | Up_Arrow Go To Parent | / Review Scenes", 40, 40, 30, WHITE);
-                DrawText(" (A) Delete Lastest Scene | (S) Delete First Scene | (D) Add Scene As The First Scene | (F) Add Scene Into The Last Scene | (G) Overwrite Tree", 40, 80, 25, WHITE);
+                DrawText("<-- Create Left Branch (Set choice text first)", 40, 70, 25, WHITE);
+                DrawText("--> Create Right Branch (Set choice text first)", 40, 100, 25, WHITE);
+                DrawText("Up Arrow: Go To Parent | /: Review Scenes", 40, 130, 25, WHITE);
+                DrawText("A: Delete Last Scene | S: Delete First Scene", 40, 160, 25, WHITE);
+                DrawText("D: Add Scene As First | F: Add Scene As Last", 40, 190, 25, WHITE);
+                DrawText("G: Overwrite Tree | ENTER: Save and Exit", 40, 220, 25, WHITE);
             }
             else if (currentsprite == 3)
             {
@@ -92,6 +101,8 @@ void CustomStoryGUI(int state, int currentsprite, char *Dialogue, char *BackSpri
             else if (currentsprite == 4) 
             {
                 DrawText("Scene Successfully Added!", 40, 30, 30, WHITE);
+                
+                
             }
             else if (currentsprite == 5)
             {
@@ -141,17 +152,69 @@ void CustomStoryGUI(int state, int currentsprite, char *Dialogue, char *BackSpri
             DrawText(Dialogue, position.x, position.y-50, 20, WHITE);
             DrawText("Press <-- to go to previous scene, and press --> to go to the next scene", position.x, position.y-80, 20, WHITE);
             break;
+          case CHOOSINGCHOICETEXT:
+            DrawText("Before creating a new node, set the choice button text", 40, 30, 30, WHITE);
+            
+            // Draw left choice input area
+            DrawText("Left Choice Text:", 40, 100, 25, WHITE);
+            DrawRectangleLines(40, 130, 720, 40, WHITE);
+            DrawText(Dialogue, 50, 140, 20, LIGHTGRAY);
+
+            // Draw right choice input area
+            DrawText("Right Choice Text:", 40, 200, 25, WHITE);
+            DrawRectangleLines(40, 230, 720, 40, WHITE);
+
+            // Draw example choice buttons like in story mode
+            int choiceButtonWidth = 400;
+            int choiceButtonHeight = 60;
+            int choiceStartY = SCREEN_HEIGHT / 2 + 275;
+
+            // Left choice button
+            Rectangle choiceRectLeft = {
+                SCREEN_WIDTH / 2 - choiceButtonWidth / 2 - 715,
+                choiceStartY,
+                (float)choiceButtonWidth,
+                (float)choiceButtonHeight
+            };
+            DrawRectangleRec(choiceRectLeft, Fade(GRAY, 0.8f));
+            DrawRectangleLinesEx(choiceRectLeft, 2, WHITE);
+            DrawText("Preview Left Choice", 
+                    (int)(choiceRectLeft.x + choiceButtonWidth / 2 - MeasureText("Preview Left Choice", 25) / 2),
+                    (int)(choiceRectLeft.y + choiceButtonHeight / 2 - 25 / 2),
+                    25, WHITE);
+
+            // Right choice button
+            Rectangle choiceRectRight = {
+                SCREEN_WIDTH / 2 - choiceButtonWidth / 2 + 715,
+                choiceStartY,
+                (float)choiceButtonWidth,
+                (float)choiceButtonHeight
+            };
+            DrawRectangleRec(choiceRectRight, Fade(GRAY, 0.8f));
+            DrawRectangleLinesEx(choiceRectRight, 2, WHITE);
+            DrawText("Preview Right Choice",
+                    (int)(choiceRectRight.x + choiceButtonWidth / 2 - MeasureText("Preview Right Choice", 25) / 2),
+                    (int)(choiceRectRight.y + choiceButtonHeight / 2 - 25 / 2),
+                    25, WHITE);
+
+            DrawText("Press TAB to switch between choices | ENTER when done", 40, SCREEN_HEIGHT - 50, 20, LIGHTGRAY);
+            break;
     }
 }
 
 void MakeCustomStory(CustomSceneTree *ThisSlot, int SlotNumber)
 {
     ShowRender = false;
-    char Convo[128];
+    char Convo[DUMMY_MAX_CONVO];
+    char LeftText[DUMMY_MAX_CONVO];   // Buffer for left choice text
+    char RightText[DUMMY_MAX_CONVO];  // Buffer for right choice text
+    memset(LeftText, 0, DUMMY_MAX_CONVO);
+    memset(RightText, 0, DUMMY_MAX_CONVO);
     int selectedsprite = 0;
     int control = CHOOSINGBACKGROUND;
     CustomSceneTree TempTree;
     SceneList TempScene;
+    bool needChoiceText = false;  // Flag to track if we need to get choice text
 
     if (*ThisSlot == NULL)
     {
@@ -162,7 +225,6 @@ void MakeCustomStory(CustomSceneTree *ThisSlot, int SlotNumber)
         TempScene->Data.Character = NULL;
         TempScene->Data.Convo = NULL;
     }
-
     else
     {
         TempTree = *ThisSlot;
@@ -174,6 +236,92 @@ void MakeCustomStory(CustomSceneTree *ThisSlot, int SlotNumber)
     {
         switch (control)
         {
+            case CONFIRMATION:
+                {
+                    KeyPad = GetKeyPressed();
+                    BeginDrawing();
+                    ClearBackground(BLACK);
+                    CustomStoryGUI(control, selectedsprite, NULL, NULL, NULL, CHAR_POS_CENTER);
+                      if (KeyPad == KEY_LEFT || KeyPad == KEY_RIGHT) {
+                        storedKeyPad = KeyPad;  // Store which direction was chosen
+                        control = CHOOSINGCHOICETEXT;
+                        needChoiceText = true;
+                        break;
+                    }
+                    
+                    // Handle other keys
+                    switch (KeyPad)
+                    {
+                        case KEY_UP:
+                            PreviousTree(&TempTree, &TempScene, &selectedsprite, &warning, &control);
+                            break;
+
+                        case KEY_A:
+                            control = DELETELASTSCENE;
+                            break;
+
+                        case KEY_S:
+                            control = DELETEFIRSTSCENE;
+                            break;
+
+                        case KEY_D:
+                            control = ADDFIRSTSCENE;
+                            break;
+
+                        case KEY_F:
+                            control = ADDLASTSCENE;
+                            break;
+
+                        case KEY_G:
+                            control = MODE_OVERWRITING;
+                            break;                        case KEY_ENTER:
+                            // Save the current story first
+                            PrintTree(ThisSlot);
+                            SaveSlotToFile(ThisSlot, SlotNumber);
+                            printf("Saving to slot %d...\n", SlotNumber);
+                            
+                            // Show save confirmation message
+                            selectedsprite = 8;  // Save confirmation sprite
+                            ShowRender = true;
+                            RenderTimer = 2.0f;
+
+                            while (RenderTimer > 0.0f)
+                            {
+                                BeginDrawing();
+                                ClearBackground(BLACK);
+                                CustomStoryGUI(control, selectedsprite, NULL, NULL, NULL, CHAR_POS_CENTER);
+                                EndDrawing();
+                                RenderTimer -= GetFrameTime();
+                            }
+                            
+                            // Add a small delay to ensure user sees the message
+                            WaitTime(0.5f);
+                            
+                            // Now we can safely exit
+                            control = ALLDONE;
+                            break;
+
+                        case KEY_SLASH:
+                            control = MODE_REVIEW_SCENE;
+                            break;
+                    }
+                    EndDrawing();
+                }
+                break;            case CHOOSINGCHOICETEXT:
+                ChoosingChoiceText(LeftText, RightText, &selectedsprite, &TempTree);
+                if (selectedsprite == 4) {  // Choice text input complete
+                    if (needChoiceText) {
+                        if (storedKeyPad == KEY_LEFT) {
+                            AddLeftChild(&TempTree, &TempScene, &selectedsprite, &warning, &control);
+                        } else if (storedKeyPad == KEY_RIGHT) {
+                            AddRightChild(&TempTree, &TempScene, &warning, &control, &selectedsprite);
+                        }
+                        needChoiceText = false;
+                        control = CHOOSINGBACKGROUND;
+                    }
+                }
+                break;
+
             case CHOOSINGBACKGROUND:
                 ChoosingBackground(&selectedsprite, &control, &TempScene);
             break;
@@ -190,101 +338,7 @@ void MakeCustomStory(CustomSceneTree *ThisSlot, int SlotNumber)
                 printf("Masuk ChoosingDialogue, control = %d\n", control);
                 memset(Convo, 0, sizeof(Convo));
                 control = ChoosingDialogue(Convo, &selectedsprite, &TempScene);
-            break;
-
-            case CONFIRMATION:
-                bool warning = false;
-                selectedsprite = 0;
-                int KeyPad;
-                while (control == CONFIRMATION)
-                {
-                    KeyPad = GetKeyPressed();
-                    BeginDrawing();
-                    ClearBackground(BLACK);
-                    if (ShowRender)
-                    {
-                        CustomStoryGUI(control, selectedsprite, NULL, NULL, NULL, CHAR_POS_CENTER);
-                        RenderTimer -= GetFrameTime();
-                        if (RenderTimer <= 0.0f)
-                        {
-                            ShowRender = false;
-                        }
-                    }
-                    else
-                    {
-                        CustomStoryGUI(control, selectedsprite, NULL, NULL, NULL, CHAR_POS_CENTER);
-                    }
-                    switch (KeyPad)
-                    {
-                        case KEY_LEFT:
-                            AddLeftChild(&TempTree, &TempScene, &selectedsprite, &warning, &control);
-                        break;
-
-                        case KEY_RIGHT:
-                            AddRightChild(&TempTree, &TempScene, &warning, &control, &selectedsprite);
-                        break;
-
-                        case KEY_UP:
-                            PreviousTree(&TempTree, &TempScene, &selectedsprite, &warning, &control);
-                        break;
-
-                        case KEY_A:
-                            control = DELETELASTSCENE;
-                        break;
-
-                        case KEY_S:
-                            control = DELETEFIRSTSCENE;
-                        break;
-
-                        case KEY_D:
-                            control = ADDFIRSTSCENE;
-                        break;
-
-                        case KEY_F:
-                            control = ADDLASTSCENE;
-                        break;
-
-                        case KEY_G:
-                            control = MODE_OVERWRITING;
-
-                        case KEY_ENTER:
-                            PrintTree(ThisSlot);
-                            SaveSlotToFile(ThisSlot, SlotNumber);
-                            
-                            selectedsprite = 8; // New confirmation message
-                            RenderTimer = 2.0f;
-                            ShowRender = true;
-                            control = CONFIRMATION;
-                            while (ShowRender)
-                            {
-                                BeginDrawing();
-                                ClearBackground(BLACK);
-                                if (ShowRender)
-                                {
-                                    CustomStoryGUI(control, selectedsprite, NULL, NULL, NULL, CHAR_POS_CENTER);
-                                    RenderTimer -= GetFrameTime();
-                                    if (RenderTimer <= 0.0f)
-                                    {
-                                        ShowRender = false;
-                                    }
-                                }
-                                EndDrawing();
-                            }
-                            control = ALLDONE;
-                        break;
-
-                        case KEY_BACKSPACE:
-                            //HandleDeleteCurrentNode(&TempTree, &TempScene, &control, &selectedsprite);
-                        break;
-
-                        case KEY_SLASH:
-                        {
-                            control = MODE_REVIEW_SCENE;
-                        }
-                    }
-                    EndDrawing();
-                }
-            break;
+            break;            // Remove duplicate CONFIRMATION case since it's already handled above
 
             case ADDFIRSTSCENE:
                 AddSceneFirst(&TempTree, &TempScene, &warning, &control);
@@ -303,14 +357,14 @@ void MakeCustomStory(CustomSceneTree *ThisSlot, int SlotNumber)
             break;
 
             case MODE_REVIEW_SCENE:
-                TempScene = TempTree->NodeContents;
-                ReviewScene(&control, &TempScene);
+                // Keep current TempScene position, don't reset to NodeContents
+                ReviewScene(&control, &TempScene, &TempTree);
                 selectedsprite = 2;
             break;
 
             case MODE_OVERWRITING:
                 OverwriteTree(&TempScene, &TempTree, &control);
-            break;
+            break;            // Remove duplicate CHOOSINGCHOICETEXT case since it's already handled above
         }
     }
     EndDrawing();
@@ -344,22 +398,22 @@ int ChoosingDialogue(char *Convo, int *selectedsprite, SceneList *TempScene)
         }
         if (IsKeyPressed(KEY_ENTER))
         {
-            printf("User tekan ENTER, Convo='%s'\n", Convo);
-            if (strlen(Convo) > 0) {
+            printf("User tekan ENTER, Convo='%s'\n", Convo);            if (strlen(Convo) > 0) {
                 (*TempScene)->Data.Convo = malloc(strlen(Convo) + 1);
                 strcpy((*TempScene)->Data.Convo, Convo);
+                
+                // Show success message briefly
+                BeginDrawing();
+                ClearBackground(BLACK);
+                DrawText("Scene content saved! Press any key to continue...", 40, 30, 30, WHITE);
+                EndDrawing();
+                WaitTime(1.0f);
+                
+                // Return to branch creation menu
                 control = CONFIRMATION;
-                *selectedsprite = 4;
-                RenderTimer = 2.0f;
-                while (RenderTimer > 0.0f)
-                {
-                    BeginDrawing();
-                    ClearBackground(BLACK);
-                    CustomStoryGUI(control, *selectedsprite, NULL, NULL, NULL, CHAR_POS_CENTER);
-                    RenderTimer -= GetFrameTime();
-                    EndDrawing();
-                }
-            } else {
+                *selectedsprite = 0;  // Reset sprite to show branch options
+                ShowRender = false;
+            }else {
                 // Tampilkan pesan error
                 DrawText("Dialog tidak boleh kosong!", 100, 200, 30, RED);
             }
@@ -518,8 +572,13 @@ void PreviousTree(CustomSceneTree *TempTree, SceneList *TempScene, int *selected
     {
         *warning = true;
         *control = CONFIRMATION;
+        
+        // Move to parent tree node
         (*TempTree) = (*TempTree)->Parent;
+        
+        // Reset TempScene to start of parent's NodeContents
         (*TempScene) = (*TempTree)->NodeContents;
+        
         *selectedsprite = 3;
     }
 }
@@ -534,6 +593,8 @@ void AddRightChild(CustomSceneTree *TempTree, SceneList *TempScene, bool *warnin
         (*TempTree)->ID = rand() % 100000000;
         (*TempTree)->Left = NULL;
         (*TempTree)->Right = NULL;
+        (*TempTree)->TextLeft = NULL;  // Initialize choice text fields
+        (*TempTree)->TextRight = NULL;
         (*TempTree)->NodeContents = (SceneList)malloc(sizeof(struct ListElements));
         (*TempScene) = (*TempTree)->NodeContents;
         (*TempScene)->Next = NULL;
@@ -562,6 +623,8 @@ void AddLeftChild(CustomSceneTree *TempTree, SceneList *TempScene, int *selected
         (*TempTree)->ID = rand() % 100000000;
         (*TempTree)->Left = NULL;
         (*TempTree)->Right = NULL;
+        (*TempTree)->TextLeft = NULL;  // Initialize choice text fields
+        (*TempTree)->TextRight = NULL;
         (*TempTree)->NodeContents = (SceneList)malloc(sizeof(struct ListElements));
         (*TempScene) = (*TempTree)->NodeContents;
         (*TempScene)->Next = NULL;
@@ -587,6 +650,8 @@ void InitializeStoryTree(CustomSceneTree *ThisSlot)
     (*ThisSlot)->Left = NULL;
     (*ThisSlot)->Right = NULL;
     (*ThisSlot)->ID = rand() % 100000000;
+    (*ThisSlot)->TextLeft = NULL;  // Initialize choice text fields to NULL
+    (*ThisSlot)->TextRight = NULL;
     (*ThisSlot)->NodeContents = (SceneList)malloc(sizeof(struct ListElements));
     (*ThisSlot)->NodeContents->Next = NULL;
     (*ThisSlot)->NodeContents->Before = NULL;
@@ -778,6 +843,16 @@ void DeleteTreeNode(CustomSceneTree *nodeToDelete)
         node->NodeContents = NULL;
     }
 
+    // Free choice text fields
+    if (node->TextLeft != NULL) {
+        free(node->TextLeft);
+        node->TextLeft = NULL;
+    }
+    if (node->TextRight != NULL) {
+        free(node->TextRight);
+        node->TextRight = NULL;
+    }
+
     free(node);
     *nodeToDelete = NULL;
 }
@@ -875,30 +950,128 @@ void DrawCustomStoryScene(SceneList scene) {
     // if (charTex.id) UnloadTexture(charTex);
 }
 
-void ReviewScene(int *control, SceneList *TempScene)
+void ReviewScene(int *control, SceneList *TempScene, CustomSceneTree *TempTree)
 {
+    Vector2 mouse = {0};
+    bool showWarning = false;
+    const char* warningText = "";
+    float warningTimer = 0;
+
     while (*control == MODE_REVIEW_SCENE)
     {
+        mouse = GetMousePosition();
         BeginDrawing();
         ClearBackground(BLACK);
 
-        // Gambar scene dengan layout seperti story.c
+        // Draw current scene with layout like story.c
         DrawCustomStoryScene(*TempScene);
 
-        // Navigasi scene
-        if (IsKeyPressed(KEY_RIGHT) && (*TempScene)->Next != NULL)
-        {
+        // Debug information showing current node and scene navigation options
+        char debugText[128];
+        sprintf(debugText, "Current Node ID: %d | Scene Position: %s%s%s", 
+                (*TempTree)->ID,
+                (*TempScene)->Before ? "<- " : "",
+                "[]",
+                (*TempScene)->Next ? " ->" : "");
+        DrawText(debugText, 10, 10, 20, RED);
+
+        // Always draw choice buttons, regardless of scene position
+        if ((*TempScene)->Next == NULL){
+
+            int choiceButtonWidth = 400;
+            int choiceButtonHeight = 60;
+            int choiceStartY = SCREEN_HEIGHT / 2 + 275;
+    
+            // Left choice button
+            Rectangle choiceRectLeft = {
+                SCREEN_WIDTH / 2 - choiceButtonWidth / 2 - 715,
+                choiceStartY,
+                (float)choiceButtonWidth,
+                (float)choiceButtonHeight
+            };
+            DrawRectangleRec(choiceRectLeft, Fade(GRAY, 0.8f));
+            DrawRectangleLinesEx(choiceRectLeft, 2, WHITE);
+            DrawText((*TempTree)->TextLeft ? (*TempTree)->TextLeft : "Go Left", 
+                    (int)(choiceRectLeft.x + choiceButtonWidth / 2 - MeasureText((*TempTree)->TextLeft ? (*TempTree)->TextLeft : "Go Left", 25) / 2),
+                    (int)(choiceRectLeft.y + choiceButtonHeight / 2 - 25 / 2),
+                    25, WHITE);
+    
+            // Right choice button
+            Rectangle choiceRectRight = {
+                SCREEN_WIDTH / 2 - choiceButtonWidth / 2 + 715,
+                choiceStartY,
+                (float)choiceButtonWidth,
+                (float)choiceButtonHeight
+            };
+            DrawRectangleRec(choiceRectRight, Fade(GRAY, 0.8f));
+            DrawRectangleLinesEx(choiceRectRight, 2, WHITE);
+            DrawText((*TempTree)->TextRight ? (*TempTree)->TextRight : "Go Right",
+                    (int)(choiceRectRight.x + choiceButtonWidth / 2 - MeasureText((*TempTree)->TextRight ? (*TempTree)->TextRight : "Go Right", 25) / 2),
+                    (int)(choiceRectRight.y + choiceButtonHeight / 2 - 25 / 2),
+                    25, WHITE);
+    
+            // Handle button hovers and clicks
+            if (CheckCollisionPointRec(mouse, choiceRectLeft)) {
+                if ((*TempTree)->Left != NULL) {
+                    DrawRectangleLinesEx(choiceRectLeft, 3, GREEN);
+                    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                        *TempTree = (*TempTree)->Left;
+                        *TempScene = (*TempTree)->NodeContents;  // Reset to first scene of new node
+                    }
+                } else if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                    showWarning = true;
+                    warningText = "There's no left node yet!";
+                    warningTimer = 2.0f;
+                }
+            }
+            
+            if (CheckCollisionPointRec(mouse, choiceRectRight)) {
+                if ((*TempTree)->Right != NULL) {
+                    DrawRectangleLinesEx(choiceRectRight, 3, GREEN);
+                    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                        *TempTree = (*TempTree)->Right;
+                        *TempScene = (*TempTree)->NodeContents;  // Reset to first scene of new node
+                    }
+                } else if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                    showWarning = true;
+                    warningText = "There's no right node yet!";
+                    warningTimer = 2.0f;
+                }
+            }
+        }
+
+        // Show warning if needed
+        if (showWarning) {
+            DrawText(warningText, SCREEN_WIDTH/2 - MeasureText(warningText, 30)/2, 50, 30, RED);
+            warningTimer -= GetFrameTime();
+            if (warningTimer <= 0) {
+                showWarning = false;
+            }
+        }
+
+        // Scene navigation
+        if (IsKeyPressed(KEY_RIGHT) && (*TempScene)->Next != NULL) {
             (*TempScene) = (*TempScene)->Next;
         }
-        else if(IsKeyPressed(KEY_LEFT) && (*TempScene)->Before != NULL)
-        {
+        else if(IsKeyPressed(KEY_LEFT) && (*TempScene)->Before != NULL) {
             (*TempScene) = (*TempScene)->Before;
         }
-        else if(IsKeyPressed(KEY_ENTER))
-        {
+        else if(IsKeyPressed(KEY_ENTER)) {
             ShowRender = false;
             *control = CONFIRMATION;
         }
+        else if(IsKeyPressed(KEY_BACKSPACE)) {
+            if ((*TempTree)->Parent != NULL) {
+                *TempTree = (*TempTree)->Parent;
+                *TempScene = (*TempTree)->NodeContents;
+            }
+        }
+
+        // Navigation instructions
+        DrawText("LEFT/RIGHT: Change scenes | BACKSPACE: Return to parent | ENTER: Exit review", 
+                SCREEN_WIDTH/2 - MeasureText("LEFT/RIGHT: Change scenes | BACKSPACE: Return to parent | ENTER: Exit review", 20)/2, 
+                SCREEN_HEIGHT - 30, 20, LIGHTGRAY);
+
         EndDrawing();
     }
 }
@@ -907,16 +1080,25 @@ void InitiateAssets()
 {
     for (int i = 0; i < BACKGROUND_AMMOUNT; i++) 
     {
-        char path[128];
-        sprintf(path, "Assets/BackgroundSprites/background%i.png", i+1);
-        strcpy(FileBackground[i].FileName, path);
+        char path[MAX_PATH_LENGTH];
+        if (snprintf(path, MAX_PATH_LENGTH, "Assets/BackgroundSprites/background%i.png", i+1) >= MAX_PATH_LENGTH) {
+            printf("Error: Background path too long for index %d\n", i+1);
+            continue;
+        }
+        strncpy(FileBackground[i].FileName, path, MAX_FILENAME_LENGTH-1);
+        FileBackground[i].FileName[MAX_FILENAME_LENGTH-1] = '\0';
         FileBackground[i].Background = LoadTexture(path);
     }
+    
     for (int i = 0; i < CHARA_AMMOUNT; i++)
     {
-        char path[128];
-        sprintf(path, "Assets/CharaSprites/chara%i.png", i+1);
-        strcpy(FileChara[i].FileName, path);
+        char path[MAX_PATH_LENGTH];
+        if (snprintf(path, MAX_PATH_LENGTH, "Assets/CharaSprites/chara%i.png", i+1) >= MAX_PATH_LENGTH) {
+            printf("Error: Character path too long for index %d\n", i+1);
+            continue;
+        }
+        strncpy(FileChara[i].FileName, path, MAX_FILENAME_LENGTH-1);
+        FileChara[i].FileName[MAX_FILENAME_LENGTH-1] = '\0';
         FileChara[i].Chara = LoadTexture(path);
     }
 }
@@ -1099,6 +1281,20 @@ void SerializeTreeNode(FILE *file, CustomSceneTree node) {
     // Write node ID
     fwrite(&(node->ID), sizeof(int), 1, file);
     
+    // Write TextLeft
+    int textLeftLen = node->TextLeft ? strlen(node->TextLeft) + 1 : 0;
+    fwrite(&textLeftLen, sizeof(int), 1, file);
+    if (textLeftLen > 0) {
+        fwrite(node->TextLeft, sizeof(char), textLeftLen, file);
+    }
+    
+    // Write TextRight
+    int textRightLen = node->TextRight ? strlen(node->TextRight) + 1 : 0;
+    fwrite(&textRightLen, sizeof(int), 1, file);
+    if (textRightLen > 0) {
+        fwrite(node->TextRight, sizeof(char), textRightLen, file);
+    }
+    
     // Write the scene list for this node
     SerializeSceneList(file, node->NodeContents);
     
@@ -1122,6 +1318,8 @@ CustomSceneTree DeserializeTreeNode(FILE *file, CustomSceneTree parent) {
     node->Parent = parent;
     node->Left = NULL;
     node->Right = NULL;
+    node->TextLeft = NULL;
+    node->TextRight = NULL;
     
     // Read node ID
     if (fread(&(node->ID), sizeof(int), 1, file) != 1) {
@@ -1129,8 +1327,45 @@ CustomSceneTree DeserializeTreeNode(FILE *file, CustomSceneTree parent) {
         return NULL;
     }
     
+    // Read TextLeft
+    int textLeftLen;
+    if (fread(&textLeftLen, sizeof(int), 1, file) != 1) {
+        free(node);
+        return NULL;
+    }
+    if (textLeftLen > 0) {
+        node->TextLeft = (char*)malloc(textLeftLen);
+        if (fread(node->TextLeft, sizeof(char), textLeftLen, file) != textLeftLen) {
+            free(node->TextLeft);
+            free(node);
+            return NULL;
+        }
+    }
+    
+    // Read TextRight
+    int textRightLen;
+    if (fread(&textRightLen, sizeof(int), 1, file) != 1) {
+        free(node);
+        return NULL;
+    }
+    if (textRightLen > 0) {
+        node->TextRight = (char*)malloc(textRightLen);
+        if (fread(node->TextRight, sizeof(char), textRightLen, file) != textRightLen) {
+            free(node->TextLeft);
+            free(node->TextRight);
+            free(node);
+            return NULL;
+        }
+    }
+    
     // Read the scene list
     node->NodeContents = DeserializeSceneList(file);
+    if (!node->NodeContents) {
+        if (node->TextLeft) free(node->TextLeft);
+        if (node->TextRight) free(node->TextRight);
+        free(node);
+        return NULL;
+    }
     
     // Recursively read left and right children
     node->Left = DeserializeTreeNode(file, node);
@@ -1140,6 +1375,11 @@ CustomSceneTree DeserializeTreeNode(FILE *file, CustomSceneTree parent) {
 }
 
 void SaveTreeToFile(CustomSceneTree tree, const char* filename) {
+    if (tree == NULL) {
+        printf("Error: Cannot save NULL tree.\n");
+        return;
+    }
+
     FILE *file = fopen(filename, "wb");
     if (file == NULL) {
         printf("Error: Could not open file '%s' for writing.\n", filename);
@@ -1148,10 +1388,23 @@ void SaveTreeToFile(CustomSceneTree tree, const char* filename) {
     
     // Write a file header/version for future compatibility
     char header[16] = "VSTORY_V1.0";
-    fwrite(header, sizeof(char), 16, file);
+    size_t written = fwrite(header, sizeof(char), 16, file);
+    if (written != 16) {
+        printf("Error: Failed to write file header.\n");
+        fclose(file);
+        return;
+    }
     
     // Serialize the entire tree
     SerializeTreeNode(file, tree);
+    
+    // Check for any write errors
+    if (ferror(file)) {
+        printf("Error: Write error occurred while saving.\n");
+        clearerr(file);
+        fclose(file);
+        return;
+    }
     
     fclose(file);
     printf("Story tree saved to '%s' successfully.\n", filename);
@@ -1165,8 +1418,8 @@ CustomSceneTree LoadTreeFromFile(const char* filename) {
     }
     
     // Read and verify the file header
-    char header[16];
-    if (fread(header, sizeof(char), 16, file) != 16) {
+    char header[MAX_HEADER_LENGTH] = {0};
+    if (fread(header, sizeof(char), MAX_HEADER_LENGTH, file) != MAX_HEADER_LENGTH) {
         printf("Error: Invalid file format.\n");
         fclose(file);
         return NULL;
@@ -1203,8 +1456,11 @@ void SaveSlotToFile(CustomSceneTree *ThisSlot, int slotNumber) {
         return;
     }
     
-    char filename[64];
-    sprintf(filename, "saves/story_slot_%d.sav", slotNumber);
+    char filename[MAX_PATH_LENGTH];
+    if (snprintf(filename, MAX_PATH_LENGTH, "saves/story_slot_%d.sav", slotNumber) >= MAX_PATH_LENGTH) {
+        printf("Error: Save filename too long\n");
+        return;
+    }
     
     // Create saves directory if it doesn't exist (platform dependent)
     #ifdef _WIN32
@@ -1213,14 +1469,19 @@ void SaveSlotToFile(CustomSceneTree *ThisSlot, int slotNumber) {
         system("mkdir -p saves");
     #endif
     
+    // Try to create/open the file first to verify we can write
+    FILE *testFile = fopen(filename, "wb");
+    if (testFile == NULL) {
+        printf("Error: Cannot create save file. Check permissions and disk space.\n");
+        return;
+    }
+    fclose(testFile);
+    
+    // Now actually save the tree
     SaveTreeToFile(*ThisSlot, filename);
 }
 
-/**
- * Loads a story from a numbered save file
- * @param slotNumber - Save slot number to load (1-10)
- * @return Loaded tree, or NULL if failed
- */
+
 CustomSceneTree LoadSlotFromFile(int slotNumber) {
     if (slotNumber < 1 || slotNumber > 3) {
         printf("Error: Invalid slot number. Use 1-3.\n");
@@ -1409,6 +1670,143 @@ void DrawCustomStoryScreen(CustomSceneTree tree, int currentNode, int currentSce
     // Petunjuk navigasi
     DrawText("[LEFT/RIGHT]: Pindah node | [UP/DOWN]: Scene | [ESC]: Kembali", 60, 60, 28, YELLOW);
     // Jangan unload texture di sini!
+}
+
+void ChoosingChoiceText(char *LeftText, char *RightText, int *selectedsprite, CustomSceneTree *TempTree)
+{
+    static bool isLeftActive = true;  // Track which text field is active
+    static int leftCount = 0;
+    static int rightCount = 0;
+    int key;
+
+    while (1)
+    {
+        BeginDrawing();
+        ClearBackground(BLACK);
+
+        // Display input fields with instructions
+        DrawText("Enter text for both choices:", 40, 30, 30, WHITE);
+        DrawText("TAB to switch between choices, ENTER when done", 40, 60, 20, LIGHTGRAY);
+        
+        // Draw left choice input field with active highlighting
+        DrawText("Left Choice:", 40, 100, 20, WHITE);
+        DrawRectangleLines(40, 130, 720, 40, isLeftActive ? YELLOW : WHITE);
+        DrawText(LeftText, 50, 140, 20, isLeftActive ? YELLOW : LIGHTGRAY);
+        
+        // Draw right choice input field with active highlighting
+        DrawText("Right Choice:", 40, 200, 20, WHITE);
+        DrawRectangleLines(40, 230, 720, 40, !isLeftActive ? YELLOW : WHITE);
+        DrawText(RightText, 50, 240, 20, !isLeftActive ? YELLOW : LIGHTGRAY);
+
+        // Draw preview choice buttons matching story.c style
+        int choiceButtonWidth = 400;
+        int choiceButtonHeight = 60;
+        int choiceStartY = SCREEN_HEIGHT / 2 + 275;
+
+        // Left choice preview button
+        Rectangle choiceRectLeft = {
+            SCREEN_WIDTH / 2 - choiceButtonWidth / 2 - 715,
+            choiceStartY,
+            (float)choiceButtonWidth,
+            (float)choiceButtonHeight
+        };
+        DrawRectangleRec(choiceRectLeft, Fade(GRAY, 0.8f));
+        DrawRectangleLinesEx(choiceRectLeft, 2, WHITE);
+        DrawText(strlen(LeftText) > 0 ? LeftText : "Preview Left Choice",
+                (int)(choiceRectLeft.x + choiceButtonWidth / 2 - MeasureText(strlen(LeftText) > 0 ? LeftText : "Preview Left Choice", 25) / 2),
+                (int)(choiceRectLeft.y + choiceButtonHeight / 2 - 25 / 2),
+                25, WHITE);
+
+        // Right choice preview button
+        Rectangle choiceRectRight = {
+            SCREEN_WIDTH / 2 - choiceButtonWidth / 2 + 715,
+            choiceStartY,
+            (float)choiceButtonWidth,
+            (float)choiceButtonHeight
+        };
+        DrawRectangleRec(choiceRectRight, Fade(GRAY, 0.8f));
+        DrawRectangleLinesEx(choiceRectRight, 2, WHITE);
+        DrawText(strlen(RightText) > 0 ? RightText : "Preview Right Choice",
+                (int)(choiceRectRight.x + choiceButtonWidth / 2 - MeasureText(strlen(RightText) > 0 ? RightText : "Preview Right Choice", 25) / 2),
+                (int)(choiceRectRight.y + choiceButtonHeight / 2 - 25 / 2),
+                25, WHITE);
+
+        // Handle keyboard input
+        key = GetCharPressed();
+        while (key > 0)
+        {
+            if (isLeftActive && leftCount < DUMMY_MAX_CONVO-1)
+            {
+                if (key >= 32 && key <= 125)
+                {
+                    LeftText[leftCount] = (char)key;
+                    LeftText[++leftCount] = '\0';
+                }
+            }
+            else if (!isLeftActive && rightCount < DUMMY_MAX_CONVO-1)
+            {
+                if (key >= 32 && key <= 125)
+                {
+                    RightText[rightCount] = (char)key;
+                    RightText[++rightCount] = '\0';
+                }
+            }
+            key = GetCharPressed();
+        }
+
+        // Handle backspace
+        if (IsKeyPressed(KEY_BACKSPACE))
+        {
+            if (isLeftActive && leftCount > 0)
+            {
+                LeftText[--leftCount] = '\0';
+            }
+            else if (!isLeftActive && rightCount > 0)
+            {
+                RightText[--rightCount] = '\0';
+            }
+        }
+
+        // Switch between fields with TAB
+        if (IsKeyPressed(KEY_TAB))
+        {
+            isLeftActive = !isLeftActive;
+        }
+
+        // Complete input and show confirmation when both fields have text
+        if (IsKeyPressed(KEY_ENTER) && strlen(LeftText) > 0 && strlen(RightText) > 0)
+        {
+            // Save the choice texts to the tree node
+            (*TempTree)->TextLeft = malloc(strlen(LeftText) + 1);
+            strcpy((*TempTree)->TextLeft, LeftText);
+            (*TempTree)->TextRight = malloc(strlen(RightText) + 1);
+            strcpy((*TempTree)->TextRight, RightText);
+
+            // Show success confirmation
+            float confirmTimer = 2.0f;
+            while (confirmTimer > 0.0f)
+            {
+                BeginDrawing();
+                ClearBackground(BLACK);
+                DrawText("Choice texts set successfully!", 40, 30, 30, GREEN);
+                DrawText("Left Choice: ", 40, 100, 20, WHITE);
+                DrawText(LeftText, 160, 100, 20, YELLOW);
+                DrawText("Right Choice: ", 40, 150, 20, WHITE); 
+                DrawText(RightText, 160, 150, 20, YELLOW);
+                EndDrawing();
+                confirmTimer -= GetFrameTime();
+            }
+
+            // Reset for next time
+            isLeftActive = true;
+            leftCount = 0;
+            rightCount = 0;
+            *selectedsprite = 4; // Signal successful completion
+            return;
+        }
+
+        EndDrawing();
+    }
 }
 
 

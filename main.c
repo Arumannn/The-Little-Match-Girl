@@ -18,6 +18,9 @@ bool exitProgram = false;
 CustomSceneTree customStorySlots[3] = {NULL, NULL, NULL};
 int currentCustomSlot = 0;
 
+// Story state variables 
+int storyCurrentScene = 0;
+int storyCurrentFrame = 0;
 
 int customCurrentNode = 0;
 int customCurrentScene = 0;
@@ -197,16 +200,14 @@ int main() {
                 }
 
                 UpdateMiniGameStack(&currentGameState);
-                DrawMiniGameStack();
-
-                if (currentGameState != GAME_STATE_MINI_GAME_STACK) {
+                DrawMiniGameStack();                if (currentGameState != GAME_STATE_MINI_GAME_STACK) {
                     minigameInitialized = false;
                     printf("Exiting minigame, transitioning to story\n");
-                    currentScene = 0;  // Reset to first scene
-                    currentFrame = 0;  // Reset to first frame
-                    LoadNodeAssets(Mytree, currentScene);  // Load assets for the first scene
+                    storyCurrentScene = 0;  // Reset to first scene
+                    storyCurrentFrame = 0;  // Reset to first frame
+                    LoadNodeAssets(Mytree, storyCurrentScene);  // Load assets for the first scene
                 }
-                break;   
+                break;
 
             default:
                 currentGameState = GAME_STATE_MAIN_MENU;
@@ -219,16 +220,14 @@ int main() {
         DrawText(TextFormat("Current State: %d", currentGameState), 10, 40, 20, BLACK);
         
         EndDrawing();
-    }
-
-    // Cleanup
+    }    // Cleanup
     for (int i = 0; i < 3; i++) {
         if (customStorySlots[i] != NULL) {
             DeleteTreeNode(&customStorySlots[i]);
         }
     }
 
-    UnloadNodeAssets(Mytree, currentScene);
+    UnloadNodeAssets(Mytree, storyCurrentScene);
     CloseWindow();
     CloseAudioDevice();
     UnloadAssets();

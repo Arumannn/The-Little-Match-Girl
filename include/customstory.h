@@ -3,8 +3,15 @@
 #include <raylib.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "Queue.h"
+
 #include "mainmenu.h"  // Include mainmenu.h to get game state definitions
+#include "story.h"
+
+// Safe buffer sizes
+#define MAX_PATH_LENGTH 256
+#define MAX_FILENAME_LENGTH 128
+#define MAX_HEADER_LENGTH 16
+#define MAX_DIALOG_LENGTH 1024
 
 #define CHARA_AMMOUNT 11
 #define BACKGROUND_AMMOUNT 23
@@ -19,6 +26,7 @@ typedef enum
     CHOOSINGCHARA,
     CHOOSINGCHARPOSITION,
     CHOOSINGDIALOGUE,
+    CHOOSINGCHOICETEXT,  // New state for setting choice text
     CONFIRMATION,
     ALLDONE,
     ADDFIRSTSCENE,
@@ -32,19 +40,19 @@ typedef enum
 typedef struct BackgroundFileData
 {
     Texture2D Background;
-    char FileName[124];
+    char FileName[MAX_FILENAME_LENGTH];
 }BackgroundArr;
 
 typedef struct CharaFileData
 {
     Texture2D Chara;
-    char FileName[124];
+    char FileName[MAX_FILENAME_LENGTH];
 }CharaArr;
 
 typedef struct AudioFileData
 {
     Texture2D Audio;
-    char FileName[124];
+    char FileName[MAX_FILENAME_LENGTH];
 }AudioArr;
 
 struct SceneNode
@@ -67,6 +75,8 @@ typedef struct Tree
 {
     int ID;
     SceneList NodeContents;
+    char *TextLeft;      // Text to show for left choice button
+    char *TextRight;     // Text to show for right choice button
     struct Tree *Left;
     struct Tree *Right;
     struct Tree *Parent;
@@ -93,6 +103,7 @@ void ChoosingChara(int *selectedsprite, int *control, SceneList *TempScene);
 enum { DUMMY_MAX_CONVO = 128 };
 int ChoosingDialogue(char *Convo, int *selectedsprite, SceneList *TempScene);
 void ChoosingCharaPosition(int *selectedsprite, int *control, SceneList *TempScene);
+void ChoosingChoiceText(char *LeftText, char *RightText, int *selectedsprite, CustomSceneTree *TempTree);  // New function
 void MakeCustomStory(CustomSceneTree *ThisSlot, int SlotNumber);
 void OverwriteTree(SceneList *TempScene, CustomSceneTree *TempTree, int *control);
 void AddLeftChild(CustomSceneTree *TempTree, SceneList *TempScene, int *selectedsprite, bool *warning, int *control);
@@ -102,7 +113,7 @@ void AddSceneLast(CustomSceneTree *TempTree, SceneList *TempScene, int *control)
 void AddSceneFirst(CustomSceneTree *TempTree, SceneList *TempScene, bool *warning, int *control);
 void DeleteSceneFirst(CustomSceneTree *TempTree, SceneList *TempScene, int *selectedsprite, bool *warning, int *control);
 void DeleteSceneLast(CustomSceneTree *TempTree, SceneList *TempScene, int *selectedsprite, bool *warning, int *control);
-void ReviewScene(int *control, SceneList *TempScene);
+void ReviewScene(int *control, SceneList *TempScene, CustomSceneTree *TempTree);
 void DeleteTreeNode(CustomSceneTree *nodeToDelete);
 void DeleteSceneList(SceneList sceneList);
 void HandleDeleteCurrentNode(CustomSceneTree *TempTree, SceneList *TempScene, int *control, int *selectedsprite);
