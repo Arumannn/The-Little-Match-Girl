@@ -2,8 +2,7 @@
 #define STORY_H
 
 #include <raylib.h>
-#include "mainmenu.h"
-#include "boolean.h"
+#include "gamestate.h"
 
 #define MAX_SCENE 10
 

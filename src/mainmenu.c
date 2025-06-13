@@ -5,6 +5,7 @@
 #include <raylib.h>
 #include "mainmenu.h"
 #include "story.h"
+#include "customstory.h"
 
 Texture2D MenuButtons[MAX_MENU];
 Rectangle buttonRects[MAX_MENU];
@@ -17,6 +18,33 @@ extern int storyCurrentFrame;
 extern bool exitProgram;
 bool showSaveMessage = false;
 float saveMessageTimer = 0.0f;
+
+extern CustomSceneTree customStorySlots[3];
+extern int customCurrentNode;
+extern int customCurrentScene;
+extern int currentCustomSlot;
+
+// Add a new variable for warning message
+bool showSlotWarning = false;
+float warningTimer = 0.0f;
+const char* warningMessage = "";
+
+// Function to check if save file exists
+bool CheckSaveFileExists(int slotNumber) {
+    char filename[64];
+    sprintf(filename, "saves/story_slot_%d.sav", slotNumber);
+    FILE* file = fopen(filename, "r");
+    if (file != NULL) {
+        fclose(file);
+        return true;
+    }
+    return false;
+}
+
+// Function to load custom story from file
+void LoadCustomStoryFromFile(const char* filename, CustomSceneTree* tree) {
+    *tree = LoadTreeFromFile(filename);
+}
 
 void InitAssetsMenu() {
     // Initialize menu BGM
@@ -103,9 +131,8 @@ void InitButtonRects(GameState currentGameState) {
             for (int i = 9, idx = 0; i <= 11; i++, idx++) {
                 SetButtonRect(i, startX, startY + idx * gapY);
             }
-            SetButtonRect(15, startX, startY + 3 * gapY);
-            break;
-
+            SetButtonRect(15, startX, startY + 3 * gapY);            break;
+            
         case GAME_STATE_CREATE_MENU:
         case GAME_STATE_EDIT_MENU:
         case GAME_STATE_DELETE_MENU:
@@ -151,6 +178,7 @@ void InitButtonRects(GameState currentGameState) {
 
 void DrawMainMenu(GameState currentGameState) {
     printf("Drawing main menu with currentGameState: %d\n", currentGameState);
+    // Draw background for all states except these
     if (currentGameState != GAME_STATE_PAUSE &&
         currentGameState != GAME_STATE_PLAY_GAME &&
         currentGameState != GAME_STATE_MINI_GAME_STACK) {
@@ -211,13 +239,30 @@ void DrawMainMenu(GameState currentGameState) {
             if (showSaveMessage) {
                 DrawText("Game Saved!", SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 200, 40, GREEN);
             }
-            break;
-
-        case GAME_STATE_PLAY_CUSTOM_MENU:
+            break;        case GAME_STATE_PLAY_CUSTOM_MENU:
+            printf("Drawing PLAY_CUSTOM_MENU state\n");
             for (int i = 12; i <= 14; i++) {
                 DrawTexture(MenuButtons[i], (int)buttonRects[i].x, (int)buttonRects[i].y, WHITE);
+                // Check if slot is empty
+                if (!CheckSaveFileExists(i - 11)) {
+                    // Draw warning text in red
+                    DrawText("The game hasn't created yet", (int)buttonRects[i].x + MenuButtons[i].width + 20, 
+                            (int)buttonRects[i].y + MenuButtons[i].height/2 - 10, 20, RED);
+                }
             }
             DrawTexture(MenuButtons[15], (int)buttonRects[15].x, (int)buttonRects[15].y, WHITE);
+            
+            // Draw warning message if needed
+            if (showSlotWarning) {
+                DrawText(warningMessage, 
+                    SCREEN_WIDTH / 2 - MeasureText(warningMessage, 40) / 2,
+                    SCREEN_HEIGHT / 2 - 100, 40, RED);
+                warningTimer += GetFrameTime();
+                if (warningTimer >= 2.0f) {
+                    showSlotWarning = false;
+                    warningTimer = 0.0f;
+                }
+            }
             break;
 
         default:
@@ -266,7 +311,8 @@ void UpdateMainMenu(GameState *currentGameState) {
             break;
         case GAME_STATE_STUDIO_MENU:
             startIndex = 9; endIndex = 11;
-            break;
+            break;      
+        case GAME_STATE_PLAY_CUSTOM_MENU:  
         case GAME_STATE_CREATE_MENU:
         case GAME_STATE_EDIT_MENU:
         case GAME_STATE_DELETE_MENU:
@@ -277,9 +323,6 @@ void UpdateMainMenu(GameState *currentGameState) {
             break;
         case GAME_STATE_PAUSE:
             startIndex = 16; endIndex = 18;
-            break;
-        case GAME_STATE_PLAY_CUSTOM_MENU:
-            startIndex = 12; endIndex = 14;
             break;
         default:
             return;
@@ -358,12 +401,11 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
                     *currentGameState = GAME_STATE_PLAY_GAME_MENU;
                     break;
             }
-            break;
-
-        case GAME_STATE_NEW_CONTINUE_CUSTOM:
+            break;        
+            case GAME_STATE_NEW_CONTINUE_CUSTOM:
             switch (index) {
                 case 7: // New Game
-                    *currentGameState = GAME_STATE_PLAY_CUSTOM_STORY;
+                    *currentGameState = GAME_STATE_PLAY_CUSTOM_MENU;  // Changed to show slot selection
                     break;
                 case 8: // Continue
                     *currentGameState = GAME_STATE_PLAY_CUSTOM_MENU;
@@ -387,10 +429,46 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
                     break;
                 case 15: // Back
                     *currentGameState = GAME_STATE_MAIN_MENU;
+                    break;            }
+            break;
+            
+        case GAME_STATE_PLAY_CUSTOM_MENU:
+            switch (index) {
+                case 12: // Slot 1
+                    if (!CheckSaveFileExists(1)) {
+                        showSlotWarning = true;
+                        warningTimer = 0.0f;
+                        warningMessage = "This slot is empty!";
+                    } else {
+                        currentCustomSlot = 0;
+                        *currentGameState = GAME_STATE_PLAY_CUSTOM_SLOT_1;
+                    }
+                    break;
+                case 13: // Slot 2
+                    if (!CheckSaveFileExists(2)) {
+                        showSlotWarning = true;
+                        warningTimer = 0.0f;
+                        warningMessage = "This slot is empty!";
+                    } else {
+                        currentCustomSlot = 1;
+                        *currentGameState = GAME_STATE_PLAY_CUSTOM_SLOT_2;
+                    }
+                    break;
+                case 14: // Slot 3
+                    if (!CheckSaveFileExists(3)) {
+                        showSlotWarning = true;
+                        warningTimer = 0.0f;
+                        warningMessage = "This slot is empty!";
+                    } else {
+                        currentCustomSlot = 2;
+                        *currentGameState = GAME_STATE_PLAY_CUSTOM_SLOT_3;
+                    }
+                    break;
+                case 15: // Back
+                    *currentGameState = GAME_STATE_PLAY_GAME_MENU;
                     break;
             }
             break;
-
         case GAME_STATE_CREATE_MENU:
             switch (index) {
                 case 12: // Slot 1
@@ -472,17 +550,7 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
                     *currentGameState = GAME_STATE_MAIN_MENU;
                     printf("Main menu initialized\n");
                     break;
-            }
-            break;
-
-        case GAME_STATE_PLAY_CUSTOM_MENU:
-            switch (index) {
-                case 12: *currentGameState = GAME_STATE_PLAY_CUSTOM_SLOT_1; break;
-                case 13: *currentGameState = GAME_STATE_PLAY_CUSTOM_SLOT_2; break;
-                case 14: *currentGameState = GAME_STATE_PLAY_CUSTOM_SLOT_3; break;
-                case 15: *currentGameState = GAME_STATE_NEW_CONTINUE_CUSTOM; break;
-            }
-            break;
+            }            break;
         default:
             break;
     }

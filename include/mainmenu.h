@@ -2,44 +2,13 @@
 #define MAINMENU_H
 
 #include <raylib.h>
+#include "gamestate.h"
+#include "customstory.h"
 
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
 
 #define MAX_MENU 18
-
-typedef enum{
-    //MAIN MENU
-    GAME_STATE_MAIN_MENU,
-    GAME_STATE_PLAY_GAME_MENU,          
-    GAME_STATE_NEW_CONTINUE_NON_CUSTOM,  
-    GAME_STATE_NEW_CONTINUE_CUSTOM,
-    GAME_STATE_STUDIO_MENU,   
-    GAME_STATE_ABOUT,    
-    GAME_STATE_PLAY_GAME,
-    GAME_STATE_CREATE_MENU,
-    GAME_STATE_EDIT_MENU,
-    GAME_STATE_DELETE_MENU,
-    GAME_STATE_CREATE_SLOT_1,
-    GAME_STATE_CREATE_SLOT_2,
-    GAME_STATE_CREATE_SLOT_3,
-    GAME_STATE_EDIT_SLOT_1,
-    GAME_STATE_EDIT_SLOT_2,
-    GAME_STATE_EDIT_SLOT_3,
-    GAME_STATE_DELETE_SLOT_1,
-    GAME_STATE_DELETE_SLOT_2,
-    GAME_STATE_DELETE_SLOT_3,
-    GAME_STATE_PLAY_CUSTOM_MENU,
-    GAME_STATE_PLAY_CUSTOM_SLOT_1,
-    GAME_STATE_PLAY_CUSTOM_SLOT_2,
-    GAME_STATE_PLAY_CUSTOM_SLOT_3,
-    GAME_STATE_CONTINUE_SLOT_1,
-    GAME_STATE_CONTINUE_SLOT_2,
-    GAME_STATE_CONTINUE_SLOT_3,
-    GAME_STATE_MINI_GAME_STACK,
-    GAME_STATE_PAUSE,
-    GAME_STATE_PLAY_CUSTOM_STORY  // New state for playing custom stories
-}GameState;
 
 // Fungsi utama menu
 void InitAssetsMenu();
@@ -51,6 +20,10 @@ void UnloadAssets();
 void DrawDebugGrid(int gridSize);
 void UpdatePauseMenu(GameState * GameState);
 void DrawPauseMenu();
+
+// Save file and custom story functions
+bool CheckSaveFileExists(int slotNumber);
+void LoadCustomStoryFromFile(const char* filename, CustomSceneTree* tree);
 
 Music PlayBackgroundMusic(const char * pathMusic);
 

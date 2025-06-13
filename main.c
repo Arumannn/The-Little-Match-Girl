@@ -46,6 +46,7 @@ int main() {
             case GAME_STATE_PLAY_GAME_MENU:
             case GAME_STATE_NEW_CONTINUE_NON_CUSTOM:
             case GAME_STATE_NEW_CONTINUE_CUSTOM:
+            case GAME_STATE_PLAY_CUSTOM_MENU:
             case GAME_STATE_STUDIO_MENU:
             case GAME_STATE_CREATE_MENU:
             case GAME_STATE_EDIT_MENU:
@@ -64,15 +65,26 @@ int main() {
             case GAME_STATE_PLAY_GAME:
                 UpdateCerita(Mytree, &currentGameState); 
                 DrawCurrentNodeScreen(Mytree);
-                break;
-
-            case GAME_STATE_PLAY_CUSTOM_STORY:
+                break;            
+                case GAME_STATE_PLAY_CUSTOM_STORY:
+                printf("Playing custom story from slot %d\n", currentCustomSlot + 1);
                 // Playback custom story sesuai progress
                 if (customStorySlots[currentCustomSlot] != NULL) {
-                    currentGameState = UpdateCustomStory(customStorySlots[currentCustomSlot], &customCurrentNode, &customCurrentScene);
+                    // Update and draw the custom story
+                    GameState nextState = UpdateCustomStory(customStorySlots[currentCustomSlot], &customCurrentNode, &customCurrentScene);
                     DrawCustomStoryScreen(customStorySlots[currentCustomSlot], customCurrentNode, customCurrentScene);
+                    
+                    // Handle state changes
+                    if (nextState != GAME_STATE_PLAY_CUSTOM_STORY) {
+                        // Save progress before changing state
+                        char savefile[64];
+                        sprintf(savefile, "saves/story_slot_%d.sav", currentCustomSlot + 1);
+                        SaveCustomStoryProgress(savefile, customCurrentNode, customCurrentScene);
+                        currentGameState = nextState;
+                    }
                 } else {
-                    currentGameState = GAME_STATE_MAIN_MENU;
+                    printf("Error: No custom story loaded in slot %d\n", currentCustomSlot + 1);
+                    currentGameState = GAME_STATE_PLAY_CUSTOM_MENU;
                 }
                 break;
 
@@ -146,43 +158,47 @@ int main() {
                 }
                 currentGameState = GAME_STATE_MAIN_MENU;
                 InitButtonRects(currentGameState);
-                break;
-
-            case GAME_STATE_PLAY_CUSTOM_SLOT_1:
+                break;            case GAME_STATE_PLAY_CUSTOM_SLOT_1:
                 currentCustomSlot = 0;
-                if (customStorySlots[0] != NULL) {
+                if (CheckSaveFileExists(1)) {
                     char filename[64];
-                    sprintf(filename, "saves/custom_save_1.dat");
-                    LoadCustomStoryProgress(filename, &customCurrentNode, &customCurrentScene);
+                    sprintf(filename, "saves/story_slot_1.sav");
+                    LoadCustomStoryFromFile(filename, &customStorySlots[0]);
+                    customCurrentNode = 0;  // Start from beginning
+                    customCurrentScene = 0;
                     currentGameState = GAME_STATE_PLAY_CUSTOM_STORY;
                 } else {
-                    currentGameState = GAME_STATE_MAIN_MENU;
+                    currentGameState = GAME_STATE_PLAY_CUSTOM_MENU;
                 }
                 InitButtonRects(currentGameState);
                 break;
 
             case GAME_STATE_PLAY_CUSTOM_SLOT_2:
                 currentCustomSlot = 1;
-                if (customStorySlots[1] != NULL) {
+                if (CheckSaveFileExists(2)) {
                     char filename[64];
-                    sprintf(filename, "saves/custom_save_2.dat");
-                    LoadCustomStoryProgress(filename, &customCurrentNode, &customCurrentScene);
+                    sprintf(filename, "saves/story_slot_2.sav");
+                    LoadCustomStoryFromFile(filename, &customStorySlots[1]);
+                    customCurrentNode = 0;  // Start from beginning
+                    customCurrentScene = 0;
                     currentGameState = GAME_STATE_PLAY_CUSTOM_STORY;
                 } else {
-                    currentGameState = GAME_STATE_MAIN_MENU;
+                    currentGameState = GAME_STATE_PLAY_CUSTOM_MENU;
                 }
                 InitButtonRects(currentGameState);
                 break;
 
             case GAME_STATE_PLAY_CUSTOM_SLOT_3:
                 currentCustomSlot = 2;
-                if (customStorySlots[2] != NULL) {
+                if (CheckSaveFileExists(3)) {
                     char filename[64];
-                    sprintf(filename, "saves/custom_save_3.dat");
-                    LoadCustomStoryProgress(filename, &customCurrentNode, &customCurrentScene);
+                    sprintf(filename, "saves/story_slot_3.sav");
+                    LoadCustomStoryFromFile(filename, &customStorySlots[2]);
+                    customCurrentNode = 0;  // Start from beginning
+                    customCurrentScene = 0;
                     currentGameState = GAME_STATE_PLAY_CUSTOM_STORY;
                 } else {
-                    currentGameState = GAME_STATE_MAIN_MENU;
+                    currentGameState = GAME_STATE_PLAY_CUSTOM_MENU;
                 }
                 InitButtonRects(currentGameState);
                 break;

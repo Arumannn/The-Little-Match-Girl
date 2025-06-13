@@ -1,50 +1,107 @@
 #include "story.h"
 #include "mainmenu.h"
+#include "Queue.h"
 #include <raylib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-// Global state
-float frameDelay = 3.5f;
-float frameTimer = 0.0f;
-bool isMusicPlaying = false;
-Music currentSceneMusic;
-extern int storyCurrentScene;  // Declared in main.c
-extern int storyCurrentFrame;  // Declared in main.c
+#define MAX_SCENE 10
+#define MAX_NODE_TREE 28
 
-TreeStory SceneTree[MAX_NODE_TREE];
+// Story manager functions
+StoryManager* CreateStoryManager(void) {
+    StoryManager* manager = (StoryManager*)malloc(sizeof(StoryManager));
+    if (!manager) {
+        printf("Failed to allocate StoryManager\n");
+        return NULL;
+    }
+    
+    // Initialize manager state
+    manager->currentScene = 0;
+    manager->currentFrame = 0;
+    manager->frameDelay = 3.5f;
+    manager->frameTimer = 0.0f;
+    manager->isMusicPlaying = false;
+    manager->currentSceneMusic = (Music){0};
+    
+    // Initialize scene tree
+    for (int i = 0; i < MAX_NODE_TREE; i++) {
+        CreateQueue(&manager->sceneTree[i].Frame);
+        manager->sceneTree[i].id = i;
+        manager->sceneTree[i].TotalScene = 0;
+        manager->sceneTree[i].numChoices = 0;
+        manager->sceneTree[i].choiceLeftSon = NULL;
+        manager->sceneTree[i].choiceRightSon = NULL;
+        manager->sceneTree[i].IdLeftSon = -1;
+        manager->sceneTree[i].IdRightSon = -1;
+    }
+    
+    return manager;
+}
+
+void DestroyStoryManager(StoryManager* manager) {
+    if (!manager) return;
+    
+    // Unload music if playing
+    if (manager->isMusicPlaying) {
+        UnloadMusicStream(manager->currentSceneMusic);
+    }
+    
+    // Unload all node assets
+    for (int i = 0; i < MAX_NODE_TREE; i++) {
+        UnloadNodeAssets(manager, i);
+    }
+    
+    free(manager);
+}
+
+// Helper functions
+void ResetStoryProgress(StoryManager* manager) {
+    if (!manager) return;
+    manager->currentScene = 0;
+    manager->currentFrame = 0;
+    manager->frameTimer = 0.0f;
+}
+
+int GetCurrentScene(const StoryManager* manager) {
+    return manager ? manager->currentScene : 0;
+}
+
+int GetCurrentFrame(const StoryManager* manager) {
+    return manager ? manager->currentFrame : 0;
+}
+
+void SetCurrentScene(StoryManager* manager, int scene) {
+    if (manager && scene >= 0 && scene < MAX_NODE_TREE) {
+        manager->currentScene = scene;
+    }
+}
+
+void SetCurrentFrame(StoryManager* manager, int frame) {
+    if (manager && frame >= 0) {
+        manager->currentFrame = frame;
+    }
+}
 
 // Inisialisasi Data Cerita
-void InitDataCerita(TreeStory *SceneTree) {
-    printf("Initializing story data...\n");
-
-    // Inisialisasi scenes untuk setiap node
-    for (int i = 0; i < MAX_NODE_TREE; i++) {
-        SceneTree[i].id = i;
-        SceneTree[i].TotalScene = 0;
-        SceneTree[i].currentSceneIndex = 0;
-        SceneTree[i].numChoices = 0;
-        SceneTree[i].choiceLeftSon = NULL;
-        SceneTree[i].choiceRightSon = NULL;
-        SceneTree[i].IdLeftSon = -1;
-        SceneTree[i].IdRightSon = -1;
-        
-        // Initialize all scenes to empty
-        for (int j = 0; j < MAX_SCENE; j++) {
-            SceneTree[i].scenes[j] = (Scene){NULL, NULL, NULL, NULL, {0}, {0}, CHAR_POS_NONE};
-        }
+void InitDataCerita(StoryManager* manager) {
+    if (!manager) {
+        printf("StoryManager is NULL\n");
+        return;
     }
+    
+    printf("Initializing story data...\n");
 
     // Node 0
     printf("Setting up Node 0...\n");
-    SceneTree[0].id = 0;
-    SceneTree[0].TotalScene = 4;
-    SceneTree[0].numChoices = 2;
-    SceneTree[0].choiceLeftSon = "Go to Alleway";
-    SceneTree[0].choiceRightSon = "Go to Open Street";
-    SceneTree[0].IdLeftSon = 1;
-    SceneTree[0].IdRightSon = 2;
+    manager->sceneTree[0].id = 0;
+    manager->sceneTree[0].TotalScene = 4;
+    manager->sceneTree[0].numChoices = 2;
+    manager->sceneTree[0].choiceLeftSon = "Go to Alleway";
+    manager->sceneTree[0].choiceRightSon = "Go to Open Street";
+    manager->sceneTree[0].IdLeftSon = 1;
+    manager->sceneTree[0].IdRightSon = 2;
 
     Scene scenes0[] = {
         {"Assets/Music/myinstants.mp3", "Girl : ......", "Assets/BackgroundSprites/background4.png", NULL, {0}, {0}, CHAR_POS_NONE},
@@ -52,52 +109,62 @@ void InitDataCerita(TreeStory *SceneTree) {
         {NULL, "Girl : What should i go, Alleway?", "Assets/BackgroundSprites/background6.png", "Assets/CharaSprites/chara3.png", {0}, {0}, CHAR_POS_CENTER},
         {NULL, "Girl : Or the Street?", "Assets/BackgroundSprites/background7.png", "Assets/CharaSprites/chara3.png", {0}, {0}, CHAR_POS_CENTER}
     };
-    for (int i = 0; i < SceneTree[0].TotalScene; i++) {
-        SceneTree[0].scenes[i] = scenes0[i];
+    printf("Adding scenes to Node 0...\n");
+    for (int i = 0; i < manager->sceneTree[0].TotalScene; i++) {
+        printf("  Scene %d:\n", i);
+        printf("    Background path: %s\n", scenes0[i].backgroundPath ? scenes0[i].backgroundPath : "NULL");
+        printf("    Character path: %s\n", scenes0[i].characterPath ? scenes0[i].characterPath : "NULL");
+        printf("    Dialogue: %s\n", scenes0[i].dialogue ? scenes0[i].dialogue : "NULL");
+        printf("    Position: %d\n", scenes0[i].CharPosition);
+        EnQueueLast(&manager->sceneTree[0].Frame, scenes0[i]);
     }
+    manager->sceneTree[0].TotalScene = QueueSize(manager->sceneTree[0].Frame);
+    printf("Node 0 setup complete. Total scenes: %d\n", manager->sceneTree[0].TotalScene);
 
     // Node 1
-    SceneTree[1].id = 1;
-    SceneTree[1].TotalScene = 2;
-    SceneTree[1].numChoices = 2;
-    SceneTree[1].choiceLeftSon = "Light on a few matches";
-    SceneTree[1].choiceRightSon = "Ignore it, Keep Walking";
-    SceneTree[1].IdLeftSon = 3;
-    SceneTree[1].IdRightSon = 4;
+    manager->sceneTree[1].id = 1;
+    manager->sceneTree[1].TotalScene = 2;
+    manager->sceneTree[1].numChoices = 2;
+    manager->sceneTree[1].choiceLeftSon = "Light on a few matches";
+    manager->sceneTree[1].choiceRightSon = "Ignore it, Keep Walking";
+    manager->sceneTree[1].IdLeftSon = 3;
+    manager->sceneTree[1].IdRightSon = 4;
 
     Scene scenes1[] = {
         {NULL, " Girl : I'm Think that guy is feel cold, should i help him?", "Assets/BackgroundSprites/background6.png", "Assets/CharaSprites/chara5.png", {0}, {0}, CHAR_POS_LEFT},
         {NULL, "", "Assets/BackgroundSprites/background6.png", "Assets/CharaSprites/chara5.png", {0}, {0}, CHAR_POS_LEFT}
     };
-    for (int i = 0; i < SceneTree[1].TotalScene; i++) {
-        SceneTree[1].scenes[i] = scenes1[i];
+    for (int i = 0; i < manager->sceneTree[1].TotalScene; i++) {
+        EnQueueLast(&manager->sceneTree[1].Frame, scenes1[i]);
     }
+    manager->sceneTree[1].TotalScene = QueueSize(manager->sceneTree[1].Frame);
 
     // Node 2
-    SceneTree[2].id = 2;
-    SceneTree[2].TotalScene = 2;
-    SceneTree[2].numChoices = 2;
-    SceneTree[2].choiceLeftSon = "Walk crosing the street";
-    SceneTree[2].choiceRightSon = "Walk along the sidewalks";
-    SceneTree[2].IdLeftSon = 5;
-    SceneTree[2].IdRightSon = 6;
+    manager->sceneTree[2].id = 2;
+    manager->sceneTree[2].TotalScene = 2;
+    manager->sceneTree[2].numChoices = 2;
+    manager->sceneTree[2].choiceLeftSon = "Walk crosing the street";
+    manager->sceneTree[2].choiceRightSon = "Walk along the sidewalks";
+    manager->sceneTree[2].IdLeftSon = 5;
+    manager->sceneTree[2].IdRightSon = 6;
 
     Scene scenes2[] = {
         {NULL, "", "Assets/BackgroundSprites/background8.png", NULL, {0}, {0}, CHAR_POS_NONE},
         {NULL, "Girl : Would these people be in need of matches?", "Assets/BackgroundSprites/background8.png", "Assets/CharaSprites/chara5.png", {0}, {0}, CHAR_POS_LEFT}
     };
-    for (int i = 0; i < SceneTree[2].TotalScene; i++) {
-        SceneTree[2].scenes[i] = scenes2[i];
+    for (int i = 0; i < manager->sceneTree[2].TotalScene; i++) {
+        EnQueueLast(&manager->sceneTree[2].Frame, scenes2[i]);
     }
+    manager->sceneTree[2].TotalScene = QueueSize(manager->sceneTree[2].Frame);
 
     // Node 3
-    SceneTree[3].id = 3;
-    SceneTree[3].TotalScene = 5;
-    SceneTree[3].numChoices = 2;
-    SceneTree[3].choiceLeftSon = "Give up all the match";
-    SceneTree[3].choiceRightSon = "Protect the match";
-    SceneTree[3].IdLeftSon = 7;
-    SceneTree[3].IdRightSon = 8;
+    manager->sceneTree[3].id = 3;
+    manager->sceneTree[3].TotalScene = 5;
+    manager->sceneTree[3].numChoices = 2;
+    manager->sceneTree[3].choiceLeftSon = "Give up all the match";
+    manager->sceneTree[3].choiceRightSon = "Protect the match";
+    manager->sceneTree[3].IdLeftSon = 7;
+    manager->sceneTree[3].IdRightSon = 8;
 
     Scene scenes3[] = {
         {NULL, "Homeless man: Thank you kid, here's 2 dollars for the match", "Assets/BackgroundSprites/background6.png", "Assets/CharaSprites/chara2.png", {0}, {0}, CHAR_POS_RIGHT},
@@ -106,18 +173,19 @@ void InitDataCerita(TreeStory *SceneTree) {
         {NULL, "Homeless man: Hey I want too", "Assets/BackgroundSprites/background6.png", "Assets/CharaSprites/chara4.png", {0}, {0}, CHAR_POS_RIGHT},
         {NULL, "Girl : I'm Scared, please don't hurt me", "Assets/BackgroundSprites/background6.png", "Assets/CharaSprites/chara5.png", {0}, {0}, CHAR_POS_LEFT}
     };
-    for (int i = 0; i < SceneTree[3].TotalScene; i++) {
-        SceneTree[3].scenes[i] = scenes3[i];
+    for (int i = 0; i < manager->sceneTree[3].TotalScene; i++) {
+        EnQueueLast(&manager->sceneTree[3].Frame, scenes3[i]);
     }
+    manager->sceneTree[3].TotalScene = QueueSize(manager->sceneTree[3].Frame);
 
     // Node 4 (Ending: Die Alone)
-    SceneTree[4].id = 4;
-    SceneTree[4].TotalScene = 5;
-    SceneTree[4].numChoices = 1;
-    SceneTree[4].IdLeftSon = -1;
-    SceneTree[4].IdRightSon = -1;
-    SceneTree[4].choiceLeftSon = NULL;
-    SceneTree[4].choiceRightSon = NULL;
+    manager->sceneTree[4].id = 4;
+    manager->sceneTree[4].TotalScene = 5;
+    manager->sceneTree[4].numChoices = 1;
+    manager->sceneTree[4].IdLeftSon = -1;
+    manager->sceneTree[4].IdRightSon = -1;
+    manager->sceneTree[4].choiceLeftSon = NULL;
+    manager->sceneTree[4].choiceRightSon = NULL;
 
     Scene scenes4[] = {
         {NULL, "GIrl : Itldlaosdlaokd's cold, should i light a few matches?", "Assets/BackgroundSprites/background14.png", "Assets/CharaSprites/chara3.png", {0}, {0}, CHAR_POS_CENTER},
@@ -126,18 +194,19 @@ void InitDataCerita(TreeStory *SceneTree) {
         {NULL, "Girl : I'm Just need a rest for a moment......", "Assets/Endings/diecoldalone2.png", NULL, {0}, {0}, CHAR_POS_NONE},
         {NULL, NULL, "Assets/Endings/diecoldalone2.png", NULL, {0}, {0}, CHAR_POS_NONE}
     };
-    for (int i = 0; i < SceneTree[4].TotalScene; i++) {
-        SceneTree[4].scenes[i] = scenes4[i];
+    for (int i = 0; i < manager->sceneTree[4].TotalScene; i++) {
+        EnQueueLast(&manager->sceneTree[4].Frame, scenes4[i]);
     }
+    manager->sceneTree[4].TotalScene = QueueSize(manager->sceneTree[4].Frame);
 
     // Node 5 (Ending: Crushed by a Car)
-    SceneTree[5].id = 5;
-    SceneTree[5].TotalScene = 4;
-    SceneTree[5].numChoices = 1;
-    SceneTree[5].IdLeftSon = -1;
-    SceneTree[5].IdRightSon = -1;
-    SceneTree[5].choiceLeftSon = NULL;
-    SceneTree[5].choiceRightSon = NULL;
+    manager->sceneTree[5].id = 5;
+    manager->sceneTree[5].TotalScene = 4;
+    manager->sceneTree[5].numChoices = 1;
+    manager->sceneTree[5].IdLeftSon = -1;
+    manager->sceneTree[5].IdRightSon = -1;
+    manager->sceneTree[5].choiceLeftSon = NULL;
+    manager->sceneTree[5].choiceRightSon = NULL;
 
     Scene scenes5[] = {
         {NULL, NULL, "Assets/Endings/crossingtheroad1.png", NULL, {0}, {0}, CHAR_POS_NONE},
@@ -145,18 +214,19 @@ void InitDataCerita(TreeStory *SceneTree) {
         {NULL, NULL, "Assets/Endings/crossingtheroad3.png", NULL, {0}, {0}, CHAR_POS_NONE},
         {NULL, NULL, "Assets/Endings/crossingtheroad4.png", NULL, {0}, {0}, CHAR_POS_NONE}
     };
-    for (int i = 0; i < SceneTree[5].TotalScene; i++) {
-        SceneTree[5].scenes[i] = scenes5[i];
+    for (int i = 0; i < manager->sceneTree[5].TotalScene; i++) {
+        EnQueueLast(&manager->sceneTree[5].Frame, scenes5[i]);
     }
+    manager->sceneTree[5].TotalScene = QueueSize(manager->sceneTree[5].Frame);
 
     // Node 6
-    SceneTree[6].id = 6;
-    SceneTree[6].TotalScene = 5;
-    SceneTree[6].numChoices = 2;
-    SceneTree[6].choiceLeftSon = "Try to pickpocket";
-    SceneTree[6].choiceRightSon = "Offering the match";
-    SceneTree[6].IdLeftSon = 9;
-    SceneTree[6].IdRightSon = 10;
+    manager->sceneTree[6].id = 6;
+    manager->sceneTree[6].TotalScene = 5;
+    manager->sceneTree[6].numChoices = 2;
+    manager->sceneTree[6].choiceLeftSon = "Try to pickpocket";
+    manager->sceneTree[6].choiceRightSon = "Offering the match";
+    manager->sceneTree[6].IdLeftSon = 9;
+    manager->sceneTree[6].IdRightSon = 10;
 
     Scene scenes6[] = {
         {NULL, "Walking....", "Assets/BackgroundSprites/background10.png", "Assets/CharaSprites/chara3.png", {0}, {0}, CHAR_POS_CENTER},
@@ -165,18 +235,19 @@ void InitDataCerita(TreeStory *SceneTree) {
         {NULL, "Girl : 5$ for a box matach will keep you warm", "Assets/BackgroundSprites/background9.png", "Assets/CharaSprites/chara3.png", {0}, {0}, CHAR_POS_LEFT},
         {NULL, "Girl : Should i offer one to that man?", "Assets/BackgroundSprites/background13.png", "Assets/CharaSprites/chara5.png", {0}, {0}, CHAR_POS_LEFT}
     };
-    for (int i = 0; i < SceneTree[6].TotalScene; i++) {
-        SceneTree[6].scenes[i] = scenes6[i];
+    for (int i = 0; i < manager->sceneTree[6].TotalScene; i++) {
+        EnQueueLast(&manager->sceneTree[6].Frame, scenes6[i]);
     }
+    manager->sceneTree[6].TotalScene = QueueSize(manager->sceneTree[6].Frame);
 
     // Node 7
-    SceneTree[7].id = 7;
-    SceneTree[7].TotalScene = 4;
-    SceneTree[7].numChoices = 2;
-    SceneTree[7].choiceLeftSon = "Take all and escape ";
-    SceneTree[7].choiceRightSon = "Accept his offer";
-    SceneTree[7].IdLeftSon = 11;
-    SceneTree[7].IdRightSon = 12;
+    manager->sceneTree[7].id = 7;
+    manager->sceneTree[7].TotalScene = 4;
+    manager->sceneTree[7].numChoices = 2;
+    manager->sceneTree[7].choiceLeftSon = "Take all and escape ";
+    manager->sceneTree[7].choiceRightSon = "Accept his offer";
+    manager->sceneTree[7].IdLeftSon = 11;
+    manager->sceneTree[7].IdRightSon = 12;
 
     Scene scenes7[] = {
         {NULL, "Girl : Don't Take all the match...", "Assets/BackgroundSprites/background6.png", "Assets/CharaSprites/chara5.png", {0}, {0}, CHAR_POS_LEFT},
@@ -184,27 +255,28 @@ void InitDataCerita(TreeStory *SceneTree) {
         {NULL, "Girl: ........", "Assets/BackgroundSprites/background6.png", "Assets/CharaSprites/chara5.png", {0}, {0}, CHAR_POS_LEFT},
         {NULL, "Homeless Man : You know how desperate we bums are. Here's your match back. If you want,\n we have some food for you—it's our way of apologizing", "Assets/BackgroundSprites/background6.png", "Assets/CharaSprites/chara4.png", {0}, {0}, CHAR_POS_RIGHT}
     };
-    for (int i = 0; i < SceneTree[7].TotalScene; i++) {
-        SceneTree[7].scenes[i] = scenes7[i];
+    for (int i = 0; i < manager->sceneTree[7].TotalScene; i++) {
+        EnQueueLast(&manager->sceneTree[7].Frame, scenes7[i]);
     }
+    manager->sceneTree[7].TotalScene = QueueSize(manager->sceneTree[7].Frame);
 
     // Node 8 (Ending: Rumbling) - Kosong
-    SceneTree[8].id = 8;
-    SceneTree[8].TotalScene = 0;
-    SceneTree[8].numChoices = 0;
-    SceneTree[8].choiceLeftSon = NULL;
-    SceneTree[8].choiceRightSon = NULL;
-    SceneTree[8].IdLeftSon = -1;
-    SceneTree[8].IdRightSon = -1;
+    manager->sceneTree[8].id = 8;
+    manager->sceneTree[8].TotalScene = 0;
+    manager->sceneTree[8].numChoices = 0;
+    manager->sceneTree[8].choiceLeftSon = NULL;
+    manager->sceneTree[8].choiceRightSon = NULL;
+    manager->sceneTree[8].IdLeftSon = -1;
+    manager->sceneTree[8].IdRightSon = -1;
 
     // Node 9 (Ending: Get Pushed with a Man and Crushed by a Car)
-    SceneTree[9].id = 9;
-    SceneTree[9].TotalScene = 4;
-    SceneTree[9].numChoices = 1;
-    SceneTree[9].IdLeftSon = -1;
-    SceneTree[9].IdRightSon = -1;
-    SceneTree[9].choiceLeftSon = NULL;
-    SceneTree[9].choiceRightSon = NULL;
+    manager->sceneTree[9].id = 9;
+    manager->sceneTree[9].TotalScene = 4;
+    manager->sceneTree[9].numChoices = 1;
+    manager->sceneTree[9].IdLeftSon = -1;
+    manager->sceneTree[9].IdRightSon = -1;
+    manager->sceneTree[9].choiceLeftSon = NULL;
+    manager->sceneTree[9].choiceRightSon = NULL;
 
     Scene scenes9[] = {
         {NULL, NULL, "Assets/Endings/crossingtheroad1.png", NULL, {0}, {0}, CHAR_POS_NONE},
@@ -212,18 +284,19 @@ void InitDataCerita(TreeStory *SceneTree) {
         {NULL, NULL, "Assets/Endings/crossingtheroad3.png", NULL, {0}, {0}, CHAR_POS_NONE},
         {NULL, NULL, "Assets/Endings/crossingtheroad4.png", NULL, {0}, {0}, CHAR_POS_NONE}
     };
-    for (int i = 0; i < SceneTree[9].TotalScene; i++) {
-        SceneTree[9].scenes[i] = scenes9[i];
+    for (int i = 0; i < manager->sceneTree[9].TotalScene; i++) {
+        EnQueueLast(&manager->sceneTree[9].Frame, scenes9[i]);
     }
+    manager->sceneTree[9].TotalScene = QueueSize(manager->sceneTree[9].Frame);
 
     // Node 10
-    SceneTree[10].id = 10;
-    SceneTree[10].TotalScene = 4;
-    SceneTree[10].numChoices = 2;
-    SceneTree[10].choiceLeftSon = "Tell him";
-    SceneTree[10].choiceRightSon = "Be Quite..";
-    SceneTree[10].IdLeftSon = 13;
-    SceneTree[10].IdRightSon = 14;
+    manager->sceneTree[10].id = 10;
+    manager->sceneTree[10].TotalScene = 4;
+    manager->sceneTree[10].numChoices = 2;
+    manager->sceneTree[10].choiceLeftSon = "Tell him";
+    manager->sceneTree[10].choiceRightSon = "Be Quite..";
+    manager->sceneTree[10].IdLeftSon = 13;
+    manager->sceneTree[10].IdRightSon = 14;
 
     Scene scenes10[] = {
         {NULL, "Girl : Don't Take all the match...", "Assets/BackgroundSprites/background6.png", "Assets/CharaSprites/chara5.png", {0}, {0}, CHAR_POS_LEFT},
@@ -231,11 +304,11 @@ void InitDataCerita(TreeStory *SceneTree) {
         {NULL, "Girl: ........", "Assets/BackgroundSprites/background6.png", "Assets/CharaSprites/chara5.png", {0}, {0}, CHAR_POS_LEFT},
         {NULL, "Homeless Man : You know how desperate we bums are. Here's your match back. If you want,\n we have some food for you—it's our way of apologizing", "Assets/BackgroundSprites/background6.png", "Assets/CharaSprites/chara4.png", {0}, {0}, CHAR_POS_RIGHT}
     };
-    for (int i = 0; i < SceneTree[10].TotalScene; i++) {
-        SceneTree[10].scenes[i] = scenes10[i];
+    for (int i = 0; i < manager->sceneTree[10].TotalScene; i++) {
+        EnQueueLast(&manager->sceneTree[10].Frame, scenes10[i]);
     }
+    manager->sceneTree[10].TotalScene = QueueSize(manager->sceneTree[10].Frame);
 }
-
 
 // Menentukan posisi karakter ketika digambar
 void DrawCharacterAtPosition(Texture2D tex, CharacterPosition pos) {
@@ -260,18 +333,18 @@ void DrawCharacterAtPosition(Texture2D tex, CharacterPosition pos) {
     DrawTexture(tex, (int)charX, (int)charY, WHITE);
 }
 
-
 // Memuat aset untuk node
-void LoadNodeAssets(TreeStory SceneTree[], int nodeIndex) {
-    if (nodeIndex < 0 || nodeIndex >= MAX_NODE_TREE) {
+void LoadNodeAssets(StoryManager* manager, int nodeIndex) {
+    if (!manager || nodeIndex < 0 || nodeIndex >= MAX_NODE_TREE) {
         printf("Invalid node index: %d\n", nodeIndex);
         return;
     }
 
-    TreeStory *node = &SceneTree[nodeIndex];
-    
-    for (int i = 0; i < node->TotalScene; i++) {
-        Scene *scene = &node->scenes[i];
+    TreeStory *node = &manager->sceneTree[nodeIndex];
+    Queue *queue = &node->Frame;
+
+    for (int i = 0; i < QueueSize(*queue); i++) {
+        Scene *scene = &queue->data[(queue->front + i) % MAX_SCENE];
         if (scene->backgroundPath != NULL) {
             scene->backgroundTex = LoadTexture(scene->backgroundPath);
             scene->backgroundTex.height = SCREEN_HEIGHT;
@@ -290,124 +363,231 @@ void LoadNodeAssets(TreeStory SceneTree[], int nodeIndex) {
 }
 
 // Menghapus aset dari node tertentu
-void UnloadNodeAssets(TreeStory SceneTree[], int nodeIndex) {
-    if (nodeIndex < 0 || nodeIndex >= MAX_NODE_TREE) {
+void UnloadNodeAssets(StoryManager* manager, int nodeIndex) {
+    if (!manager || nodeIndex < 0 || nodeIndex >= MAX_NODE_TREE) {
         printf("Invalid node index: %d\n", nodeIndex);
         return;
     }
 
-    TreeStory *node = &SceneTree[nodeIndex];
-    
-    for (int i = 0; i < node->TotalScene; i++) {
-        Scene *scene = &node->scenes[i];
-        if (scene->backgroundTex.id != 0) {
-            UnloadTexture(scene->backgroundTex);
-            scene->backgroundTex = (Texture2D){0};
-        }
-        if (scene->characterTex.id != 0) {
-            UnloadTexture(scene->characterTex);
-            scene->characterTex = (Texture2D){0};
-        }
+    TreeStory *node = &manager->sceneTree[nodeIndex];
+    Queue *queue = &node->Frame;
+
+    while (!isQueueEmpty(*queue)) {
+        DeQueueFirst(queue);
     }
-    node->currentSceneIndex = 0;
 }
 
-// Menggambar scene
-void DrawCurrentNodeScreen(TreeStory SceneTree[]) {
-    if (storyCurrentScene < 0 || storyCurrentScene >= MAX_NODE_TREE) return;
-
-    TreeStory *node = &SceneTree[storyCurrentScene];
-    Scene *current = &node->scenes[storyCurrentFrame];
-
-    // Draw current scene assets
-    if (current->backgroundTex.id != 0) {
-        DrawTexture(current->backgroundTex, 0, 0, WHITE);
-    }
-    if (current->characterTex.id != 0) {
-        DrawCharacterAtPosition(current->characterTex, current->CharPosition);
-    }
-
-    // Draw dialogue
-    if (current->dialogue != NULL) {
-        DrawRectangle(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, Fade(BLACK, 0.8f));
+// Helper function to draw dialogue box
+void DrawDialogueBox(const char* dialogue) {
+    if (dialogue != NULL) {
+        DrawRectangle(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, BLACK);
         DrawRectangleLines(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, WHITE);
-        DrawText(current->dialogue, 70, SCREEN_HEIGHT - 180, 30, WHITE);
+        DrawText(dialogue, 70, SCREEN_HEIGHT - 180, 30, WHITE);
     }
+}
 
-    // Draw choice buttons if this is the final scene and there are choices
-    if (storyCurrentFrame == node->TotalScene - 1 && node->numChoices > 0) {
-        int choiceButtonWidth = 400;
-        int choiceButtonHeight = 60;
-        int choiceStartY = SCREEN_HEIGHT / 2 + 275;
+// Helper function to draw choice buttons
+void DrawChoiceButtons(const TreeStory* node) {
+    if (!node || node->numChoices <= 0) return;
+    
+    int choiceButtonWidth = 400;
+    int choiceButtonHeight = 60;
+    int yButton = SCREEN_HEIGHT / 2 + 275;
 
-        // Draw left choice
+    if (node->numChoices >= 1) {
         Rectangle choiceRectLeft = {
             SCREEN_WIDTH / 2 - choiceButtonWidth / 2 - 715,
-            choiceStartY,
+            yButton,
             (float)choiceButtonWidth,
             (float)choiceButtonHeight
         };
         DrawRectangleRec(choiceRectLeft, Fade(GRAY, 0.8f));
         DrawRectangleLinesEx(choiceRectLeft, 2, WHITE);
-        if (node->choiceLeftSon != NULL) {
-            Vector2 textPos = {
-                choiceRectLeft.x + choiceButtonWidth/2 - MeasureText(node->choiceLeftSon, 25)/2,
-                choiceRectLeft.y + choiceButtonHeight/2 - 25/2
-            };
-            DrawText(node->choiceLeftSon, textPos.x, textPos.y, 25, WHITE);
+        DrawText(node->choiceLeftSon,
+                 (int)(choiceRectLeft.x + choiceButtonWidth / 2 - MeasureText(node->choiceLeftSon, 25) / 2),
+                 (int)(choiceRectLeft.y + choiceButtonHeight / 2 - 25 / 2),
+                 25, WHITE);
+    }
+
+    if (node->numChoices == 2) {
+        Rectangle choiceRectRight = {
+            SCREEN_WIDTH / 2 - choiceButtonWidth / 2 + 715,
+            yButton,
+            (float)choiceButtonWidth,
+            (float)choiceButtonHeight
+        };
+        DrawRectangleRec(choiceRectRight, Fade(GRAY, 0.8f));
+        DrawRectangleLinesEx(choiceRectRight, 2, WHITE);
+        DrawText(node->choiceRightSon,
+                 (int)(choiceRectRight.x + choiceButtonWidth / 2 - MeasureText(node->choiceRightSon, 25) / 2),
+                 (int)(choiceRectRight.y + choiceButtonHeight / 2 - 25 / 2),
+                 25, WHITE);
+    }
+}
+
+// Menggambar scene
+void DrawCurrentNodeScreen(StoryManager* manager) {
+    if (!manager || manager->currentScene < 0 || manager->currentScene >= MAX_NODE_TREE) return;
+
+    TreeStory *node = &manager->sceneTree[manager->currentScene];
+    Scene current = Peek(node->Frame);
+
+    if (current.backgroundTex.id != 0) {
+        DrawTexture(current.backgroundTex, 0, 0, WHITE);
+    } else {
+        ClearBackground(RAYWHITE);
+    }
         }
 
-        // Draw right choice if it exists
-        if (node->numChoices == 2) {
-            Rectangle choiceRectRight = {
-                SCREEN_WIDTH / 2 - choiceButtonWidth / 2 + 715,
-                choiceStartY,
-                (float)choiceButtonWidth,
-                (float)choiceButtonHeight
-            };
-            DrawRectangleRec(choiceRectRight, Fade(GRAY, 0.8f));
-            DrawRectangleLinesEx(choiceRectRight, 2, WHITE);
-            if (node->choiceRightSon != NULL) {
-                Vector2 textPos = {
-                    choiceRectRight.x + choiceButtonWidth/2 - MeasureText(node->choiceRightSon, 25)/2,
-                    choiceRectRight.y + choiceButtonHeight/2 - 25/2
-                };
-                DrawText(node->choiceRightSon, textPos.x, textPos.y, 25, WHITE);
+        if (node->id != 4 && node->id != 5) {
+            DrawCharacterAtPosition(current.characterTex, current.CharPosition);
+
+            if (current.dialogue != NULL || (manager->currentFrame == node->TotalScene - 1 && node->numChoices > 0)) {
+                DrawDialogueBox(current.dialogue);
             }
+
+            if (manager->currentFrame == node->TotalScene - 1 && node->numChoices > 0) {
+                DrawChoiceButtons(node);
+            }
+        } else {
+            DrawCharacterAtPosition(current.characterTex, current.CharPosition);
+
+            if (manager->currentFrame < node->TotalScene - 1 && current.dialogue != NULL) {
+                DrawDialogueBox(current.dialogue);
+            }
+        }
+    } else {
+        if (current.backgroundTex.id != 0) {
+            DrawTexture(current.backgroundTex, 0, 0, WHITE);
+        } else {
+            ClearBackground(RAYWHITE);
+        }
+    }
+}
+
+// Helper function to handle music updates
+void UpdateStoryMusic(StoryManager* manager, const Scene* current) {
+    if (!manager) return;
+    
+    // Update music if it's playing
+    if (manager->isMusicPlaying) {
+        UpdateMusicStream(manager->currentSceneMusic);
+        if (!IsMusicStreamPlaying(manager->currentSceneMusic)) {
+            manager->isMusicPlaying = false;
+        }
+    }
+    
+    // Check if this scene has music and should start playing
+    if (current->backgroundSound != NULL && !manager->isMusicPlaying) {
+        UnloadMusicStream(manager->currentSceneMusic);
+        manager->currentSceneMusic = LoadMusicStream(current->backgroundSound);
+        SetMusicVolume(manager->currentSceneMusic, 0.5f);
+        PlayMusicStream(manager->currentSceneMusic);
+        manager->isMusicPlaying = true;
+        manager->currentSceneMusic.looping = false;
+    }
+}
+
+// Helper function to handle ending scene updates
+void UpdateEndingScene(StoryManager* manager, TreeStory* node, GameState* gameState) {
+    if (!manager || !node || !gameState) return;
+    
+    manager->frameTimer += GetFrameTime();
+
+    if (manager->frameTimer >= manager->frameDelay) {
+        manager->frameTimer = 0.0f;
+        if (manager->currentFrame < node->TotalScene - 1) {
+            manager->currentFrame++;
+            DeQueueFirst(&node->Frame);
+            Scene nextScene = Peek(node->Frame);
+            if (nextScene.backgroundPath != NULL) {
+                nextScene.backgroundTex = LoadTexture(nextScene.backgroundPath);
+                nextScene.backgroundTex.height = SCREEN_HEIGHT;
+                nextScene.backgroundTex.width = SCREEN_WIDTH;
+            }
+            if (nextScene.characterPath != NULL) {
+                nextScene.characterTex = LoadTexture(nextScene.characterPath);
+                nextScene.characterTex.height /= 2;
+                nextScene.characterTex.width /= 2;
+            }
+            EnQueueLast(&node->Frame, nextScene);
+        } else {
+            UnloadNodeAssets(manager, manager->currentScene);
+            *gameState = GAME_STATE_MAIN_MENU;
+            ResetStoryProgress(manager);
+        }
+    }
+}
+
+// Helper function to handle choice selection
+void HandleChoiceSelection(StoryManager* manager, TreeStory* node, GameState* gameState) {
+    if (!manager || !node || !gameState) return;
+    
+    Vector2 mouse = GetMousePosition();
+    int choiceButtonWidth = 400;
+    int choiceButtonHeight = 60;
+    int choiceStartY = SCREEN_HEIGHT / 2 + 275;
+
+    Rectangle choiceRectLeft = {
+        SCREEN_WIDTH / 2 - choiceButtonWidth / 2 - 715,
+        choiceStartY,
+        (float)choiceButtonWidth,
+        (float)choiceButtonHeight
+    };
+    if (CheckCollisionPointRec(mouse, choiceRectLeft) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        ProsesChoice(manager, 0);
+        return;
+    }
+
+    if (node->numChoices == 2) {
+        Rectangle choiceRectRight = {
+            SCREEN_WIDTH / 2 - choiceButtonWidth / 2 + 715,
+            choiceStartY,
+            (float)choiceButtonWidth,
+            (float)choiceButtonHeight
+        };
+        if (CheckCollisionPointRec(mouse, choiceRectRight) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            ProsesChoice(manager, 1);
+            return;
+        }
+    }
+}
+
+// Helper function to handle scene progression
+void HandleSceneProgression(StoryManager* manager, TreeStory* node) {
+    if (!manager || !node) return;
+    
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
+        if (manager->currentFrame < node->TotalScene - 1) {
+            manager->currentFrame++;
+            DeQueueFirst(&node->Frame);
+            Scene nextScene = Peek(node->Frame);
+            if (nextScene.backgroundPath != NULL) {
+                nextScene.backgroundTex = LoadTexture(nextScene.backgroundPath);
+                nextScene.backgroundTex.height = SCREEN_HEIGHT;
+                nextScene.backgroundTex.width = SCREEN_WIDTH;
+            }
+            if (nextScene.characterPath != NULL) {
+                nextScene.characterTex = LoadTexture(nextScene.characterPath);
+                nextScene.characterTex.height /= 2;
+                nextScene.characterTex.width /= 2;
+            }
+            EnQueueLast(&node->Frame, nextScene);
         }
     }
 }
 
 // Mengupdate logika cerita
-void UpdateCerita(TreeStory SceneTree[], GameState *gameState) {
-    if (storyCurrentScene < 0 || storyCurrentScene >= MAX_NODE_TREE) {
+void UpdateCerita(StoryManager* manager, GameState *gameState) {
+    if (!manager || manager->currentScene < 0 || manager->currentScene >= MAX_NODE_TREE) {
         return;
     }
 
-    TreeStory *node = &SceneTree[storyCurrentScene];
-    Scene *current = &node->scenes[storyCurrentFrame];
-
-    // Update music if it's playing
-    if (isMusicPlaying) {
-        UpdateMusicStream(currentSceneMusic);
-        if (!IsMusicStreamPlaying(currentSceneMusic)) {
-            isMusicPlaying = false;
-        }
-    }
+    TreeStory *node = &manager->sceneTree[manager->currentScene];
+    Scene current = Peek(node->Frame);
     
-    // Check if this scene has music and should start playing
-    if (current->backgroundSound != NULL && !isMusicPlaying) {
-        if (isMusicPlaying) {
-            UnloadMusicStream(currentSceneMusic);
-        }
-        currentSceneMusic = LoadMusicStream(current->backgroundSound);
-        SetMusicVolume(currentSceneMusic, 0.5f);
-        PlayMusicStream(currentSceneMusic);
-        isMusicPlaying = true;
-        currentSceneMusic.looping = false;
-    }
-
-    Vector2 mouse = GetMousePosition();
+    // Update music
+    UpdateStoryMusic(manager, &current);
 
     if (IsKeyPressed(KEY_F1)) {
         *gameState = GAME_STATE_PAUSE;
@@ -416,71 +596,30 @@ void UpdateCerita(TreeStory SceneTree[], GameState *gameState) {
     }
 
     if (node->id == 4 || node->id == 5) {
-        frameTimer += GetFrameTime();
-
-        if (frameTimer >= frameDelay) {
-            frameTimer = 0.0f;
-            if (storyCurrentFrame < node->TotalScene - 1) {
-                storyCurrentFrame++;
-            } else {
-                UnloadNodeAssets(SceneTree, storyCurrentScene);
-                *gameState = GAME_STATE_MAIN_MENU;
-                storyCurrentScene = 0;
-                storyCurrentFrame = 0;
-            }
-        }
+        UpdateEndingScene(manager, node, gameState);
     } else {
-        if (storyCurrentFrame == node->TotalScene - 1 && node->numChoices > 0) {
-            int choiceButtonWidth = 400;
-            int choiceButtonHeight = 60;
-            int choiceStartY = SCREEN_HEIGHT / 2 + 275;
-
-            Rectangle choiceRectLeft = {
-                SCREEN_WIDTH / 2 - choiceButtonWidth / 2 - 715,
-                choiceStartY,
-                (float)choiceButtonWidth,
-                (float)choiceButtonHeight
-            };
-            if (CheckCollisionPointRec(mouse, choiceRectLeft) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-                ProsesChoice(SceneTree, 0);
-                return;
-            }
-
-            if (node->numChoices == 2) {
-                Rectangle choiceRectRight = {
-                    SCREEN_WIDTH / 2 - choiceButtonWidth / 2 + 715,
-                    choiceStartY,
-                    (float)choiceButtonWidth,
-                    (float)choiceButtonHeight
-                };
-                if (CheckCollisionPointRec(mouse, choiceRectRight) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-                    ProsesChoice(SceneTree, 1);
-                    return;
-                }
-            }
+        if (manager->currentFrame == node->TotalScene - 1 && node->numChoices > 0) {
+            HandleChoiceSelection(manager, node, gameState);
         } else {
-            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
-                if (storyCurrentFrame < node->TotalScene - 1) {
-                    storyCurrentFrame++;
-                }
-            }
+            HandleSceneProgression(manager, node);
         }
     }
 }
 
 // Memproses pilihan pemain
-void ProsesChoice(TreeStory SceneTree[], int choice) {
-    int nextNodeIndex = (choice == 0) ? SceneTree[storyCurrentScene].IdLeftSon : SceneTree[storyCurrentScene].IdRightSon;
+void ProsesChoice(StoryManager* manager, int choice) {
+    if (!manager) return;
+    
+    int nextNodeIndex = (choice == 0) ? manager->sceneTree[manager->currentScene].IdLeftSon : manager->sceneTree[manager->currentScene].IdRightSon;
 
-    if (nextNodeIndex < 0 || nextNodeIndex >= MAX_NODE_TREE || SceneTree[nextNodeIndex].TotalScene == 0) {
+    if (nextNodeIndex < 0 || nextNodeIndex >= MAX_NODE_TREE || manager->sceneTree[nextNodeIndex].TotalScene == 0) {
         return;
     }
-    
-    UnloadNodeAssets(SceneTree, storyCurrentScene);
-    storyCurrentScene = nextNodeIndex;
-    storyCurrentFrame = 0;
-    LoadNodeAssets(SceneTree, storyCurrentScene);
-    printf("Berpindah ke scene %d\n", storyCurrentScene);
+    UnloadNodeAssets(manager, manager->currentScene);
+    manager->currentScene = nextNodeIndex;
+    manager->currentFrame = 0;
+    LoadNodeAssets(manager, manager->currentScene);
+    printf("Berpindah ke scene %d\n", manager->currentScene);
 }
 
 // Menyimpan progres cerita
@@ -511,9 +650,11 @@ void LoadGameStory(const char *filename, int *Node, int *Scene) {
     fclose(file);
 }
 
-void UnloadStoryAudio() {
-    if (isMusicPlaying) {
-        UnloadMusicStream(currentSceneMusic);
-        isMusicPlaying = false;
+void UnloadStoryAudio(StoryManager* manager) {
+    if (!manager) return;
+    
+    if (manager->isMusicPlaying) {
+        UnloadMusicStream(manager->currentSceneMusic);
+        manager->isMusicPlaying = false;
     }
 }

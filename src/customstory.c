@@ -9,7 +9,6 @@
 
 CharaArr FileChara[CHARA_AMMOUNT];
 BackgroundArr FileBackground[BACKGROUND_AMMOUNT];
-AudioArr FileAudio[AUDIO_AMMOUNT];
 Texture2D Background, Character;
 float RenderTimer = 2.0f;
 bool ShowRender;
@@ -18,6 +17,10 @@ bool ShowRender;
 int KeyPad;  // For keyboard input
 int storedKeyPad;  // For storing branch direction
 bool warning = false;  // For error states and warnings
+
+// Global state for custom story playback
+static float frameDelay = 3.5f;
+static float frameTimer = 0.0f;
 
 // Helper functions for PrintTree
 typedef struct TempQueueNode {
@@ -809,12 +812,9 @@ void DeleteSceneList(SceneList sceneList)
 {
     SceneList current = sceneList;
     while (current != NULL) {
-        SceneList next = current->Next;
-
-        free(current->Data.Background);
+        SceneList next = current->Next;        free(current->Data.Background);
         free(current->Data.Character);
         free(current->Data.Convo);
-        free(current->Data.SFX);
 
         free(current);
         current = next;
@@ -995,7 +995,7 @@ void ReviewScene(int *control, SceneList *TempScene, CustomSceneTree *TempTree)
                     (int)(choiceRectLeft.x + choiceButtonWidth / 2 - MeasureText((*TempTree)->TextLeft ? (*TempTree)->TextLeft : "Go Left", 25) / 2),
                     (int)(choiceRectLeft.y + choiceButtonHeight / 2 - 25 / 2),
                     25, WHITE);
-    
+
             // Right choice button
             Rectangle choiceRectRight = {
                 SCREEN_WIDTH / 2 - choiceButtonWidth / 2 + 715,
@@ -1009,7 +1009,7 @@ void ReviewScene(int *control, SceneList *TempScene, CustomSceneTree *TempTree)
                     (int)(choiceRectRight.x + choiceButtonWidth / 2 - MeasureText((*TempTree)->TextRight ? (*TempTree)->TextRight : "Go Right", 25) / 2),
                     (int)(choiceRectRight.y + choiceButtonHeight / 2 - 25 / 2),
                     25, WHITE);
-    
+
             // Handle button hovers and clicks
             if (CheckCollisionPointRec(mouse, choiceRectLeft)) {
                 if ((*TempTree)->Left != NULL) {
@@ -1187,15 +1187,7 @@ void SerializeSceneList(FILE *file, SceneList sceneList) {
         if (convoLen > 0) {
             fwrite(current->Data.Convo, sizeof(char), convoLen, file);
         }
-        
-        // Write SFX string
-        int sfxLen = current->Data.SFX ? strlen(current->Data.SFX) + 1 : 0;
-        fwrite(&sfxLen, sizeof(int), 1, file);
-        if (sfxLen > 0) {
-            fwrite(current->Data.SFX, sizeof(char), sfxLen, file);
-        }
-        
-        current = current->Next;
+          current = current->Next;
     }
 }
 
@@ -1216,11 +1208,9 @@ SceneList DeserializeSceneList(FILE *file) {
         // Create new scene
         SceneList newScene = (SceneList)malloc(sizeof(struct ListElements));
         newScene->Next = NULL;
-        newScene->Before = lastScene;
-        newScene->Data.Background = NULL;
+        newScene->Before = lastScene;        newScene->Data.Background = NULL;
         newScene->Data.Character = NULL;
         newScene->Data.Convo = NULL;
-        newScene->Data.SFX = NULL;
         
         // Read Background string
         int bgLen;
@@ -1245,14 +1235,7 @@ SceneList DeserializeSceneList(FILE *file) {
             newScene->Data.Convo = (char*)malloc(convoLen);
             fread(newScene->Data.Convo, sizeof(char), convoLen, file);
         }
-        
-        // Read SFX string
-        int sfxLen;
-        fread(&sfxLen, sizeof(int), 1, file);
-        if (sfxLen > 0) {
-            newScene->Data.SFX = (char*)malloc(sfxLen);
-            fread(newScene->Data.SFX, sizeof(char), sfxLen, file);
-        }
+  
         
         // Link the scenes
         if (lastScene != NULL) {
@@ -1536,7 +1519,12 @@ void LoadSlot(CustomSceneTree *ThisSlot, int slotnumber) {
     MakeCustomStory(ThisSlot, slotnumber);
 }
 
-void SaveCustomStoryProgress(const char *filename, int node, int scene) {
+void SaveCustomStoryProgress(int slotNumber, int node, int scene) {
+    if (slotNumber < 1 || slotNumber > 3) {
+        printf("Error: Invalid slot number. Use 1-3.\n");
+        return;
+    }
+
     // Create saves directory if it doesn't exist
     #ifdef _WIN32
         system("mkdir saves 2>nul");
@@ -1544,23 +1532,51 @@ void SaveCustomStoryProgress(const char *filename, int node, int scene) {
         system("mkdir -p saves");
     #endif
 
+    char filename[MAX_PATH_LENGTH];
+    sprintf(filename, "saves/custom_story_progress_slot_%d.sav", slotNumber);
+
     FILE *file = fopen(filename, "wb");
     if (file == NULL) {
-        printf("Error: Could not save progress.\n");
+        printf("Error: Could not save progress for slot %d.\n", slotNumber);
         return;
     }
+
+    // Write a header to identify this as a progress save
+    char header[16] = "VPROGRESS_V1.0";
+    fwrite(header, sizeof(char), 16, file);
 
     // Save node and scene indices
     fwrite(&node, sizeof(int), 1, file);
     fwrite(&scene, sizeof(int), 1, file);
 
     fclose(file);
+    printf("Progress saved for custom story slot %d\n", slotNumber);
 }
 
-void LoadCustomStoryProgress(const char *filename, int *node, int *scene) {
+void LoadCustomStoryProgress(int slotNumber, int *node, int *scene) {
+    if (slotNumber < 1 || slotNumber > 3) {
+        printf("Error: Invalid slot number. Use 1-3.\n");
+        return;
+    }
+
+    char filename[MAX_PATH_LENGTH];
+    sprintf(filename, "saves/custom_story_progress_slot_%d.sav", slotNumber);
+
     FILE *file = fopen(filename, "rb");
     if (file == NULL) {
-        printf("No saved progress found.\n");
+        printf("No saved progress found for slot %d.\n", slotNumber);
+        *node = -1;  // Return invalid node to indicate no save
+        *scene = 0;
+        return;
+    }
+
+    // Verify the file header
+    char header[16];
+    if (fread(header, sizeof(char), 16, file) != 16 || strncmp(header, "VPROGRESS_V1.0", 14) != 0) {
+        printf("Error: Invalid progress save file format.\n");
+        fclose(file);
+        *node = -1;
+        *scene = 0;
         return;
     }
 
@@ -1569,107 +1585,193 @@ void LoadCustomStoryProgress(const char *filename, int *node, int *scene) {
     fread(scene, sizeof(int), 1, file);
 
     fclose(file);
+    printf("Progress loaded for custom story slot %d\n", slotNumber);
 }
 
-int UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene) {
-    // Navigasi node (LEFT/RIGHT) dan scene (UP/DOWN)
-    CustomSceneTree node = tree;
-    // Cari node saat ini berdasarkan ID
-    TempQueueNode *front = NULL, *rear = NULL;
-    Enqueue(&front, &rear, tree, 0);
-    while (front) {
-        TempQueueNode *qNode = Dequeue(&front, &rear);
-        CustomSceneTree current = qNode->treeNode;
-        if (current->ID == *currentNode) {
-            node = current;
-            free(qNode);
-            break;
-        }
-        if (current->Left) Enqueue(&front, &rear, current->Left, 0);
-        if (current->Right) Enqueue(&front, &rear, current->Right, 0);
-        free(qNode);
-    }
-    while (front) { TempQueueNode *temp = Dequeue(&front, &rear); free(temp); }
+GameState UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene) {
+    if (tree == NULL) return GAME_STATE_MAIN_MENU;
 
-    // Navigasi node
-    if (IsKeyPressed(KEY_LEFT) && node->Left != NULL) {
-        node = node->Left;
-        *currentNode = node->ID;
-        *currentScene = 0;
-    } else if (IsKeyPressed(KEY_RIGHT) && node->Right != NULL) {
-        node = node->Right;
-        *currentNode = node->ID;
-        *currentScene = 0;
+    frameTimer += GetFrameTime();
+
+    // Get total number of scenes in current node
+    SceneList currentSceneList = tree->NodeContents;
+    int totalScenes = 0;
+    SceneList temp = currentSceneList;
+    while (temp != NULL) {
+        totalScenes++;
+        temp = temp->Next;
     }
-    // Navigasi scene
-    SceneList scene = node->NodeContents;
-    for (int i = 0; i < *currentScene && scene != NULL; i++) scene = scene->Next;
-    if (IsKeyPressed(KEY_UP) && scene && scene->Before != NULL) {
-        (*currentScene)--;
-    } else if (IsKeyPressed(KEY_DOWN) && scene && scene->Next != NULL) {
-        (*currentScene)++;
+
+    // Get the current scene
+    temp = currentSceneList;
+    for (int i = 0; i < *currentScene && temp != NULL; i++) {
+        temp = temp->Next;
     }
-    // Keluar
+    if (temp == NULL) return GAME_STATE_MAIN_MENU;    // Handle choices if on last scene
+    if (*currentScene == totalScenes - 1) {
+        if (tree->Left != NULL || tree->Right != NULL) {
+            Vector2 mouse = GetMousePosition();
+
+            // Left choice
+            if (tree->Left != NULL && tree->TextLeft != NULL) {
+                Rectangle choiceRectLeft = {
+                    SCREEN_WIDTH / 2 - 400 / 2 - 715,
+                    SCREEN_HEIGHT / 2 + 275,
+                    400,
+                    60
+                };
+
+                if (CheckCollisionPointRec(mouse, choiceRectLeft) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {                    // Choose left path
+                    *currentNode = tree->Left->ID;
+                    *currentScene = 0;
+                    frameTimer = 0.0f;
+                    return GAME_STATE_PLAY_CUSTOM_STORY;
+                }
+            }
+
+            // Right choice
+            if (tree->Right != NULL && tree->TextRight != NULL) {
+                Rectangle choiceRectRight = {
+                    SCREEN_WIDTH / 2 - 400 / 2 + 715,
+                    SCREEN_HEIGHT / 2 + 275,
+                    400,
+                    60
+                };
+
+                if (CheckCollisionPointRec(mouse, choiceRectRight) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {                    // Choose right path
+                    *currentNode = tree->Right->ID;
+                    *currentScene = 0;
+                    frameTimer = 0.0f;
+                    return GAME_STATE_PLAY_CUSTOM_STORY;
+                }
+            }
+        } else {            // No choices - end of story
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
+                return GAME_STATE_MAIN_MENU;
+            }
+        }
+    } else {
+        // Not last scene, advance on click/key press
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
+            if (*currentScene < totalScenes - 1) {
+                (*currentScene)++;
+                frameTimer = 0.0f;
+            }
+        }
+    }
+
+    // Handle ESC to pause
     if (IsKeyPressed(KEY_ESCAPE)) {
-        char filename[64];
-        sprintf(filename, "saves/custom_save_%d.dat", *currentNode);
-        SaveCustomStoryProgress(filename, *currentNode, *currentScene);
-        return GAME_STATE_MAIN_MENU;
+        return GAME_STATE_PAUSE;
     }
+
     return GAME_STATE_PLAY_CUSTOM_STORY;
 }
 
 void DrawCustomStoryScreen(CustomSceneTree tree, int currentNode, int currentScene) {
-    // Cari node saat ini berdasarkan ID
-    CustomSceneTree node = tree;
-    TempQueueNode *front = NULL, *rear = NULL;
-    Enqueue(&front, &rear, tree, 0);
-    while (front) {
-        TempQueueNode *qNode = Dequeue(&front, &rear);
-        CustomSceneTree current = qNode->treeNode;
-        if (current->ID == currentNode) {
-            node = current;
-            free(qNode);
-            break;
+    if (tree == NULL) return;
+
+    // Get the current scene
+    SceneList currentSceneList = tree->NodeContents;
+    SceneList temp = currentSceneList;
+    for (int i = 0; i < currentScene && temp != NULL; i++) {
+        temp = temp->Next;
+    }
+
+    if (temp == NULL) return;
+
+    // Draw background if exists
+    if (temp->Data.Background != NULL) {
+        Texture2D background = LoadTexture(temp->Data.Background);
+        DrawTexture(background, 0, 0, WHITE);
+        UnloadTexture(background);
+    }
+
+    // Draw character if exists
+    if (temp->Data.Character != NULL) {
+        Texture2D character = LoadTexture(temp->Data.Character);
+        int charX = 0;
+        switch (temp->Data.charPosition) {
+            case CHAR_POS_LEFT:
+                charX = SCREEN_WIDTH / 4 - character.width / 2;
+                break;
+            case CHAR_POS_CENTER:
+                charX = SCREEN_WIDTH / 2 - character.width / 2;
+                break;
+            case CHAR_POS_RIGHT:
+                charX = 3 * SCREEN_WIDTH / 4 - character.width / 2;
+                break;
+            default:
+                break;
         }
-        if (current->Left) Enqueue(&front, &rear, current->Left, 0);
-        if (current->Right) Enqueue(&front, &rear, current->Right, 0);
-        free(qNode);
+        DrawTexture(character, charX, SCREEN_HEIGHT - character.height, WHITE);
+        UnloadTexture(character);
     }
-    while (front) { TempQueueNode *temp = Dequeue(&front, &rear); free(temp); }
 
-    // Ambil scene ke-currentScene
-    SceneList scene = node->NodeContents;
-    for (int i = 0; i < currentScene && scene != NULL; i++) scene = scene->Next;
-    if (!scene) return;
+    // Draw dialogue
+    if (temp->Data.Convo != NULL) {
+        DrawRectangle(0, SCREEN_HEIGHT - 200, SCREEN_WIDTH, 200, ColorAlpha(BLACK, 0.7f));
+        DrawText(temp->Data.Convo, 50, SCREEN_HEIGHT - 150, 30, WHITE);
+    }
 
-    // Gambar background
-    Texture2D bgTex = {0};
-    if (scene->Data.Background && strlen(scene->Data.Background) > 0) {
-        bgTex = LoadTexture(scene->Data.Background);
-        bgTex.height = SCREEN_HEIGHT;
-        bgTex.width = SCREEN_WIDTH;
-        DrawTexture(bgTex, 0, 0, WHITE);
-    } else {
-        ClearBackground(RAYWHITE);
+    // Draw choices if on last scene
+    int totalScenes = 0;
+    temp = currentSceneList;
+    while (temp != NULL) {
+        totalScenes++;
+        temp = temp->Next;
+    }    if (currentScene == totalScenes - 1 && (tree->Left != NULL || tree->Right != NULL)) {
+        int choiceButtonWidth = 400;
+        int choiceButtonHeight = 60;
+        int choiceStartY = SCREEN_HEIGHT / 2 + 275;
+        Vector2 mouse = GetMousePosition();
+    
+        // Left choice button
+        Rectangle choiceRectLeft = {
+            SCREEN_WIDTH / 2 - choiceButtonWidth / 2 - 715,
+            choiceStartY,
+            (float)choiceButtonWidth,
+            (float)choiceButtonHeight
+        };
+        DrawRectangleRec(choiceRectLeft, Fade(GRAY, 0.8f));
+        DrawRectangleLinesEx(choiceRectLeft, 2, WHITE);
+        
+        // Change button color and border on hover
+        if (CheckCollisionPointRec(mouse, choiceRectLeft) && tree->Left != NULL) {
+            DrawRectangleLinesEx(choiceRectLeft, 3, GREEN);
+        }
+
+        // Draw left choice text
+        if (tree->Left != NULL && tree->TextLeft != NULL) {
+            DrawText(tree->TextLeft,
+                    (int)(choiceRectLeft.x + choiceButtonWidth / 2 - MeasureText(tree->TextLeft, 25) / 2),
+                    (int)(choiceRectLeft.y + choiceButtonHeight / 2 - 25 / 2),
+                    25, WHITE);
+        }
+
+        // Right choice button
+        Rectangle choiceRectRight = {
+            SCREEN_WIDTH / 2 - choiceButtonWidth / 2 + 715,
+            choiceStartY,
+            (float)choiceButtonWidth,
+            (float)choiceButtonHeight
+        };
+        DrawRectangleRec(choiceRectRight, Fade(GRAY, 0.8f));
+        DrawRectangleLinesEx(choiceRectRight, 2, WHITE);
+
+        // Change button color and border on hover
+        if (CheckCollisionPointRec(mouse, choiceRectRight) && tree->Right != NULL) {
+            DrawRectangleLinesEx(choiceRectRight, 3, GREEN);
+        }
+
+        // Draw right choice text
+        if (tree->Right != NULL && tree->TextRight != NULL) {
+            DrawText(tree->TextRight,
+                    (int)(choiceRectRight.x + choiceButtonWidth / 2 - MeasureText(tree->TextRight, 25) / 2),
+                    (int)(choiceRectRight.y + choiceButtonHeight / 2 - 25 / 2),
+                    25, WHITE);
+        }
     }
-    // Gambar karakter
-    Texture2D charTex = {0};
-    if (scene->Data.Character && strlen(scene->Data.Character) > 0) {
-        charTex = LoadTexture(scene->Data.Character);
-        charTex.height /= 2;
-        charTex.width /= 2;
-        DrawCharacterAtPosition(charTex, scene->Data.charPosition);
-    }
-    // Gambar kotak dialog
-    if (scene->Data.Convo && strlen(scene->Data.Convo) > 0) {
-        DrawRectangle(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, BLACK);
-        DrawRectangleLines(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, WHITE);
-        DrawText(scene->Data.Convo, 70, SCREEN_HEIGHT - 180, 30, WHITE);
-    }
-    // Petunjuk navigasi
-    DrawText("[LEFT/RIGHT]: Pindah node | [UP/DOWN]: Scene | [ESC]: Kembali", 60, 60, 28, YELLOW);
-    // Jangan unload texture di sini!
 }
 
 void ChoosingChoiceText(char *LeftText, char *RightText, int *selectedsprite, CustomSceneTree *TempTree)

@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "mainmenu.h"  // Include mainmenu.h to get game state definitions
 #include "story.h"
 
 // Safe buffer sizes
@@ -15,7 +14,6 @@
 
 #define CHARA_AMMOUNT 11
 #define BACKGROUND_AMMOUNT 23
-#define AUDIO_AMMOUNT 6
 
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
@@ -49,18 +47,10 @@ typedef struct CharaFileData
     char FileName[MAX_FILENAME_LENGTH];
 }CharaArr;
 
-typedef struct AudioFileData
-{
-    Texture2D Audio;
-    char FileName[MAX_FILENAME_LENGTH];
-}AudioArr;
-
 struct SceneNode
 {
     char *Background;
-    char *Character;
-    char *Convo;
-    char *SFX;
+    char *Character;    char *Convo;
     CharacterPosition charPosition;
 };
 
@@ -86,7 +76,6 @@ typedef struct Tree
 
 extern CharaArr FileChara[CHARA_AMMOUNT];
 extern BackgroundArr FileBackground[BACKGROUND_AMMOUNT];
-extern AudioArr FileAudio[AUDIO_AMMOUNT];
 static Texture2D MenuBackground;
 
 CustomSceneTree LoadTreeFromFile(const char* filename);
@@ -123,12 +112,12 @@ void SerializeTreeNode(FILE *file, CustomSceneTree node);
 void SerializeSceneList(FILE *file, SceneList sceneList);
 void LoadSlot(CustomSceneTree *ThisSlot, int slotnumber);
 
-// Save/Load progress functions
-void SaveCustomStoryProgress(const char *filename, int node, int scene);
-void LoadCustomStoryProgress(const char *filename, int *node, int *scene);
+// Save/Load progress functions for custom story playthrough
+void SaveCustomStoryProgress(int slotNumber, int node, int scene);
+void LoadCustomStoryProgress(int slotNumber, int *node, int *scene);
 
 // Custom story playback functions
-int UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene);
+GameState UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene);
 void DrawCustomStoryScreen(CustomSceneTree tree, int currentNode, int currentScene);
 
 #endif

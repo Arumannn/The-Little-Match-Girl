@@ -73,6 +73,7 @@
     "customstory.h": "c",
     "stdlib.h": "c",
     "minigame.h": "c",
-    "queue.h": "c"
+    "queue.h": "c",
+    "gamestate.h": "c"
   }
 }
