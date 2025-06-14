@@ -4,14 +4,14 @@
 CPP      = g++.exe
 CC       = gcc.exe
 WINDRES  = windres.exe
-OBJ      = main.o src/mainmenu.o src/minigame.o src/story.o
-LINKOBJ  = main.o src/mainmenu.o src/minigame.o src/story.o
-LIBS     = -L"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/lib" -L"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/x86_64-w64-mingw32/lib" -static-libgcc -lraylib -lopengl32 -lgdi32 -lwinmm
+OBJ      = main.o src/customstory.o src/mainmenu.o src/minigame.o src/Stack.o src/story.o
+LINKOBJ  = main.o src/customstory.o src/mainmenu.o src/minigame.o src/Stack.o src/story.o
+LIBS     = -L"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/lib" -L"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/x86_64-w64-mingw32/lib" -static-libgcc -lraylib -lopengl32 -lgdi32 -lwinmm -static -std=c99 -lraylib -lopengl32 -lgdi32 -lwinmm
 INCS     = -I"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/include" -I"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/x86_64-w64-mingw32/include" -I"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/x86_64-w64-mingw32/include"
 CXXINCS  = -I"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/include" -I"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/x86_64-w64-mingw32/include" -I"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/9.2.0/include" -I"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/9.2.0/include/c++"
 BIN      = "The Little Match.exe"
-CXXFLAGS = $(CXXINCS) 
-CFLAGS   = $(INCS) 
+CXXFLAGS = $(CXXINCS) -I"include"
+CFLAGS   = $(INCS) -I"include"
 DEL      = C:\Program Files (x86)\Embarcadero\Dev-Cpp\devcpp.exe INTERNAL_DEL
 
 .PHONY: all all-before all-after clean clean-custom
@@ -27,11 +27,17 @@ $(BIN): $(OBJ)
 main.o: main.c
 	$(CC) -c main.c -o main.o $(CFLAGS)
 
+src/customstory.o: src/customstory.c
+	$(CC) -c src/customstory.c -o src/customstory.o $(CFLAGS)
+
 src/mainmenu.o: src/mainmenu.c
 	$(CC) -c src/mainmenu.c -o src/mainmenu.o $(CFLAGS)
 
 src/minigame.o: src/minigame.c
 	$(CC) -c src/minigame.c -o src/minigame.o $(CFLAGS)
+
+src/Stack.o: src/Stack.c
+	$(CC) -c src/Stack.c -o src/Stack.o $(CFLAGS)
 
 src/story.o: src/story.c
 	$(CC) -c src/story.c -o src/story.o $(CFLAGS)

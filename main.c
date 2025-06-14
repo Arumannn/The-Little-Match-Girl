@@ -212,7 +212,8 @@ int main() {
                 }
 
                 UpdateMiniGameStack(&currentGameState);
-                DrawMiniGameStack();                if (currentGameState != GAME_STATE_MINI_GAME_STACK) {
+                DrawMiniGameStack();                
+                if (currentGameState != GAME_STATE_MINI_GAME_STACK) {
                     minigameInitialized = false;
                     printf("Exiting minigame, transitioning to story\n");
                     storyCurrentScene = 0;  // Reset to first scene

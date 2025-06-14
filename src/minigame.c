@@ -14,7 +14,7 @@ Stack PlayerChoiceStack;
 Texture2D memoryImages[MAX_STACK];
 Music minigameMusic;
 float memoryDisplayTimer = 0;
-float displayDurationPerMemory = 1.5f; 
+float displayDurationPerMemory = 5.0f; 
 int currentMemoryIndex = 0;
 bool showingMemories = false;
 bool choosingMemories = false;

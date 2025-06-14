@@ -59,13 +59,17 @@ void InitAssetsMenu() {
     MenuButtons[16] = LoadTexture("Assets/mainmenu/Continue.png");
     MenuButtons[17] = LoadTexture("Assets/mainmenu/Save_Game.png");
     MenuButtons[18] = LoadTexture("Assets/mainmenu/Main_Menu.png");
+    MenuButtons[19] = LoadTexture("Assets/mainmenu/Reference.png");
+    
 
     // Set background image menjadi full Screen
     MenuButtons[0].height = SCREEN_HEIGHT;
     MenuButtons[0].width = SCREEN_WIDTH;
-
+    
+    MenuButtons[19].height = MenuButtons[19].height / 5;
+    MenuButtons[19].width = MenuButtons[19].width / 5;
     // Set semua button dengan ukuran yang sama
-    for (int i = 1; i <= MAX_MENU; i++) {
+    for (int i = 1; i < MAX_MENU; i++) {
         MenuButtons[i].height = 230 / 2;
         MenuButtons[i].width = 630 / 2;
     }
@@ -83,39 +87,40 @@ void SetButtonRect(int id, int x, int y) {
 // IS: Layout button belum diatur sesuai game state
 // FS: Layout button berhasil diatur sesuai game state yang aktif
 void InitButtonRects(GameState currentGameState) {
-    int startX = 100;
-    int startY = 300;
-    int gapY = 150;
+    // Center all buttons horizontally
+    int centerX = SCREEN_WIDTH / 2 - (630 / 2) / 2; // Center button width
+    int startY = 250; // Start a bit higher to make room for title
+    int gapY = 150; // Slightly smaller gap for better spacing
 
     switch (currentGameState) {
         case GAME_STATE_MAIN_MENU:
             printf("currentGameState MAIN_MENU\n");
             for (int i = 1, idx = 0; i <= 4; i++, idx++) {
-                SetButtonRect(i, startX, startY + idx * gapY);
+                SetButtonRect(i, centerX, startY + idx * gapY);
             }
             break;
 
         case GAME_STATE_PLAY_GAME_MENU:
             printf("currentGameState PLAY_GAME_MENU\n");
             for (int i = 5, idx = 0; i <= 6; i++, idx++) {
-                SetButtonRect(i, startX, startY + idx * gapY);
+                SetButtonRect(i, centerX, startY + idx * gapY);
             }
-            SetButtonRect(15, startX, startY + 2 * gapY);
+            SetButtonRect(15, centerX, startY + 2 * gapY);
             break;
 
         case GAME_STATE_NEW_CONTINUE_NON_CUSTOM:
             printf("currentGameState NEW_CONTINUE_MENU\n");
             for (int i = 7, idx = 0; i <= 8; i++, idx++) {
-                SetButtonRect(i, startX, startY + idx * gapY);
+                SetButtonRect(i, centerX, startY + idx * gapY);
             }
-            SetButtonRect(15, startX, startY + 2 * gapY);
+            SetButtonRect(15, centerX, startY + 2 * gapY);
             break;
         case GAME_STATE_STUDIO_MENU:
             printf("currentGameState STUDIO_MENU\n");
             for (int i = 9, idx = 0; i <= 11; i++, idx++) {
-                SetButtonRect(i, startX, startY + idx * gapY);
+                SetButtonRect(i, centerX, startY + idx * gapY);
             }
-            SetButtonRect(15, startX, startY + 3 * gapY);
+            SetButtonRect(15, centerX, startY + 3 * gapY);
             break;
 
         case GAME_STATE_CREATE_MENU:
@@ -123,14 +128,14 @@ void InitButtonRects(GameState currentGameState) {
         case GAME_STATE_DELETE_MENU:
             printf("currentGameState CREATE/EDIT/DELETE (SLOTS)\n");
             for (int i = 12, idx = 0; i <= 14; i++, idx++) {
-                SetButtonRect(i, startX, startY + idx * gapY);
+                SetButtonRect(i, centerX, startY + idx * gapY);
             }
-            SetButtonRect(15, startX, startY + 3 * gapY);
+            SetButtonRect(15, centerX, startY + 3 * gapY);
             break;
 
         case GAME_STATE_ABOUT:
             printf("currentGameState ABOUT\n");
-            SetButtonRect(15, SCREEN_WIDTH / 2 - MenuButtons[15].width / 2, SCREEN_HEIGHT - 500);
+            SetButtonRect(15, centerX, SCREEN_HEIGHT - 200);
             break;
 
         case GAME_STATE_PLAY_GAME:
@@ -151,17 +156,17 @@ void InitButtonRects(GameState currentGameState) {
         case GAME_STATE_NEW_CONTINUE_CUSTOM: // New case for "New Game" / "Continue" for custom stories
             printf("currentGameState NEW_CONTINUE_CUSTOM\n");
             for (int i = 7, idx = 0; i <= 8; i++, idx++) {
-                SetButtonRect(i, startX, startY + idx * gapY);
+                SetButtonRect(i, centerX, startY + idx * gapY);
             }
-            SetButtonRect(15, startX, startY + 2 * gapY);
+            SetButtonRect(15, centerX, startY + 2 * gapY);
             break;
 
         case GAME_STATE_PLAY_CUSTOM_MENU: // New case for displaying custom story slots
             printf("currentGameState PLAY_CUSTOM_MENU\n");
             for (int i = 12, idx = 0; i <= 14; i++, idx++) {
-                SetButtonRect(i, startX, startY + idx * gapY);
+                SetButtonRect(i, centerX, startY + idx * gapY);
             }
-            SetButtonRect(15, startX, startY + 3 * gapY);
+            SetButtonRect(15, centerX, startY + 3 * gapY);
             break;
 
         default:
@@ -175,6 +180,10 @@ void DrawMainMenu(GameState currentGameState) {
         currentGameState != GAME_STATE_PLAY_GAME &&
         currentGameState != GAME_STATE_MINI_GAME_STACK) {
         DrawTexture(MenuButtons[0], 0, 0, WHITE);
+        
+        // Draw the title "The Little Match Girl" at the top
+        
+        DrawText("The Little Match Girl", SCREEN_WIDTH / 2 - MeasureText("The Little Match Girl", 60) / 2, 80, 60, WHITE);
     }
     printf("Switch case currentGameState: %d\n", currentGameState);
     
@@ -223,6 +232,39 @@ void DrawMainMenu(GameState currentGameState) {
 
         case GAME_STATE_ABOUT:
             printf("DRAWING MENU STATE ABOUT\n");
+            // Draw the reference image centered on screen with its specific size
+            int imagePosX = SCREEN_WIDTH / 2 - MenuButtons[19].width / 2;
+            int imagePosY = SCREEN_HEIGHT / 2 - MenuButtons[19].height / 2;
+            
+            // Right side: Game information
+            int textStartX = 750;
+            int textStartY = 275;
+            int lineHeight = 35;
+            
+            // Title
+            DrawText("The Little Match Girl", textStartX, textStartY, 40, WHITE);
+            
+            // Version
+            DrawText("Version 1.0", textStartX, textStartY + 60, 25, LIGHTGRAY);
+            
+            // Game Description
+            DrawText("Game Description", textStartX, textStartY + 120, 30, YELLOW);
+            DrawText("An interactive visual novel game based on the classic fairy tale.", textStartX, textStartY + 160, 20, WHITE);
+            
+            // Story Synopsis
+            DrawText("Story Synopsis", textStartX, textStartY + 220, 30, YELLOW);
+            DrawText("Follow the journey of a little girl selling matches on a cold winter night.", textStartX, textStartY + 260, 20, WHITE);
+            DrawText("Experience her dreams and hopes through interactive storytelling.", textStartX, textStartY + 285, 20, WHITE);
+            
+            // Development Team
+            DrawText("Development Team", textStartX, textStartY + 340, 30, YELLOW);
+            DrawText("Arman Yusuf Rifandi & Andreas Devan Pandu N.", textStartX, textStartY + 380, 20, WHITE);
+            
+            // Special Thanks
+            DrawText("Special Thanks", textStartX, textStartY + 430, 30, YELLOW);
+            DrawText("Cursor AI, ChatGPT, Gemini, Claude, Grok & GitHub Copilot", textStartX, textStartY + 470, 20, WHITE);
+            
+            DrawTexture(MenuButtons[19], imagePosX - 575, imagePosY, WHITE);
             DrawTexture(MenuButtons[15], (int)buttonRects[15].x, (int)buttonRects[15].y, WHITE);
             break;
 
@@ -390,7 +432,7 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
                     LoadNodeAssets(Mytree, storyCurrentScene);
                     break;
                 case 8: // Continue
-                    LoadGameStory("savefile.txt", &storyCurrentScene, &storyCurrentFrame);
+                    LoadGameStory("saves/story/progress_slot_1.dat", &storyCurrentScene, &storyCurrentFrame);
                     LoadNodeAssets(Mytree, storyCurrentScene);
                     *currentGameState = GAME_STATE_PLAY_GAME;
                     break;

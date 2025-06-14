@@ -3,7 +3,6 @@
 
 #include <raylib.h>
 #include "mainmenu.h"
-#include "boolean.h"
 
 #define MAX_SCENE 10
 

@@ -6,7 +6,7 @@
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
 
-#define MAX_MENU 18
+#define MAX_MENU 19
 
 typedef enum{
     //MAIN MENU
