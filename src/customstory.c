@@ -13,6 +13,7 @@ AudioArr FileAudio[AUDIO_AMMOUNT];
 Texture2D Background, Character;
 float RenderTimer = 2.0f;
 bool ShowRender;
+extern GameState currentGameState;
 
 // Global variables for custom story management
 int KeyPad;  // For keyboard input
@@ -1584,14 +1585,20 @@ void SaveSlotToFile(CustomSceneTree *ThisSlot, int slotNumber) {
     }
     
     char filename[MAX_PATH_LENGTH];
-    if (snprintf(filename, MAX_PATH_LENGTH, "saves/custom/story_slot_%d.sav", slotNumber) >= MAX_PATH_LENGTH) {
+    if (snprintf(filename, MAX_PATH_LENGTH, "saves/slotgame/story_slot_%d.sav", slotNumber) >= MAX_PATH_LENGTH) {
         printf("Error: Save filename too long\n");
         return;
     }
     
     printf("DEBUG: Creating saves directory...\n");
     // Create saves directory if it doesn't exist (platform dependent)
-    CreateSaveDirectories();
+    #ifdef _WIN32
+        system("mkdir saves 2>nul");
+        system("mkdir saves\\slotgame 2>nul");
+    #else
+        system("mkdir -p saves");
+        system("mkdir -p saves/slotgame");
+    #endif
     
     printf("DEBUG: Testing file creation...\n");
     // Try to create/open the file first to verify we can write
@@ -1616,7 +1623,7 @@ CustomSceneTree LoadSlotFromFile(int slotNumber) {
     }
     
     char filename[64];
-    sprintf(filename, "saves/custom/story_slot_%d.sav", slotNumber);
+    sprintf(filename, "saves/slotgame/story_slot_%d.sav", slotNumber);
     
     return LoadTreeFromFile(filename);
 }
@@ -1739,8 +1746,8 @@ void DeleteSlotFiles(int slotNumber) {
     char storyFilename[64];
     char progressFilename[64];
     
-    // Create filenames
-    sprintf(storyFilename, "saves/custom/story_slot_%d.sav", slotNumber);
+    // Create filenames for both story file and progress file
+    sprintf(storyFilename, "saves/slotgame/story_slot_%d.sav", slotNumber);
     sprintf(progressFilename, "saves/custom/progress_slot_%d.dat", slotNumber);
     
     printf("DEBUG: Attempting to delete story file: %s\n", storyFilename);
@@ -1751,7 +1758,7 @@ void DeleteSlotFiles(int slotNumber) {
     bool storyDeleted = false;
     bool progressDeleted = false;
     
-    // Check and delete story file
+    // Check and delete story file (from slotgame folder)
     testFile = fopen(storyFilename, "r");
     if (testFile != NULL) {
         fclose(testFile);
@@ -1777,7 +1784,7 @@ void DeleteSlotFiles(int slotNumber) {
         storyDeleted = true; // Consider it "deleted" if it never existed
     }
     
-    // Check and delete progress file
+    // Check and delete progress file (from custom folder)
     testFile = fopen(progressFilename, "r");
     if (testFile != NULL) {
         fclose(testFile);
@@ -1832,15 +1839,17 @@ void ClearSlotFromMemory(int slotNumber) {
 void CreateSaveDirectories() {
     printf("DEBUG: Creating save directories...\n");
     
-    // Create main saves directory
+    // Create main saves directory and subdirectories
     #ifdef _WIN32
         system("mkdir saves 2>nul");
         system("mkdir saves\\story 2>nul");
         system("mkdir saves\\custom 2>nul");
+        system("mkdir saves\\slotgame 2>nul");
     #else
         system("mkdir -p saves");
         system("mkdir -p saves/story");
         system("mkdir -p saves/custom");
+        system("mkdir -p saves/slotgame");
     #endif
     
     printf("DEBUG: Save directories created successfully\n");
@@ -1878,11 +1887,8 @@ int UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene,
 
     // Handle pause menu
     if (IsKeyPressed(KEY_F1)) {
-        // Save progress before pausing
-        SaveCustomStoryProgressBySlot(currentSlot, *currentNode, *currentScene);
-        printf("DEBUG: Progress saved before pause\n");
-        extern GameState previousGameState;
-        previousGameState = GAME_STATE_PLAY_CUSTOM_STORY;
+        currentGameState = GAME_STATE_PAUSE;
+        InitButtonRects(currentGameState);
         return GAME_STATE_PAUSE;
     }
 

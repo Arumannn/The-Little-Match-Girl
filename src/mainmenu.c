@@ -491,7 +491,7 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
                 case 16: // Continue
                     *currentGameState = GAME_STATE_PLAY_GAME;
                     break;                case 17: // Save Game
-                    SaveGameStory("savefile.txt", storyCurrentScene, storyCurrentFrame);
+                    SaveGameStory("saves/story/progress_slot_1.dat", storyCurrentScene, storyCurrentFrame);
                     showSaveMessage = true;
                     saveMessageTimer = 0.0f;
                     break;
