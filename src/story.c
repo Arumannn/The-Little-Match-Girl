@@ -1,3 +1,6 @@
+// Initial State: Cerita utama belum dimulai
+// Final State: Cerita utama selesai dan player dapat melanjutkan ke minigame
+
 #include "story.h"
 #include "mainmenu.h"
 #include <raylib.h>
@@ -15,7 +18,8 @@ extern int storyCurrentFrame;  // Declared in main.c
 
 TreeStory SceneTree[MAX_NODE_TREE];
 
-// Inisialisasi Data Cerita
+// IS: Data cerita belum diinisialisasi
+// FS: Semua data cerita utama berhasil diinisialisasi
 void InitDataCerita(TreeStory *SceneTree) {
     printf("Initializing story data...\n");
 
@@ -236,8 +240,8 @@ void InitDataCerita(TreeStory *SceneTree) {
     }
 }
 
-
-// Menentukan posisi karakter ketika digambar
+// IS: Karakter belum digambar di posisi tertentu
+// FS: Karakter berhasil digambar di posisi yang diinginkan
 void DrawCharacterAtPosition(Texture2D tex, CharacterPosition pos) {
     if (tex.id == 0 || pos == CHAR_POS_NONE) return;
 
@@ -260,8 +264,8 @@ void DrawCharacterAtPosition(Texture2D tex, CharacterPosition pos) {
     DrawTexture(tex, (int)charX, (int)charY, WHITE);
 }
 
-
-// Memuat aset untuk node
+// IS: Asset node belum dimuat
+// FS: Asset node berhasil dimuat ke memori
 void LoadNodeAssets(TreeStory SceneTree[], int nodeIndex) {
     if (nodeIndex < 0 || nodeIndex >= MAX_NODE_TREE) {
         printf("Invalid node index: %d\n", nodeIndex);
@@ -289,7 +293,8 @@ void LoadNodeAssets(TreeStory SceneTree[], int nodeIndex) {
     }
 }
 
-// Menghapus aset dari node tertentu
+// IS: Asset node masih termuat di memori
+// FS: Asset node berhasil di-unload dari memori
 void UnloadNodeAssets(TreeStory SceneTree[], int nodeIndex) {
     if (nodeIndex < 0 || nodeIndex >= MAX_NODE_TREE) {
         printf("Invalid node index: %d\n", nodeIndex);
@@ -312,7 +317,8 @@ void UnloadNodeAssets(TreeStory SceneTree[], int nodeIndex) {
     node->currentSceneIndex = 0;
 }
 
-// Menggambar scene
+// IS: Layar node cerita belum digambar
+// FS: Layar node cerita berhasil digambar sesuai scene
 void DrawCurrentNodeScreen(TreeStory SceneTree[]) {
     if (storyCurrentScene < 0 || storyCurrentScene >= MAX_NODE_TREE) return;
 
@@ -378,7 +384,8 @@ void DrawCurrentNodeScreen(TreeStory SceneTree[]) {
     }
 }
 
-// Mengupdate logika cerita
+// IS: Cerita belum diperbarui
+// FS: Cerita berhasil diperbarui sesuai input user
 void UpdateCerita(TreeStory SceneTree[], GameState *gameState) {
     if (storyCurrentScene < 0 || storyCurrentScene >= MAX_NODE_TREE) {
         return;
@@ -468,7 +475,8 @@ void UpdateCerita(TreeStory SceneTree[], GameState *gameState) {
     }
 }
 
-// Memproses pilihan pemain
+// IS: Pilihan cerita belum diproses
+// FS: Pilihan cerita berhasil diproses dan state berpindah
 void ProsesChoice(TreeStory SceneTree[], int choice) {
     int nextNodeIndex = (choice == 0) ? SceneTree[storyCurrentScene].IdLeftSon : SceneTree[storyCurrentScene].IdRightSon;
 
@@ -483,7 +491,8 @@ void ProsesChoice(TreeStory SceneTree[], int choice) {
     printf("Berpindah ke scene %d\n", storyCurrentScene);
 }
 
-// Menyimpan progres cerita
+// IS: Progress cerita belum disimpan
+// FS: Progress cerita berhasil disimpan ke file
 void SaveGameStory(const char *filename, int Node, int Scene) {
     FILE *file = fopen(filename, "w");
     if (!file) {
@@ -496,7 +505,8 @@ void SaveGameStory(const char *filename, int Node, int Scene) {
     fclose(file);
 }
 
-// Memuat progres cerita
+// IS: Progress cerita belum dimuat
+// FS: Progress cerita berhasil dimuat dari file
 void LoadGameStory(const char *filename, int *Node, int *Scene) {
     FILE *file = fopen(filename, "r");
     if (!file) {
@@ -511,6 +521,8 @@ void LoadGameStory(const char *filename, int *Node, int *Scene) {
     fclose(file);
 }
 
+// IS: Musik cerita masih termuat di memori
+// FS: Musik cerita berhasil di-unload dari memori
 void UnloadStoryAudio() {
     if (isMusicPlaying) {
         UnloadMusicStream(currentSceneMusic);

@@ -1,3 +1,6 @@
+// Initial State: Menu utama belum ditampilkan
+// Final State: Menu utama ditampilkan dan user dapat memilih opsi
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -5,6 +8,7 @@
 #include <raylib.h>
 #include "mainmenu.h"
 #include "story.h"
+#include "customstory.h"
 
 Texture2D MenuButtons[MAX_MENU];
 Rectangle buttonRects[MAX_MENU];
@@ -15,9 +19,15 @@ extern TreeStory Mytree[MAX_NODE_TREE];
 extern int storyCurrentScene;
 extern int storyCurrentFrame;
 extern bool exitProgram;
+extern CustomSceneTree customStorySlots[3];
+extern int currentCustomSlot;
+extern int customCurrentNode;
+extern int customCurrentScene;
 bool showSaveMessage = false;
 float saveMessageTimer = 0.0f;
 
+// IS: Asset menu belum dimuat
+// FS: Semua asset menu berhasil dimuat dan siap digunakan
 void InitAssetsMenu() {
     // Initialize menu BGM
     BGMusic = LoadMusicStream("Assets/Music/SilentNight.mp3");
@@ -61,6 +71,8 @@ void InitAssetsMenu() {
     }
 }
 
+// IS: Posisi button belum ditentukan
+// FS: Posisi button berhasil ditentukan sesuai koordinat yang diberikan
 void SetButtonRect(int id, int x, int y) {
     buttonRects[id].x = x;
     buttonRects[id].y = y;
@@ -68,6 +80,8 @@ void SetButtonRect(int id, int x, int y) {
     buttonRects[id].height = (float)MenuButtons[id].height;
 }
 
+// IS: Layout button belum diatur sesuai game state
+// FS: Layout button berhasil diatur sesuai game state yang aktif
 void InitButtonRects(GameState currentGameState) {
     int startX = 100;
     int startY = 300;
@@ -90,14 +104,12 @@ void InitButtonRects(GameState currentGameState) {
             break;
 
         case GAME_STATE_NEW_CONTINUE_NON_CUSTOM:
-        case GAME_STATE_NEW_CONTINUE_CUSTOM:
             printf("currentGameState NEW_CONTINUE_MENU\n");
             for (int i = 7, idx = 0; i <= 8; i++, idx++) {
                 SetButtonRect(i, startX, startY + idx * gapY);
             }
             SetButtonRect(15, startX, startY + 2 * gapY);
             break;
-
         case GAME_STATE_STUDIO_MENU:
             printf("currentGameState STUDIO_MENU\n");
             for (int i = 9, idx = 0; i <= 11; i++, idx++) {
@@ -136,7 +148,15 @@ void InitButtonRects(GameState currentGameState) {
             }
             break;
 
-        case GAME_STATE_PLAY_CUSTOM_MENU:
+        case GAME_STATE_NEW_CONTINUE_CUSTOM: // New case for "New Game" / "Continue" for custom stories
+            printf("currentGameState NEW_CONTINUE_CUSTOM\n");
+            for (int i = 7, idx = 0; i <= 8; i++, idx++) {
+                SetButtonRect(i, startX, startY + idx * gapY);
+            }
+            SetButtonRect(15, startX, startY + 2 * gapY);
+            break;
+
+        case GAME_STATE_PLAY_CUSTOM_MENU: // New case for displaying custom story slots
             printf("currentGameState PLAY_CUSTOM_MENU\n");
             for (int i = 12, idx = 0; i <= 14; i++, idx++) {
                 SetButtonRect(i, startX, startY + idx * gapY);
@@ -157,6 +177,11 @@ void DrawMainMenu(GameState currentGameState) {
         DrawTexture(MenuButtons[0], 0, 0, WHITE);
     }
     printf("Switch case currentGameState: %d\n", currentGameState);
+    
+    // Define button positioning variables
+    int startX = 100;
+    int startY = 300;
+    
     switch (currentGameState) {
         case GAME_STATE_MAIN_MENU:
         printf("Entering switch case for currentGameState: %d\n", currentGameState);
@@ -174,7 +199,6 @@ void DrawMainMenu(GameState currentGameState) {
             break;
 
         case GAME_STATE_NEW_CONTINUE_NON_CUSTOM:
-        case GAME_STATE_NEW_CONTINUE_CUSTOM:
             printf("DRAWING MENU STATE NEW CONTINUE\n");
             for (int i = 7; i <= 8; i++) {
                 DrawTexture(MenuButtons[i], (int)buttonRects[i].x, (int)buttonRects[i].y, WHITE);
@@ -188,7 +212,6 @@ void DrawMainMenu(GameState currentGameState) {
             }
             DrawTexture(MenuButtons[15], (int)buttonRects[15].x, (int)buttonRects[15].y, WHITE);
             break;
-
         case GAME_STATE_CREATE_MENU:
         case GAME_STATE_EDIT_MENU:
         case GAME_STATE_DELETE_MENU:
@@ -213,9 +236,20 @@ void DrawMainMenu(GameState currentGameState) {
             }
             break;
 
-        case GAME_STATE_PLAY_CUSTOM_MENU:
+        case GAME_STATE_NEW_CONTINUE_CUSTOM: // Draw New Game / Continue buttons for custom story
+            for (int i = 7; i <= 8; i++) {
+                DrawTexture(MenuButtons[i], (int)buttonRects[i].x, (int)buttonRects[i].y, WHITE);
+            }
+            DrawTexture(MenuButtons[15], (int)buttonRects[15].x, (int)buttonRects[15].y, WHITE);
+            break;
+
+        case GAME_STATE_PLAY_CUSTOM_MENU: // Draw custom story slots
             for (int i = 12; i <= 14; i++) {
                 DrawTexture(MenuButtons[i], (int)buttonRects[i].x, (int)buttonRects[i].y, WHITE);
+                // Draw "Empty Slot" text if the slot is NULL
+                if (customStorySlots[i - 12] == NULL) { 
+                    DrawText("Empty Slot", (int)buttonRects[i].x + MenuButtons[i].width + 20, (int)buttonRects[i].y + MenuButtons[i].height / 2 - 10, 30, RED);
+                }
             }
             DrawTexture(MenuButtons[15], (int)buttonRects[15].x, (int)buttonRects[15].y, WHITE);
             break;
@@ -233,6 +267,8 @@ void DrawMainMenu(GameState currentGameState) {
     }
 }
 
+// IS: State menu belum diperbarui
+// FS: State menu berhasil diperbarui sesuai input user
 void UpdateMainMenu(GameState *currentGameState) {
     printf("Updating main menu with currentGameState: %d\n", *currentGameState);
     UpdateMusicStream(BGMusic);
@@ -261,9 +297,9 @@ void UpdateMainMenu(GameState *currentGameState) {
             startIndex = 5; endIndex = 6;
             break;
         case GAME_STATE_NEW_CONTINUE_NON_CUSTOM:
-        case GAME_STATE_NEW_CONTINUE_CUSTOM:
             startIndex = 7; endIndex = 8;
             break;
+            
         case GAME_STATE_STUDIO_MENU:
             startIndex = 9; endIndex = 11;
             break;
@@ -278,7 +314,10 @@ void UpdateMainMenu(GameState *currentGameState) {
         case GAME_STATE_PAUSE:
             startIndex = 16; endIndex = 18;
             break;
-        case GAME_STATE_PLAY_CUSTOM_MENU:
+        case GAME_STATE_NEW_CONTINUE_CUSTOM: // Handle interaction for "New Game" / "Continue"
+            startIndex = 7; endIndex = 8;
+            break;
+        case GAME_STATE_PLAY_CUSTOM_MENU: // Handle interaction for custom story slots
             startIndex = 12; endIndex = 14;
             break;
         default:
@@ -343,7 +382,8 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
             break;
 
         case GAME_STATE_NEW_CONTINUE_NON_CUSTOM:
-            switch (index) {                case 7: // New Game
+            switch (index) {               
+                 case 7: // New Game
                     *currentGameState = GAME_STATE_MINI_GAME_STACK;
                     storyCurrentScene = 0;
                     storyCurrentFrame = 0;
@@ -360,13 +400,11 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
             }
             break;
 
-        case GAME_STATE_NEW_CONTINUE_CUSTOM:
+        case GAME_STATE_NEW_CONTINUE_CUSTOM: // Handle actions for "New Game" / "Continue" in custom story
             switch (index) {
                 case 7: // New Game
-                    *currentGameState = GAME_STATE_PLAY_CUSTOM_STORY;
-                    break;
-                case 8: // Continue
-                    *currentGameState = GAME_STATE_PLAY_CUSTOM_MENU;
+                case 8: // Continue (For now, both lead to slot selection)
+                    *currentGameState = GAME_STATE_PLAY_CUSTOM_MENU; // Transition to a state for slot selection
                     break;
                 case 15: // Back
                     *currentGameState = GAME_STATE_PLAY_GAME_MENU;
@@ -447,7 +485,7 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
                 *currentGameState = GAME_STATE_MAIN_MENU;
                 break;
             }
-            break;        
+            break;
         case GAME_STATE_PAUSE:
             switch (index) {
                 case 16: // Continue
@@ -475,12 +513,48 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
             }
             break;
 
-        case GAME_STATE_PLAY_CUSTOM_MENU:
+        case GAME_STATE_PLAY_CUSTOM_MENU: // Handle slot selection for playing custom stories
             switch (index) {
-                case 12: *currentGameState = GAME_STATE_PLAY_CUSTOM_SLOT_1; break;
-                case 13: *currentGameState = GAME_STATE_PLAY_CUSTOM_SLOT_2; break;
-                case 14: *currentGameState = GAME_STATE_PLAY_CUSTOM_SLOT_3; break;
-                case 15: *currentGameState = GAME_STATE_NEW_CONTINUE_CUSTOM; break;
+                case 12: // Slot 1
+                    // Load slot 1 if it exists
+                    if (customStorySlots[0] == NULL) {
+                        customStorySlots[0] = LoadSlotFromFile(1);
+                    }
+                    if (customStorySlots[0] != NULL) {
+                        // Reset to beginning of story
+                        currentCustomSlot = 0;
+                        customCurrentNode = customStorySlots[0]->ID;
+                        customCurrentScene = 0;
+                        *currentGameState = GAME_STATE_PLAY_CUSTOM_STORY;
+                    }
+                    break;
+                case 13: // Slot 2
+                    // Load slot 2 if it exists
+                    if (customStorySlots[1] == NULL) {
+                        customStorySlots[1] = LoadSlotFromFile(2);
+                    }
+                    if (customStorySlots[1] != NULL) {
+                        // Reset to beginning of story
+                        currentCustomSlot = 1;
+                        customCurrentNode = customStorySlots[1]->ID;
+                        customCurrentScene = 0;
+                        *currentGameState = GAME_STATE_PLAY_CUSTOM_STORY;
+                    }
+                    break;
+                case 14: // Slot 3
+                    // Load slot 3 if it exists
+                    if (customStorySlots[2] == NULL) {
+                        customStorySlots[2] = LoadSlotFromFile(3);
+                    }
+                    if (customStorySlots[2] != NULL) {
+                        // Reset to beginning of story
+                        currentCustomSlot = 2;
+                        customCurrentNode = customStorySlots[2]->ID;
+                        customCurrentScene = 0;
+                        *currentGameState = GAME_STATE_PLAY_CUSTOM_STORY;
+                    }
+                    break;
+                case 15: *currentGameState = GAME_STATE_NEW_CONTINUE_CUSTOM; break; // Back to "New Game" / "Continue" screen
             }
             break;
         default:
@@ -494,6 +568,8 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
     return false;
 }
 
+// IS: Pause menu belum diperbarui
+// FS: Pause menu berhasil diperbarui sesuai input user
 void UpdatePauseMenu(GameState *currentGameState) {
         Vector2 mousePoint = GetMousePosition();
     selectedMenu = -1;    // Check if mouse is over any button
@@ -524,6 +600,8 @@ void UnloadAssets() {
     }
 }
 
+// IS: Grid debug belum digambar di layar
+// FS: Grid debug berhasil digambar di layar
 void DrawDebugGrid(int gridSize) {
     Color gridColor = DARKGRAY;
 
@@ -540,6 +618,8 @@ void DrawDebugGrid(int gridSize) {
     }
 }
 
+// IS: Pause menu belum digambar di layar
+// FS: Pause menu berhasil digambar di layar
 void DrawPauseMenu() {
     DrawTexture(MenuButtons[0], 0, 0, WHITE);
 
@@ -560,4 +640,3 @@ void DrawPauseMenu() {
                  SCREEN_HEIGHT / 2 - 175, 50, WHITE);
     }
 }
-

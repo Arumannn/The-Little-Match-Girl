@@ -1,5 +1,13 @@
-#include "minigame.h"
+// Initial State: Minigame belum dimulai
+// Final State: Minigame selesai dan player dapat melanjutkan cerita
+
+#include <raylib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "minigame.h"
+#include "story.h"
+#include "mainmenu.h"
 
 Stack MemoryStack;
 Stack PlayerChoiceStack;
@@ -17,6 +25,8 @@ int memorySequence[MAX_STACK];   // Urutan memori yang ditampilkan (berurutan)
 int gridDisplayOrder[MAX_STACK]; // Urutan tampilan di grid (acak)
 bool correctChoices[MAX_STACK];  // Menandai pilihan yang benar
 
+// IS: Minigame belum diinisialisasi
+// FS: Semua asset dan state minigame berhasil diinisialisasi
 void InitMiniGameStack() {
     char filepath[256];
     
@@ -81,6 +91,8 @@ void InitMiniGameStack() {
     printf("\n");
 }
 
+// IS: State minigame belum diperbarui
+// FS: State minigame berhasil diperbarui sesuai input user
 void UpdateMiniGameStack(GameState *currentGameState) {
     UpdateMusicStream(minigameMusic);  // Update existing music stream
     if (!minigameActive) return;
@@ -212,6 +224,8 @@ void UpdateMiniGameStack(GameState *currentGameState) {
     }
 }
 
+// IS: Layar minigame belum digambar
+// FS: Layar minigame berhasil digambar sesuai state
 void DrawMiniGameStack() {
     ClearBackground(BLACK);
     
@@ -285,6 +299,8 @@ void DrawMiniGameStack() {
     }
 }
 
+// IS: Asset minigame masih termuat di memori
+// FS: Semua asset minigame berhasil di-unload dari memori
 void UnloadMiniGameStackAssets(Stack *S) {
     UnloadMusicStream(minigameMusic);
     CreateEmptyStack(S);

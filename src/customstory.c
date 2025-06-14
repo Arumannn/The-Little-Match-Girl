@@ -534,6 +534,7 @@ void OverwriteTree(SceneList *TempScene, CustomSceneTree *TempTree, int *control
         if (toDelete->Data.Background) free(toDelete->Data.Background);
         if (toDelete->Data.Character) free(toDelete->Data.Character);
         if (toDelete->Data.Convo) free(toDelete->Data.Convo);
+        if (toDelete->Data.SFX) free(toDelete->Data.SFX);  // Free SFX if exists
         free(toDelete);
         toDelete = next;
     }
@@ -544,6 +545,7 @@ void OverwriteTree(SceneList *TempScene, CustomSceneTree *TempTree, int *control
     (*TempScene)->Data.Background = NULL;
     (*TempScene)->Data.Character = NULL;
     (*TempScene)->Data.Convo = NULL;
+    (*TempScene)->Data.SFX = NULL;  // Initialize SFX to NULL
     (*TempScene)->Data.charPosition = CHAR_POS_CENTER;
 
     *control = CONFIRMATION;
@@ -602,6 +604,7 @@ void AddRightChild(CustomSceneTree *TempTree, SceneList *TempScene, bool *warnin
         (*TempScene)->Data.Background = NULL;
         (*TempScene)->Data.Character = NULL;
         (*TempScene)->Data.Convo = NULL;
+        (*TempScene)->Data.SFX = NULL;  // Initialize SFX to NULL
         (*TempScene)->Data.charPosition = CHAR_POS_CENTER;
         *control = CHOOSINGBACKGROUND;
     }
@@ -632,6 +635,7 @@ void AddLeftChild(CustomSceneTree *TempTree, SceneList *TempScene, int *selected
         (*TempScene)->Data.Background = NULL;
         (*TempScene)->Data.Character = NULL;
         (*TempScene)->Data.Convo = NULL;
+        (*TempScene)->Data.SFX = NULL;  // Initialize SFX to NULL
         (*TempScene)->Data.charPosition = CHAR_POS_CENTER;
         *control = CHOOSINGBACKGROUND;
     }
@@ -658,6 +662,7 @@ void InitializeStoryTree(CustomSceneTree *ThisSlot)
     (*ThisSlot)->NodeContents->Data.Background = NULL;
     (*ThisSlot)->NodeContents->Data.Character = NULL;
     (*ThisSlot)->NodeContents->Data.Convo = NULL;
+    (*ThisSlot)->NodeContents->Data.SFX = NULL;  // Initialize SFX to NULL
     (*ThisSlot)->NodeContents->Data.charPosition = CHAR_POS_CENTER;
 }
 
@@ -676,6 +681,7 @@ void AddSceneLast(CustomSceneTree *TempTree, SceneList *TempScene, int *control)
     TravellingScene->Next->Data.Background = NULL;
     TravellingScene->Next->Data.Character = NULL;
     TravellingScene->Next->Data.Convo = NULL;
+    TravellingScene->Next->Data.SFX = NULL;  // Initialize SFX to NULL
     TravellingScene->Next->Data.charPosition = CHAR_POS_CENTER;
     (*TempScene) = TravellingScene->Next;
     *control = CHOOSINGBACKGROUND;
@@ -691,6 +697,7 @@ void AddSceneFirst(CustomSceneTree *TempTree, SceneList *TempScene, bool *warnin
     TravellingScene->Before->Data.Background = NULL;
     TravellingScene->Before->Data.Character = NULL;
     TravellingScene->Before->Data.Convo = NULL;
+    TravellingScene->Before->Data.SFX = NULL;  // Initialize SFX to NULL
     TravellingScene->Before->Data.charPosition = CHAR_POS_CENTER;
     (*TempTree)->NodeContents = TravellingScene->Before;
     (*TempScene) = TravellingScene->Before;
@@ -740,6 +747,7 @@ void DeleteSceneLast(CustomSceneTree *TempTree, SceneList *TempScene, int *selec
     if (TravellingScene->Data.Background) free(TravellingScene->Data.Background);
     if (TravellingScene->Data.Character) free(TravellingScene->Data.Character);
     if (TravellingScene->Data.Convo) free(TravellingScene->Data.Convo);
+    if (TravellingScene->Data.SFX) free(TravellingScene->Data.SFX);  // Free SFX if exists
     free(TravellingScene);
     *warning = false;
     *selectedsprite = 5;
@@ -790,6 +798,7 @@ void DeleteSceneFirst(CustomSceneTree *TempTree, SceneList *TempScene, int *sele
     if (TravellingScene->Data.Background) free(TravellingScene->Data.Background);
     if (TravellingScene->Data.Character) free(TravellingScene->Data.Character);
     if (TravellingScene->Data.Convo) free(TravellingScene->Data.Convo);
+    if (TravellingScene->Data.SFX) free(TravellingScene->Data.SFX);  // Free SFX if exists
     free(TravellingScene);
     *warning = false;
     *selectedsprite = 5;
@@ -936,6 +945,7 @@ void DrawCustomStoryScene(SceneList scene) {
         charTex.height /= 2;
         charTex.width /= 2;
         DrawCharacterAtPosition(charTex, scene->Data.charPosition);
+        // UnloadTexture(charTex); // (optional, but don't unload if reused)
     }
 
     // Gambar kotak dialog dan teks
@@ -1161,6 +1171,8 @@ void SerializeSceneList(FILE *file, SceneList sceneList) {
         counter = counter->Next;
     }
     
+    printf("DEBUG: Serializing %d scenes\n", sceneCount);
+    
     // Write the scene count
     fwrite(&sceneCount, sizeof(int), 1, file);
     
@@ -1168,7 +1180,7 @@ void SerializeSceneList(FILE *file, SceneList sceneList) {
     current = sceneList;
     while (current != NULL) {
         // Write Background string
-        int bgLen = current->Data.Background ? strlen(current->Data.Background) + 1 : 0;
+        int bgLen = (current->Data.Background != NULL) ? strlen(current->Data.Background) + 1 : 0;
         fwrite(&bgLen, sizeof(int), 1, file);
         if (bgLen > 0) {
             fwrite(current->Data.Background, sizeof(char), bgLen, file);
@@ -1202,6 +1214,7 @@ void SerializeSceneList(FILE *file, SceneList sceneList) {
 SceneList DeserializeSceneList(FILE *file) {
     int sceneCount;
     if (fread(&sceneCount, sizeof(int), 1, file) != 1) {
+        printf("Error: Failed to read scene count\n");
         return NULL; // Failed to read scene count
     }
     
@@ -1215,43 +1228,122 @@ SceneList DeserializeSceneList(FILE *file) {
     for (int i = 0; i < sceneCount; i++) {
         // Create new scene
         SceneList newScene = (SceneList)malloc(sizeof(struct ListElements));
+        if (!newScene) {
+            printf("Error: Failed to allocate memory for scene\n");
+            return NULL;
+        }
         newScene->Next = NULL;
         newScene->Before = lastScene;
         newScene->Data.Background = NULL;
         newScene->Data.Character = NULL;
         newScene->Data.Convo = NULL;
-        newScene->Data.SFX = NULL;
+        newScene->Data.SFX = NULL;  // Initialize SFX to NULL
+        newScene->Data.charPosition = CHAR_POS_NONE;  // Default position
         
         // Read Background string
         int bgLen;
-        fread(&bgLen, sizeof(int), 1, file);
+        if (fread(&bgLen, sizeof(int), 1, file) != 1) {
+            printf("Error: Failed to read background length\n");
+            free(newScene);
+            return NULL;
+        }
         if (bgLen > 0) {
             newScene->Data.Background = (char*)malloc(bgLen);
-            fread(newScene->Data.Background, sizeof(char), bgLen, file);
+            if (!newScene->Data.Background) {
+                printf("Error: Failed to allocate memory for background\n");
+                free(newScene);
+                return NULL;
+            }
+            if (fread(newScene->Data.Background, sizeof(char), bgLen, file) != bgLen) {
+                printf("Error: Failed to read background data\n");
+                free(newScene->Data.Background);
+                free(newScene);
+                return NULL;
+            }
         }
         
         // Read Character string
         int charLen;
-        fread(&charLen, sizeof(int), 1, file);
+        if (fread(&charLen, sizeof(int), 1, file) != 1) {
+            printf("Error: Failed to read character length\n");
+            if (newScene->Data.Background) free(newScene->Data.Background);
+            free(newScene);
+            return NULL;
+        }
         if (charLen > 0) {
             newScene->Data.Character = (char*)malloc(charLen);
-            fread(newScene->Data.Character, sizeof(char), charLen, file);
+            if (!newScene->Data.Character) {
+                printf("Error: Failed to allocate memory for character\n");
+                if (newScene->Data.Background) free(newScene->Data.Background);
+                free(newScene);
+                return NULL;
+            }
+            if (fread(newScene->Data.Character, sizeof(char), charLen, file) != charLen) {
+                printf("Error: Failed to read character data\n");
+                if (newScene->Data.Background) free(newScene->Data.Background);
+                free(newScene->Data.Character);
+                free(newScene);
+                return NULL;
+            }
         }
         
         // Read Convo string
         int convoLen;
-        fread(&convoLen, sizeof(int), 1, file);
+        if (fread(&convoLen, sizeof(int), 1, file) != 1) {
+            printf("Error: Failed to read convo length\n");
+            if (newScene->Data.Background) free(newScene->Data.Background);
+            if (newScene->Data.Character) free(newScene->Data.Character);
+            free(newScene);
+            return NULL;
+        }
         if (convoLen > 0) {
             newScene->Data.Convo = (char*)malloc(convoLen);
-            fread(newScene->Data.Convo, sizeof(char), convoLen, file);
+            if (!newScene->Data.Convo) {
+                printf("Error: Failed to allocate memory for convo\n");
+                if (newScene->Data.Background) free(newScene->Data.Background);
+                if (newScene->Data.Character) free(newScene->Data.Character);
+                free(newScene);
+                return NULL;
+            }
+            if (fread(newScene->Data.Convo, sizeof(char), convoLen, file) != convoLen) {
+                printf("Error: Failed to read convo data\n");
+                if (newScene->Data.Background) free(newScene->Data.Background);
+                if (newScene->Data.Character) free(newScene->Data.Character);
+                free(newScene->Data.Convo);
+                free(newScene);
+                return NULL;
+            }
         }
         
         // Read SFX string
         int sfxLen;
-        fread(&sfxLen, sizeof(int), 1, file);
+        if (fread(&sfxLen, sizeof(int), 1, file) != 1) {
+            printf("Error: Failed to read SFX length\n");
+            if (newScene->Data.Background) free(newScene->Data.Background);
+            if (newScene->Data.Character) free(newScene->Data.Character);
+            if (newScene->Data.Convo) free(newScene->Data.Convo);
+            free(newScene);
+            return NULL;
+        }
         if (sfxLen > 0) {
             newScene->Data.SFX = (char*)malloc(sfxLen);
-            fread(newScene->Data.SFX, sizeof(char), sfxLen, file);
+            if (!newScene->Data.SFX) {
+                printf("Error: Failed to allocate memory for SFX\n");
+                if (newScene->Data.Background) free(newScene->Data.Background);
+                if (newScene->Data.Character) free(newScene->Data.Character);
+                if (newScene->Data.Convo) free(newScene->Data.Convo);
+                free(newScene);
+                return NULL;
+            }
+            if (fread(newScene->Data.SFX, sizeof(char), sfxLen, file) != sfxLen) {
+                printf("Error: Failed to read SFX data\n");
+                if (newScene->Data.Background) free(newScene->Data.Background);
+                if (newScene->Data.Character) free(newScene->Data.Character);
+                if (newScene->Data.Convo) free(newScene->Data.Convo);
+                free(newScene->Data.SFX);
+                free(newScene);
+                return NULL;
+            }
         }
         
         // Link the scenes
@@ -1274,6 +1366,8 @@ void SerializeTreeNode(FILE *file, CustomSceneTree node) {
         return;
     }
     
+    printf("DEBUG: Serializing node ID: %d\n", node->ID);
+    
     // Write a marker for non-NULL node
     int nodeMarker = 1;
     fwrite(&nodeMarker, sizeof(int), 1, file);
@@ -1285,6 +1379,7 @@ void SerializeTreeNode(FILE *file, CustomSceneTree node) {
     int textLeftLen = node->TextLeft ? strlen(node->TextLeft) + 1 : 0;
     fwrite(&textLeftLen, sizeof(int), 1, file);
     if (textLeftLen > 0) {
+        printf("DEBUG: Writing TextLeft: %s\n", node->TextLeft);
         fwrite(node->TextLeft, sizeof(char), textLeftLen, file);
     }
     
@@ -1292,14 +1387,18 @@ void SerializeTreeNode(FILE *file, CustomSceneTree node) {
     int textRightLen = node->TextRight ? strlen(node->TextRight) + 1 : 0;
     fwrite(&textRightLen, sizeof(int), 1, file);
     if (textRightLen > 0) {
+        printf("DEBUG: Writing TextRight: %s\n", node->TextRight);
         fwrite(node->TextRight, sizeof(char), textRightLen, file);
     }
     
+    printf("DEBUG: Serializing scene list for node %d\n", node->ID);
     // Write the scene list for this node
     SerializeSceneList(file, node->NodeContents);
     
+    printf("DEBUG: Recursively serializing left child of node %d\n", node->ID);
     // Recursively write left and right children
     SerializeTreeNode(file, node->Left);
+    printf("DEBUG: Recursively serializing right child of node %d\n", node->ID);
     SerializeTreeNode(file, node->Right);
 }
 
@@ -1375,17 +1474,21 @@ CustomSceneTree DeserializeTreeNode(FILE *file, CustomSceneTree parent) {
 }
 
 void SaveTreeToFile(CustomSceneTree tree, const char* filename) {
+    printf("DEBUG: SaveTreeToFile called with filename: %s\n", filename);
+    
     if (tree == NULL) {
         printf("Error: Cannot save NULL tree.\n");
         return;
     }
 
+    printf("DEBUG: Opening file for writing...\n");
     FILE *file = fopen(filename, "wb");
     if (file == NULL) {
         printf("Error: Could not open file '%s' for writing.\n", filename);
         return;
     }
     
+    printf("DEBUG: Writing file header...\n");
     // Write a file header/version for future compatibility
     char header[16] = "VSTORY_V1.0";
     size_t written = fwrite(header, sizeof(char), 16, file);
@@ -1395,9 +1498,11 @@ void SaveTreeToFile(CustomSceneTree tree, const char* filename) {
         return;
     }
     
+    printf("DEBUG: Starting tree serialization...\n");
     // Serialize the entire tree
     SerializeTreeNode(file, tree);
     
+    printf("DEBUG: Checking for write errors...\n");
     // Check for any write errors
     if (ferror(file)) {
         printf("Error: Write error occurred while saving.\n");
@@ -1446,6 +1551,8 @@ CustomSceneTree LoadTreeFromFile(const char* filename) {
 }
 
 void SaveSlotToFile(CustomSceneTree *ThisSlot, int slotNumber) {
+    printf("DEBUG: SaveSlotToFile called with slot %d\n", slotNumber);
+    
     if (ThisSlot == NULL || *ThisSlot == NULL) {
         printf("Error: No story to save.\n");
         return;
@@ -1462,6 +1569,7 @@ void SaveSlotToFile(CustomSceneTree *ThisSlot, int slotNumber) {
         return;
     }
     
+    printf("DEBUG: Creating saves directory...\n");
     // Create saves directory if it doesn't exist (platform dependent)
     #ifdef _WIN32
         system("mkdir saves 2>nul");
@@ -1469,6 +1577,7 @@ void SaveSlotToFile(CustomSceneTree *ThisSlot, int slotNumber) {
         system("mkdir -p saves");
     #endif
     
+    printf("DEBUG: Testing file creation...\n");
     // Try to create/open the file first to verify we can write
     FILE *testFile = fopen(filename, "wb");
     if (testFile == NULL) {
@@ -1477,8 +1586,10 @@ void SaveSlotToFile(CustomSceneTree *ThisSlot, int slotNumber) {
     }
     fclose(testFile);
     
+    printf("DEBUG: Calling SaveTreeToFile...\n");
     // Now actually save the tree
     SaveTreeToFile(*ThisSlot, filename);
+    printf("DEBUG: SaveSlotToFile completed\n");
 }
 
 
@@ -1591,7 +1702,73 @@ int UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene)
     }
     while (front) { TempQueueNode *temp = Dequeue(&front, &rear); free(temp); }
 
-    // Navigasi node
+    // Get current scene
+    SceneList scene = node->NodeContents;
+    for (int i = 0; i < *currentScene && scene != NULL; i++) scene = scene->Next;
+    if (!scene) return GAME_STATE_MAIN_MENU;
+
+    // Check if this is the last scene in the node
+    bool isLastScene = (scene->Next == NULL);
+    
+    Vector2 mouse = GetMousePosition();
+
+    // Handle pause menu
+    if (IsKeyPressed(KEY_F1)) {
+        return GAME_STATE_PAUSE;
+    }
+
+    // Handle choice selection if this is the last scene and node has choices
+    if (isLastScene && (node->Left != NULL || node->Right != NULL)) {
+        int choiceButtonWidth = 400;
+        int choiceButtonHeight = 60;
+        int choiceStartY = SCREEN_HEIGHT / 2 + 275;
+
+        // Left choice button
+        Rectangle choiceRectLeft = {
+            SCREEN_WIDTH / 2 - choiceButtonWidth / 2 - 715,
+            choiceStartY,
+            (float)choiceButtonWidth,
+            (float)choiceButtonHeight
+        };
+        
+        if (CheckCollisionPointRec(mouse, choiceRectLeft) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            if (node->Left != NULL) {
+                node = node->Left;
+                *currentNode = node->ID;
+                *currentScene = 0;
+                return GAME_STATE_PLAY_CUSTOM_STORY;
+            }
+        }
+
+        // Right choice button
+        if (node->Right != NULL) {
+            Rectangle choiceRectRight = {
+                SCREEN_WIDTH / 2 - choiceButtonWidth / 2 + 715,
+                choiceStartY,
+                (float)choiceButtonWidth,
+                (float)choiceButtonHeight
+            };
+            
+            if (CheckCollisionPointRec(mouse, choiceRectRight) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                node = node->Right;
+                *currentNode = node->ID;
+                *currentScene = 0;
+                return GAME_STATE_PLAY_CUSTOM_STORY;
+            }
+        }
+    } else {
+        // Handle scene progression with mouse click or keyboard
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
+            if (scene->Next != NULL) {
+                (*currentScene)++;
+            } else if (node->Left == NULL && node->Right == NULL) {
+                // End of story - return to main menu
+                return GAME_STATE_MAIN_MENU;
+            }
+        }
+    }
+
+    // Handle keyboard navigation (for debugging/development)
     if (IsKeyPressed(KEY_LEFT) && node->Left != NULL) {
         node = node->Left;
         *currentNode = node->ID;
@@ -1601,14 +1778,14 @@ int UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene)
         *currentNode = node->ID;
         *currentScene = 0;
     }
-    // Navigasi scene
-    SceneList scene = node->NodeContents;
-    for (int i = 0; i < *currentScene && scene != NULL; i++) scene = scene->Next;
+    
+    // Navigasi scene dengan keyboard
     if (IsKeyPressed(KEY_UP) && scene && scene->Before != NULL) {
         (*currentScene)--;
     } else if (IsKeyPressed(KEY_DOWN) && scene && scene->Next != NULL) {
         (*currentScene)++;
     }
+    
     // Keluar
     if (IsKeyPressed(KEY_ESCAPE)) {
         char filename[64];
@@ -1616,6 +1793,7 @@ int UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene)
         SaveCustomStoryProgress(filename, *currentNode, *currentScene);
         return GAME_STATE_MAIN_MENU;
     }
+    
     return GAME_STATE_PLAY_CUSTOM_STORY;
 }
 
@@ -1653,6 +1831,7 @@ void DrawCustomStoryScreen(CustomSceneTree tree, int currentNode, int currentSce
     } else {
         ClearBackground(RAYWHITE);
     }
+    
     // Gambar karakter
     Texture2D charTex = {0};
     if (scene->Data.Character && strlen(scene->Data.Character) > 0) {
@@ -1660,16 +1839,64 @@ void DrawCustomStoryScreen(CustomSceneTree tree, int currentNode, int currentSce
         charTex.height /= 2;
         charTex.width /= 2;
         DrawCharacterAtPosition(charTex, scene->Data.charPosition);
+        // UnloadTexture(charTex); // (optional, but don't unload if reused)
     }
+    
     // Gambar kotak dialog
     if (scene->Data.Convo && strlen(scene->Data.Convo) > 0) {
-        DrawRectangle(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, BLACK);
+        DrawRectangle(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, Fade(BLACK, 0.8f));
         DrawRectangleLines(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, WHITE);
         DrawText(scene->Data.Convo, 70, SCREEN_HEIGHT - 180, 30, WHITE);
     }
-    // Petunjuk navigasi
-    DrawText("[LEFT/RIGHT]: Pindah node | [UP/DOWN]: Scene | [ESC]: Kembali", 60, 60, 28, YELLOW);
-    // Jangan unload texture di sini!
+    
+    // Check if this is the last scene and node has choices
+    bool isLastScene = (scene->Next == NULL);
+    if (isLastScene && (node->Left != NULL || node->Right != NULL)) {
+        int choiceButtonWidth = 400;
+        int choiceButtonHeight = 60;
+        int choiceStartY = SCREEN_HEIGHT / 2 + 275;
+
+        // Draw left choice button
+        Rectangle choiceRectLeft = {
+            SCREEN_WIDTH / 2 - choiceButtonWidth / 2 - 715,
+            choiceStartY,
+            (float)choiceButtonWidth,
+            (float)choiceButtonHeight
+        };
+        DrawRectangleRec(choiceRectLeft, Fade(GRAY, 0.8f));
+        DrawRectangleLinesEx(choiceRectLeft, 2, WHITE);
+        
+        const char* leftText = node->TextLeft ? node->TextLeft : "Go Left";
+        Vector2 leftTextPos = {
+            choiceRectLeft.x + choiceButtonWidth/2 - MeasureText(leftText, 25)/2,
+            choiceRectLeft.y + choiceButtonHeight/2 - 25/2
+        };
+        DrawText(leftText, leftTextPos.x, leftTextPos.y, 25, WHITE);
+
+        // Draw right choice button if it exists
+        if (node->Right != NULL) {
+            Rectangle choiceRectRight = {
+                SCREEN_WIDTH / 2 - choiceButtonWidth / 2 + 715,
+                choiceStartY,
+                (float)choiceButtonWidth,
+                (float)choiceButtonHeight
+            };
+            DrawRectangleRec(choiceRectRight, Fade(GRAY, 0.8f));
+            DrawRectangleLinesEx(choiceRectRight, 2, WHITE);
+            
+            const char* rightText = node->TextRight ? node->TextRight : "Go Right";
+            Vector2 rightTextPos = {
+                choiceRectRight.x + choiceButtonWidth/2 - MeasureText(rightText, 25)/2,
+                choiceRectRight.y + choiceButtonHeight/2 - 25/2
+            };
+            DrawText(rightText, rightTextPos.x, rightTextPos.y, 25, WHITE);
+        }
+    }
+    
+    // Petunjuk navigasi (only show in debug mode or when needed)
+    // DrawText("[LEFT/RIGHT]: Pindah node | [UP/DOWN]: Scene | [ESC]: Kembali", 60, 60, 28, YELLOW);
+    
+    // Don't unload textures here as they might be reused
 }
 
 void ChoosingChoiceText(char *LeftText, char *RightText, int *selectedsprite, CustomSceneTree *TempTree)

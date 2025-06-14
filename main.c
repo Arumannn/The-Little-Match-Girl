@@ -34,6 +34,14 @@ int main() {
     InitButtonRects(currentGameState);
     InitiateAssets(); // Initialize custom story assets
 
+    // Load existing custom story slots from files
+    for (int i = 0; i < 3; i++) {
+        customStorySlots[i] = LoadSlotFromFile(i + 1);
+        if (customStorySlots[i] != NULL) {
+            printf("Loaded custom story slot %d\n", i + 1);
+        }
+    }
+
     
     
     while (!WindowShouldClose() && !exitProgram) {
@@ -46,6 +54,7 @@ int main() {
             case GAME_STATE_PLAY_GAME_MENU:
             case GAME_STATE_NEW_CONTINUE_NON_CUSTOM:
             case GAME_STATE_NEW_CONTINUE_CUSTOM:
+            case GAME_STATE_PLAY_CUSTOM_MENU:
             case GAME_STATE_STUDIO_MENU:
             case GAME_STATE_CREATE_MENU:
             case GAME_STATE_EDIT_MENU:

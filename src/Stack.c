@@ -2,9 +2,14 @@
 #include <stdio.h>
 #include <raylib.h>
 
+// IS: Stack belum diinisialisasi
+// FS: Stack berhasil diinisialisasi kosong
 void CreateEmptyStack(Stack *S){
     S->top = -1;
 }
+
+// IS: Stack belum dicek kosong/penuh
+// FS: Status kosong/penuh stack diketahui
 bool IsStackEmpty(Stack S){
     return S.top == -1;
 }
@@ -13,6 +18,8 @@ bool IsStackFull(Stack S){
     return S.top == MAX_STACK - 1;
 }
 
+// IS: Data belum ditambahkan ke stack
+// FS: Data berhasil ditambahkan ke stack jika belum penuh
 void Push (Stack *S, Data X){
     if (!IsStackFull(*S))
     {
@@ -21,6 +28,9 @@ void Push (Stack *S, Data X){
     }else printf("Stack Penuh");
     
 }
+
+// IS: Data belum di-pop dari stack
+// FS: Data berhasil di-pop dari stack jika tidak kosong
 void Pop (Stack *S, Data *X){
     if (!IsStackEmpty(*S))
     {
@@ -32,11 +42,15 @@ void Pop (Stack *S, Data *X){
     }
     
 }
-//DEBUGGING STACK
+
+// IS: Ukuran stack belum diketahui
+// FS: Ukuran stack berhasil dihitung
 int StackSize(Stack S){
     return S.top + 1;
 } 
 
+// IS: Stack belum dicetak ke terminal
+// FS: Isi stack berhasil dicetak ke terminal
 void PrintStack(Stack S) {
     if (IsStackEmpty(S)) {
         printf("Stack kosong\n");
