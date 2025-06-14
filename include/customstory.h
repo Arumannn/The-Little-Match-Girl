@@ -95,13 +95,13 @@ CustomSceneTree DeserializeTreeNode(FILE *file, CustomSceneTree parent);
 SceneList DeserializeSceneList(FILE *file);
 
 void InitializeStoryTree(CustomSceneTree *ThisSlot);
-void CustomStoryGUI(int state, int currentsprite, char *Dialogue, char *BackSprite, char *CharaSprite, CharacterPosition charPosition);
+void CustomStoryGUI(int state, int currentsprite, char *Dialogue, char *BackSprite, char *CharaSprite, CharacterPosition charPosition, CustomSceneTree TempTree, SceneList TempScene);
 void InitiateAssets();
 void PrintTree(CustomSceneTree *ThisSlot);
-void ChoosingBackground(int *selectedsprite, int *control, SceneList *TempScene);
-void ChoosingChara(int *selectedsprite, int *control, SceneList *TempScene);
+void ChoosingBackground(int *selectedsprite, int *control, SceneList *TempScene, CustomSceneTree TempTree);
+void ChoosingChara(int *selectedsprite, int *control, SceneList *TempScene, CustomSceneTree TempTree);
 enum { DUMMY_MAX_CONVO = 128 };
-int ChoosingDialogue(char *Convo, int *selectedsprite, SceneList *TempScene);
+int ChoosingDialogue(char *Convo, int *selectedsprite, SceneList *TempScene, CustomSceneTree TempTree);
 void ChoosingCharaPosition(int *selectedsprite, int *control, SceneList *TempScene);
 void ChoosingChoiceText(char *LeftText, char *RightText, int *selectedsprite, CustomSceneTree *TempTree);  // New function
 void MakeCustomStory(CustomSceneTree *ThisSlot, int SlotNumber);
