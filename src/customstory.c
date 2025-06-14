@@ -1132,6 +1132,10 @@ void PrintTree(CustomSceneTree *ThisSlot) {
         int level = qNode->level;
 
         printf("---- Tree Node ID: %d | Level: %d ----\n", current->ID, level);
+        printf("   TextLeft: '%s'\n", current->TextLeft ? current->TextLeft : "(none)");
+        printf("   TextRight: '%s'\n", current->TextRight ? current->TextRight : "(none)");
+        printf("   Has Left Child: %s\n", current->Left ? "YES" : "NO");
+        printf("   Has Right Child: %s\n", current->Right ? "YES" : "NO");
 
         SceneList scene = current->NodeContents;
         int sceneIndex = 1;
@@ -1206,6 +1210,9 @@ void SerializeSceneList(FILE *file, SceneList sceneList) {
         if (sfxLen > 0) {
             fwrite(current->Data.SFX, sizeof(char), sfxLen, file);
         }
+        
+        // Write charPosition
+        fwrite(&(current->Data.charPosition), sizeof(CharacterPosition), 1, file);
         
         current = current->Next;
     }
@@ -1345,6 +1352,19 @@ SceneList DeserializeSceneList(FILE *file) {
                 return NULL;
             }
         }
+        
+        // Read charPosition
+        CharacterPosition charPosition;
+        if (fread(&charPosition, sizeof(CharacterPosition), 1, file) != 1) {
+            printf("Error: Failed to read charPosition\n");
+            if (newScene->Data.Background) free(newScene->Data.Background);
+            if (newScene->Data.Character) free(newScene->Data.Character);
+            if (newScene->Data.Convo) free(newScene->Data.Convo);
+            if (newScene->Data.SFX) free(newScene->Data.SFX);
+            free(newScene);
+            return NULL;
+        }
+        newScene->Data.charPosition = charPosition;
         
         // Link the scenes
         if (lastScene != NULL) {
@@ -1564,18 +1584,14 @@ void SaveSlotToFile(CustomSceneTree *ThisSlot, int slotNumber) {
     }
     
     char filename[MAX_PATH_LENGTH];
-    if (snprintf(filename, MAX_PATH_LENGTH, "saves/story_slot_%d.sav", slotNumber) >= MAX_PATH_LENGTH) {
+    if (snprintf(filename, MAX_PATH_LENGTH, "saves/custom/story_slot_%d.sav", slotNumber) >= MAX_PATH_LENGTH) {
         printf("Error: Save filename too long\n");
         return;
     }
     
     printf("DEBUG: Creating saves directory...\n");
     // Create saves directory if it doesn't exist (platform dependent)
-    #ifdef _WIN32
-        system("mkdir saves 2>nul");
-    #else
-        system("mkdir -p saves");
-    #endif
+    CreateSaveDirectories();
     
     printf("DEBUG: Testing file creation...\n");
     // Try to create/open the file first to verify we can write
@@ -1600,7 +1616,7 @@ CustomSceneTree LoadSlotFromFile(int slotNumber) {
     }
     
     char filename[64];
-    sprintf(filename, "saves/story_slot_%d.sav", slotNumber);
+    sprintf(filename, "saves/custom/story_slot_%d.sav", slotNumber);
     
     return LoadTreeFromFile(filename);
 }
@@ -1649,11 +1665,7 @@ void LoadSlot(CustomSceneTree *ThisSlot, int slotnumber) {
 
 void SaveCustomStoryProgress(const char *filename, int node, int scene) {
     // Create saves directory if it doesn't exist
-    #ifdef _WIN32
-        system("mkdir saves 2>nul");
-    #else
-        system("mkdir -p saves");
-    #endif
+    CreateSaveDirectories();
 
     FILE *file = fopen(filename, "wb");
     if (file == NULL) {
@@ -1666,6 +1678,14 @@ void SaveCustomStoryProgress(const char *filename, int node, int scene) {
     fwrite(&scene, sizeof(int), 1, file);
 
     fclose(file);
+}
+
+// Save custom story progress with slot number
+void SaveCustomStoryProgressBySlot(int slotNumber, int node, int scene) {
+    char filename[64];
+    sprintf(filename, "saves/custom/progress_slot_%d.dat", slotNumber);
+    SaveCustomStoryProgress(filename, node, scene);
+    printf("DEBUG: Saved custom story progress for slot %d: node=%d, scene=%d\n", slotNumber, node, scene);
 }
 
 void LoadCustomStoryProgress(const char *filename, int *node, int *scene) {
@@ -1682,7 +1702,151 @@ void LoadCustomStoryProgress(const char *filename, int *node, int *scene) {
     fclose(file);
 }
 
-int UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene) {
+// Load custom story progress with slot number
+void LoadCustomStoryProgressBySlot(int slotNumber, int *node, int *scene) {
+    char filename[64];
+    sprintf(filename, "saves/custom/progress_slot_%d.dat", slotNumber);
+    LoadCustomStoryProgress(filename, node, scene);
+    printf("DEBUG: Loaded custom story progress for slot %d: node=%d, scene=%d\n", slotNumber, *node, *scene);
+}
+
+// Save regular story progress with slot number
+void SaveRegularStoryProgressBySlot(int slotNumber, int node, int scene) {
+    char filename[64];
+    sprintf(filename, "saves/story/progress_slot_%d.dat", slotNumber);
+    SaveCustomStoryProgress(filename, node, scene);
+    printf("DEBUG: Saved regular story progress for slot %d: node=%d, scene=%d\n", slotNumber, node, scene);
+}
+
+// Load regular story progress with slot number
+void LoadRegularStoryProgressBySlot(int slotNumber, int *node, int *scene) {
+    char filename[64];
+    sprintf(filename, "saves/story/progress_slot_%d.dat", slotNumber);
+    LoadCustomStoryProgress(filename, node, scene);
+    printf("DEBUG: Loaded regular story progress for slot %d: node=%d, scene=%d\n", slotNumber, *node, *scene);
+}
+
+// IS: Slot files belum dihapus dari sistem file
+// FS: Slot files berhasil dihapus dari sistem file
+void DeleteSlotFiles(int slotNumber) {
+    printf("DEBUG: DeleteSlotFiles called with slot %d\n", slotNumber);
+    
+    if (slotNumber < 1 || slotNumber > 3) {
+        printf("Error: Invalid slot number. Use 1-3.\n");
+        return;
+    }
+    
+    char storyFilename[64];
+    char progressFilename[64];
+    
+    // Create filenames
+    sprintf(storyFilename, "saves/custom/story_slot_%d.sav", slotNumber);
+    sprintf(progressFilename, "saves/custom/progress_slot_%d.dat", slotNumber);
+    
+    printf("DEBUG: Attempting to delete story file: %s\n", storyFilename);
+    printf("DEBUG: Attempting to delete progress file: %s\n", progressFilename);
+    
+    // Check if files exist before trying to delete
+    FILE *testFile;
+    bool storyDeleted = false;
+    bool progressDeleted = false;
+    
+    // Check and delete story file
+    testFile = fopen(storyFilename, "r");
+    if (testFile != NULL) {
+        fclose(testFile);
+        printf("Story file exists, attempting to delete...\n");
+        if (remove(storyFilename) == 0) {
+            printf("Successfully deleted story file: %s\n", storyFilename);
+            storyDeleted = true;
+            
+            // Verify deletion
+            testFile = fopen(storyFilename, "r");
+            if (testFile == NULL) {
+                printf("✓ Verification: Story file successfully removed from filesystem\n");
+            } else {
+                fclose(testFile);
+                printf("✗ ERROR: Story file still exists after deletion!\n");
+            }
+        } else {
+            printf("ERROR: Could not delete story file: %s\n", storyFilename);
+            printf("Possible reasons: file is open, permission denied, or file system error\n");
+        }
+    } else {
+        printf("Story file does not exist: %s\n", storyFilename);
+        storyDeleted = true; // Consider it "deleted" if it never existed
+    }
+    
+    // Check and delete progress file
+    testFile = fopen(progressFilename, "r");
+    if (testFile != NULL) {
+        fclose(testFile);
+        printf("Progress file exists, attempting to delete...\n");
+        if (remove(progressFilename) == 0) {
+            printf("Successfully deleted progress file: %s\n", progressFilename);
+            progressDeleted = true;
+            
+            // Verify deletion
+            testFile = fopen(progressFilename, "r");
+            if (testFile == NULL) {
+                printf("✓ Verification: Progress file successfully removed from filesystem\n");
+            } else {
+                fclose(testFile);
+                printf("✗ ERROR: Progress file still exists after deletion!\n");
+            }
+        } else {
+            printf("ERROR: Could not delete progress file: %s\n", progressFilename);
+            printf("Possible reasons: file is open, permission denied, or file system error\n");
+        }
+    } else {
+        printf("Progress file does not exist: %s\n", progressFilename);
+        progressDeleted = true; // Consider it "deleted" if it never existed
+    }
+    
+    // Final summary
+    if (storyDeleted && progressDeleted) {
+        printf("✓ SUCCESS: All slot %d files have been cleared\n", slotNumber);
+    } else {
+        printf("✗ WARNING: Some files could not be deleted for slot %d\n", slotNumber);
+    }
+    
+    printf("DEBUG: DeleteSlotFiles completed for slot %d\n", slotNumber);
+}
+
+// Clear slot from memory (to be called from main.c)
+void ClearSlotFromMemory(int slotNumber) {
+    printf("DEBUG: ClearSlotFromMemory called with slot %d\n", slotNumber);
+    
+    if (slotNumber < 1 || slotNumber > 3) {
+        printf("Error: Invalid slot number. Use 1-3.\n");
+        return;
+    }
+    
+    // This function should be called from main.c to clear the customStorySlots array
+    // The actual implementation will be in main.c since that's where the array is defined
+    printf("DEBUG: ClearSlotFromMemory completed for slot %d\n", slotNumber);
+    printf("NOTE: Call DeleteTreeNode(&customStorySlots[%d]) from main.c to complete the cleanup\n", slotNumber - 1);
+}
+
+// Create save game directories
+void CreateSaveDirectories() {
+    printf("DEBUG: Creating save directories...\n");
+    
+    // Create main saves directory
+    #ifdef _WIN32
+        system("mkdir saves 2>nul");
+        system("mkdir saves\\story 2>nul");
+        system("mkdir saves\\custom 2>nul");
+    #else
+        system("mkdir -p saves");
+        system("mkdir -p saves/story");
+        system("mkdir -p saves/custom");
+    #endif
+    
+    printf("DEBUG: Save directories created successfully\n");
+}
+
+int UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene, int currentSlot) {
     // Navigasi node (LEFT/RIGHT) dan scene (UP/DOWN)
     CustomSceneTree node = tree;
     // Cari node saat ini berdasarkan ID
@@ -1714,6 +1878,11 @@ int UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene)
 
     // Handle pause menu
     if (IsKeyPressed(KEY_F1)) {
+        // Save progress before pausing
+        SaveCustomStoryProgressBySlot(currentSlot, *currentNode, *currentScene);
+        printf("DEBUG: Progress saved before pause\n");
+        extern GameState previousGameState;
+        previousGameState = GAME_STATE_PLAY_CUSTOM_STORY;
         return GAME_STATE_PAUSE;
     }
 
@@ -1736,6 +1905,8 @@ int UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene)
                 node = node->Left;
                 *currentNode = node->ID;
                 *currentScene = 0;
+                // Save progress when making a choice
+                SaveCustomStoryProgressBySlot(currentSlot, *currentNode, *currentScene);
                 return GAME_STATE_PLAY_CUSTOM_STORY;
             }
         }
@@ -1753,6 +1924,8 @@ int UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene)
                 node = node->Right;
                 *currentNode = node->ID;
                 *currentScene = 0;
+                // Save progress when making a choice
+                SaveCustomStoryProgressBySlot(currentSlot, *currentNode, *currentScene);
                 return GAME_STATE_PLAY_CUSTOM_STORY;
             }
         }
@@ -1761,6 +1934,8 @@ int UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene)
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
             if (scene->Next != NULL) {
                 (*currentScene)++;
+                // Save progress when advancing scene
+                SaveCustomStoryProgressBySlot(currentSlot, *currentNode, *currentScene);
             } else if (node->Left == NULL && node->Right == NULL) {
                 // End of story - return to main menu
                 return GAME_STATE_MAIN_MENU;
@@ -1773,24 +1948,27 @@ int UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene)
         node = node->Left;
         *currentNode = node->ID;
         *currentScene = 0;
+        SaveCustomStoryProgressBySlot(currentSlot, *currentNode, *currentScene);
     } else if (IsKeyPressed(KEY_RIGHT) && node->Right != NULL) {
         node = node->Right;
         *currentNode = node->ID;
         *currentScene = 0;
+        SaveCustomStoryProgressBySlot(currentSlot, *currentNode, *currentScene);
     }
     
     // Navigasi scene dengan keyboard
     if (IsKeyPressed(KEY_UP) && scene && scene->Before != NULL) {
         (*currentScene)--;
+        SaveCustomStoryProgressBySlot(currentSlot, *currentNode, *currentScene);
     } else if (IsKeyPressed(KEY_DOWN) && scene && scene->Next != NULL) {
         (*currentScene)++;
+        SaveCustomStoryProgressBySlot(currentSlot, *currentNode, *currentScene);
     }
     
-    // Keluar
+    // Keluar dan save progress
     if (IsKeyPressed(KEY_ESCAPE)) {
-        char filename[64];
-        sprintf(filename, "saves/custom_save_%d.dat", *currentNode);
-        SaveCustomStoryProgress(filename, *currentNode, *currentScene);
+        SaveCustomStoryProgressBySlot(currentSlot, *currentNode, *currentScene);
+        printf("DEBUG: Progress saved before exit\n");
         return GAME_STATE_MAIN_MENU;
     }
     
@@ -1849,9 +2027,17 @@ void DrawCustomStoryScreen(CustomSceneTree tree, int currentNode, int currentSce
         DrawText(scene->Data.Convo, 70, SCREEN_HEIGHT - 180, 30, WHITE);
     }
     
-    // Check if this is the last scene and node has choices
+    // Check if this is the last scene and show choice buttons like in ReviewScene
     bool isLastScene = (scene->Next == NULL);
-    if (isLastScene && (node->Left != NULL || node->Right != NULL)) {
+    printf("DEBUG: isLastScene=%d, node->Left=%p, node->Right=%p\n", 
+           isLastScene, (void*)node->Left, (void*)node->Right);
+    printf("DEBUG: TextLeft='%s', TextRight='%s'\n", 
+           node->TextLeft ? node->TextLeft : "(null)", 
+           node->TextRight ? node->TextRight : "(null)");
+    
+    // Always draw choice buttons if this is the last scene, like in ReviewScene
+    if (isLastScene) {
+        printf("DEBUG: Drawing choice buttons (last scene)\n");
         int choiceButtonWidth = 400;
         int choiceButtonHeight = 60;
         int choiceStartY = SCREEN_HEIGHT / 2 + 275;
@@ -1873,30 +2059,25 @@ void DrawCustomStoryScreen(CustomSceneTree tree, int currentNode, int currentSce
         };
         DrawText(leftText, leftTextPos.x, leftTextPos.y, 25, WHITE);
 
-        // Draw right choice button if it exists
-        if (node->Right != NULL) {
-            Rectangle choiceRectRight = {
-                SCREEN_WIDTH / 2 - choiceButtonWidth / 2 + 715,
-                choiceStartY,
-                (float)choiceButtonWidth,
-                (float)choiceButtonHeight
-            };
-            DrawRectangleRec(choiceRectRight, Fade(GRAY, 0.8f));
-            DrawRectangleLinesEx(choiceRectRight, 2, WHITE);
-            
-            const char* rightText = node->TextRight ? node->TextRight : "Go Right";
-            Vector2 rightTextPos = {
-                choiceRectRight.x + choiceButtonWidth/2 - MeasureText(rightText, 25)/2,
-                choiceRectRight.y + choiceButtonHeight/2 - 25/2
-            };
-            DrawText(rightText, rightTextPos.x, rightTextPos.y, 25, WHITE);
-        }
+        // Draw right choice button
+        Rectangle choiceRectRight = {
+            SCREEN_WIDTH / 2 - choiceButtonWidth / 2 + 715,
+            choiceStartY,
+            (float)choiceButtonWidth,
+            (float)choiceButtonHeight
+        };
+        DrawRectangleRec(choiceRectRight, Fade(GRAY, 0.8f));
+        DrawRectangleLinesEx(choiceRectRight, 2, WHITE);
+        
+        const char* rightText = node->TextRight ? node->TextRight : "Go Right";
+        Vector2 rightTextPos = {
+            choiceRectRight.x + choiceButtonWidth/2 - MeasureText(rightText, 25)/2,
+            choiceRectRight.y + choiceButtonHeight/2 - 25/2
+        };
+        DrawText(rightText, rightTextPos.x, rightTextPos.y, 25, WHITE);
+    } else {
+        printf("DEBUG: NOT drawing choice buttons - not last scene\n");
     }
-    
-    // Petunjuk navigasi (only show in debug mode or when needed)
-    // DrawText("[LEFT/RIGHT]: Pindah node | [UP/DOWN]: Scene | [ESC]: Kembali", 60, 60, 28, YELLOW);
-    
-    // Don't unload textures here as they might be reused
 }
 
 void ChoosingChoiceText(char *LeftText, char *RightText, int *selectedsprite, CustomSceneTree *TempTree)

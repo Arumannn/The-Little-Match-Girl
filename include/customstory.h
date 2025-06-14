@@ -126,9 +126,22 @@ void LoadSlot(CustomSceneTree *ThisSlot, int slotnumber);
 // Save/Load progress functions
 void SaveCustomStoryProgress(const char *filename, int node, int scene);
 void LoadCustomStoryProgress(const char *filename, int *node, int *scene);
+void SaveCustomStoryProgressBySlot(int slotNumber, int node, int scene);
+void LoadCustomStoryProgressBySlot(int slotNumber, int *node, int *scene);
+void SaveRegularStoryProgressBySlot(int slotNumber, int node, int scene);
+void LoadRegularStoryProgressBySlot(int slotNumber, int *node, int *scene);
 
 // Custom story playback functions
-int UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene);
+int UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene, int currentSlot);
 void DrawCustomStoryScreen(CustomSceneTree tree, int currentNode, int currentScene);
+
+// DeleteSlotFiles function declaration
+void DeleteSlotFiles(int slotNumber);
+
+// Clear slot from memory function declaration
+void ClearSlotFromMemory(int slotNumber);
+
+// Create save directories function declaration
+void CreateSaveDirectories(void);
 
 #endif

@@ -571,7 +571,7 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
 // IS: Pause menu belum diperbarui
 // FS: Pause menu berhasil diperbarui sesuai input user
 void UpdatePauseMenu(GameState *currentGameState) {
-        Vector2 mousePoint = GetMousePosition();
+    Vector2 mousePoint = GetMousePosition();
     selectedMenu = -1;    // Check if mouse is over any button
     for (int i = 16; i <= 18; i++) {
         if (CheckCollisionPointRec(mousePoint, buttonRects[i])) {
