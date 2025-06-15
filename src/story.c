@@ -13,8 +13,8 @@ float frameDelay = 3.5f;
 float frameTimer = 0.0f;
 bool isMusicPlaying = false;
 Music currentSceneMusic;
-extern int storyCurrentScene;  // Declared in main.c
-extern int storyCurrentFrame;  // Declared in main.c
+extern int storyCurrentScene;  
+extern int storyCurrentFrame;
 
 TreeStory SceneTree[MAX_NODE_TREE];
 
@@ -51,9 +51,9 @@ void InitDataCerita(TreeStory *SceneTree) {
     SceneTree[0].IdRightSon = 2;
 
     Scene scenes0[] = {
-        {"Assets/Music/myinstants.mp3", "Girl : ......", "Assets/BackgroundSprites/background41.png", NULL, {0}, {0}, CHAR_POS_NONE},
-        {NULL, "Girl : It is so cold here, but i have to sell all these matches", "Assets/BackgroundSprites/background48.png", NULL, {0}, {0}, CHAR_POS_NONE},
-        {NULL, "Girl : What should i go, Open Street?", "Assets/BackgroundSprites/background29.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {"Assets/Music/snowstorm.mp3", "Girl : ......", "Assets/BackgroundSprites/background41.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {"Assets/Music/myinstants.mp3", "Girl : It is so cold here, but i have to sell all these matches", "Assets/BackgroundSprites/background48.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {"Assets/Music/myinstants.mp3", "Girl : What should i go, Open Street?", "Assets/BackgroundSprites/background29.png", NULL, {0}, {0}, CHAR_POS_NONE},
         {NULL, "Girl : Or the Alleway?", "Assets/BackgroundSprites/background29.png", NULL, {0}, {0}, CHAR_POS_NONE}
     };
     for (int i = 0; i < SceneTree[0].TotalScene; i++) {
@@ -108,7 +108,7 @@ void InitDataCerita(TreeStory *SceneTree) {
         {NULL, "Homeless man: Thank you kid, for the fire", "Assets/BackgroundSprites/background53.png", "Assets/CharaSprites/chara4.png", {0}, {0}, CHAR_POS_NONE},
         {NULL, " ", "Assets/BackgroundSprites/background53.png", NULL, {0}, {0}, CHAR_POS_NONE},
         {NULL, "..........", "Assets/BackgroundSprites/background53.png", NULL, {0}, {0}, CHAR_POS_NONE},
-        {NULL, "Other Homeless man: Hey! Why the fuck is the fire down, I'm freezing my ass here! ", "Assets/BackgroundSprites/background53.png", "Assets/CharaSprites/chara22.png", {0}, {0}, CHAR_POS_RIGHT},
+        {NULL, "Other Homeless man: Hey! Why the fuck is the fire down, I'm freezing my ass here! ", "Assets/BackgroundSprites/background55.png", "Assets/CharaSprites/chara22.png", {0}, {0}, CHAR_POS_RIGHT},
         {NULL, "Other Homeless man : Give me your fucking match", "Assets/BackgroundSprites/background35.png", "Assets/CharaSprites/chara22.png", {0}, {0}, CHAR_POS_RIGHT}
     };
     for (int i = 0; i < SceneTree[3].TotalScene; i++) {
@@ -236,7 +236,7 @@ void InitDataCerita(TreeStory *SceneTree) {
     SceneTree[10].IdRightSon = 14;
 
     Scene scenes10[] = {
-        {NULL, "Girl : “Hello sir, would you like a match? You're seemingly shivering…”", "Assets/BackgroundSprites/background34.png", "Assets/CharaSprites/chara14.png", {0}, {0}, CHAR_POS_CENTER},
+        {NULL, "Girl : Hello sir, would you like a match? You're seemingly shivering…", "Assets/BackgroundSprites/background34.png", "Assets/CharaSprites/chara14.png", {0}, {0}, CHAR_POS_CENTER},
         {NULL, "The Man : Okay.. Sure", "Assets/BackgroundSprites/background50.png", NULL, {0}, {0}, CHAR_POS_NONE},
         {NULL, "Girl: Thank you, sir", "Assets/BackgroundSprites/background51.png", NULL, {0}, {0}, CHAR_POS_NONE},
         {NULL, "Girl : :", "Assets/BackgroundSprites/background34.png", "Assets/CharaSprites/chara23.png", {0}, {0}, CHAR_POS_CENTER}
@@ -247,7 +247,7 @@ void InitDataCerita(TreeStory *SceneTree) {
 
      // Node 11
     SceneTree[11].id = 11;
-    SceneTree[11].TotalScene = 5;
+    SceneTree[11].TotalScene = 6;
     SceneTree[11].numChoices = 2;
     SceneTree[11].choiceLeftSon = "Alleway";
     SceneTree[11].choiceRightSon = "Stair";
@@ -257,8 +257,11 @@ void InitDataCerita(TreeStory *SceneTree) {
     Scene scenes11[] = {
         {NULL, "Running....", "Assets/BackgroundSprites/background34.png", NULL, {0}, {0}, CHAR_POS_NONE},
         {NULL, "Girl : At least, They won't Hurt me anymore", "Assets/BackgroundSprites/background42.png", NULL, {0}, {0}, CHAR_POS_NONE},
-        {NULL, "Girl: Thank you, sir", "Assets/BackgroundSprites/background51.png", NULL, {0}, {0}, CHAR_POS_NONE},
-        {NULL, "Girl : :", "Assets/BackgroundSprites/background34.png", "Assets/CharaSprites/chara22.png", {0}, {0}, CHAR_POS_CENTER}
+        {NULL, "Stranger Homeless : Give me all of your match", "Assets/BackgroundSprites/background61.png", "Assets/CharaSprites/chara25.png", {0}, {0}, CHAR_POS_CENTER},
+        {NULL, "Girl : No, I won't", "Assets/BackgroundSprites/background67.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {NULL, NULL, "Assets/BackgroundSprites/background65.png", NULL , {0}, {0}, CHAR_POS_NONE},
+        {NULL, "Stranger Homeless : Where Are you Wanna Go?", "Assets/BackgroundSprites/background66.png", NULL, {0}, {0}, CHAR_POS_NONE}
+
     };
     for (int i = 0; i < SceneTree[11].TotalScene; i++) {
         SceneTree[11].scenes[i] = scenes11[i];
@@ -313,13 +316,111 @@ void InitDataCerita(TreeStory *SceneTree) {
     SceneTree[14].IdRightSon = 14;
 
     Scene scenes14[] = {
-        {NULL, "Girl : “Hello sir, would you like a match? You're seemingly shivering…”", "Assets/BackgroundSprites/background34.png", "Assets/CharaSprites/chara14.png", {0}, {0}, CHAR_POS_CENTER},
+        {NULL, "Girl : \"Hello sir, would you like a match? You're seemingly shivering…\"", "Assets/BackgroundSprites/background34.png", "Assets/CharaSprites/chara14.png", {0}, {0}, CHAR_POS_CENTER},
         {NULL, "The Man : Okay.. Sure", "Assets/BackgroundSprites/background50.png", NULL, {0}, {0}, CHAR_POS_NONE},
         {NULL, "Girl: Thank you, sir", "Assets/BackgroundSprites/background51.png", NULL, {0}, {0}, CHAR_POS_NONE},
         {NULL, "Girl : :", "Assets/BackgroundSprites/background34.png", "Assets/CharaSprites/chara22.png", {0}, {0}, CHAR_POS_CENTER}
     };
     for (int i = 0; i < SceneTree[14].TotalScene; i++) {
-        SceneTree[14].scenes[i] = scenes10[i];
+        SceneTree[14].scenes[i] = scenes14[i];
+    }
+
+    // Node 15
+    SceneTree[15].id = 15;
+    SceneTree[15].TotalScene = 3;
+    SceneTree[15].numChoices = 2;
+    SceneTree[15].choiceLeftSon = "Light on a few match";
+    SceneTree[15].choiceRightSon = "Keep Walking";
+    SceneTree[15].IdLeftSon = 19;
+    SceneTree[15].IdRightSon = 20;
+
+    Scene scenes15[] = {
+        {NULL, "Girl : Finally I'm Safe Now...", "Assets/BackgroundSprites/background46.png", NULL, {0}, {0}, CHAR_POS_CENTER},
+        {NULL, "Girl : It's Cold", "Assets/BackgroundSprites/background48.png", NULL, {0}, {0}, CHAR_POS_CENTER},
+        {NULL, "Girl : I think i can light on a few match", "Assets/BackgroundSprites/background45.png", NULL, {0}, {0}, CHAR_POS_NONE}
+    };
+    for (int i = 0; i < SceneTree[15].TotalScene; i++) {
+        SceneTree[15].scenes[i] = scenes15[i];
+    }
+
+    //Node 16 Ending Die in Stairs
+    SceneTree[16].id = 16;
+    SceneTree[16].TotalScene = 5;
+    SceneTree[16].numChoices = 0;
+    SceneTree[16].choiceLeftSon = NULL;
+    SceneTree[16].choiceRightSon = NULL;
+    SceneTree[16].IdLeftSon = -1;
+    SceneTree[16].IdRightSon = -1;
+
+    Scene scenes16[] = {
+        {NULL, "Stranger Homeless : You can't escape from me", "Assets/Endings/diestair1.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {NULL, "Stranger Homeless : I said Give me all of your match", "Assets/Endings/diestair2.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {NULL, "Stranger Homeless : Fuck you", "Assets/Endings/diestair3.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {NULL, NULL, "Assets/Endings/diestair4.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {NULL, NULL, "Assets/Endings/diestair5.png", NULL , {0}, {0}, CHAR_POS_NONE},
+
+    };
+    for (int i = 0; i < SceneTree[16].TotalScene; i++) {
+        SceneTree[16].scenes[i] = scenes16[i];
+    }
+
+    // Node 19
+    SceneTree[19].id = 19;
+    SceneTree[19].TotalScene = 7;
+    SceneTree[19].numChoices = 2;
+    SceneTree[19].choiceLeftSon = "Escape Again";
+    SceneTree[19].choiceRightSon = "Accept the offer";
+    SceneTree[19].IdLeftSon = 23;
+    SceneTree[19].IdRightSon = 24;
+
+    Scene scenes19[] = {
+        {NULL, NULL, "Assets/BackgroundSprites/background39.png", NULL, {0}, {0}, CHAR_POS_CENTER},
+        {NULL, NULL, "Assets/BackgroundSprites/background68.png", NULL, {0}, {0}, CHAR_POS_CENTER},
+        {NULL, "The Man : What are you doing here?", "Assets/BackgroundSprites/background55.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {NULL, "Girl : ?!", "Assets/BackgroundSprites/background55.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {NULL, "The Man : Where's your parent?", "Assets/BackgroundSprites/background55.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {NULL, "Girl : I dont have parent", "Assets/BackgroundSprites/background55.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {NULL, "The man : Come with me i have a hot soup for you", "Assets/BackgroundSprites/background55.png", NULL, {0}, {0}, CHAR_POS_NONE}
+
+    };
+    for (int i = 0; i < SceneTree[19].TotalScene; i++) {
+        SceneTree[19].scenes[i] = scenes19[i];
+    }
+    // Node 20 (Ending: Die Alone)
+    SceneTree[20].id = 20;
+    SceneTree[20].TotalScene = 4;
+    SceneTree[20].numChoices = 1;
+    SceneTree[20].IdLeftSon = -1;
+    SceneTree[20].IdRightSon = -1;
+    SceneTree[20].choiceLeftSon = NULL;
+    SceneTree[20].choiceRightSon = NULL;
+
+    Scene scenes20[] = {
+        {NULL, "Girl : No, i can handle it", "Assets/Endings/diecoldalone1.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {NULL, "Girl : I'm still can handle it", "Assets/Endings/diecoldalone2.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {NULL, "Girl : I'm Just need a rest for a moment......", "Assets/Endings/diecoldalone2.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {NULL, NULL, "Assets/Endings/diecoldalone2.png", NULL, {0}, {0}, CHAR_POS_NONE}
+    };
+    for (int i = 0; i < SceneTree[20].TotalScene; i++) {
+        SceneTree[20].scenes[i] = scenes20[i];
+    }
+
+    // Node 23
+    SceneTree[23].id = 23;
+    SceneTree[23].TotalScene = 3;
+    SceneTree[23].numChoices = 0;
+    SceneTree[23].choiceLeftSon = NULL;
+    SceneTree[23].choiceRightSon = NULL;
+    SceneTree[23].IdLeftSon = -1;
+    SceneTree[23].IdRightSon = -1;
+
+    Scene scenes23[] = {
+        {NULL, "Girl : Now where i have to go? ", "Assets/Endings/walkwithoutdirection1.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {NULL, "Girl : I'm just walking without any direction", "Assets/Endings/walkwithoutdirection2.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {NULL, NULL, "Assets/Endings/walkwithoutdirection2.png", NULL, {0}, {0}, CHAR_POS_NONE}
+    };
+    for (int i = 0; i < SceneTree[23].TotalScene; i++) {
+        SceneTree[23].scenes[i] = scenes23[i];
     }
 }
 
@@ -420,7 +521,7 @@ void DrawCurrentNodeScreen(TreeStory SceneTree[]) {
 
     // Draw dialogue
     if (current->dialogue != NULL) {
-        DrawRectangle(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, Fade(BLACK, 0.8f));
+        DrawRectangle(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, Fade(BLACK, 1.0f));
         DrawRectangleLines(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, WHITE);
         DrawText(current->dialogue, 70, SCREEN_HEIGHT - 180, 30, WHITE);
     }
@@ -490,24 +591,38 @@ void UpdateCerita(TreeStory SceneTree[], GameState *gameState) {
     TreeStory *node = &SceneTree[storyCurrentScene];
     Scene *current = &node->scenes[storyCurrentFrame];
 
-    // Update music if it's playing
-    if (isMusicPlaying) {
-        UpdateMusicStream(currentSceneMusic);
-        if (!IsMusicStreamPlaying(currentSceneMusic)) {
-            isMusicPlaying = false;
+    static char* lastSoundPath = NULL;
+
+    // Handle audio transitions
+    if (current->soundPath != NULL) {
+        // Only load new music if it's different from the last one
+        if (lastSoundPath == NULL || strcmp(lastSoundPath, current->soundPath) != 0) {
+            // Stop and unload previous music if playing
+            if (isMusicPlaying) {
+                StopMusicStream(currentSceneMusic);
+                UnloadMusicStream(currentSceneMusic);
+                isMusicPlaying = false;
+            }
+            // Load and play new music
+            currentSceneMusic = LoadMusicStream(current->soundPath);
+            SetMusicVolume(currentSceneMusic, 0.5f);
+            PlayMusicStream(currentSceneMusic);
+            isMusicPlaying = true;
+            currentSceneMusic.looping = false;
+            lastSoundPath = current->soundPath;
         }
-    }
-    
-    // Check if this scene has music and should start playing
-    if (current->soundPath != NULL && !isMusicPlaying) {
+        // Update music if it's playing
         if (isMusicPlaying) {
-            UnloadMusicStream(currentSceneMusic);
+            UpdateMusicStream(currentSceneMusic);
         }
-        currentSceneMusic = LoadMusicStream(current->soundPath);
-        SetMusicVolume(currentSceneMusic, 0.5f);
-        PlayMusicStream(currentSceneMusic);
-        isMusicPlaying = true;
-        currentSceneMusic.looping = false;
+    } else {
+        // If current scene has no audio, stop and unload any playing music
+        if (isMusicPlaying) {
+            StopMusicStream(currentSceneMusic);
+            UnloadMusicStream(currentSceneMusic);
+            isMusicPlaying = false;
+            lastSoundPath = NULL;
+        }
     }
 
     Vector2 mouse = GetMousePosition();
