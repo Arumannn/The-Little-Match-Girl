@@ -5,11 +5,11 @@
 #include "mainmenu.h"
 
 #define MAX_SCENE 10
+#define MAX_NODE_TREE 28
 
 // External declarations for story state
 extern int storyCurrentScene;
 extern int storyCurrentFrame;
-#define MAX_NODE_TREE 28
 
 typedef enum {
     CHAR_POS_NONE,
@@ -19,7 +19,7 @@ typedef enum {
 } CharacterPosition;
 
 typedef struct {
-    char *backgroundSound;
+    char *soundPath;
     char *dialogue;
     char *backgroundPath;
     char *characterPath;
@@ -31,7 +31,7 @@ typedef struct {
 typedef struct {
     int id;
     Scene scenes[MAX_SCENE];  // Array of scenes instead of Queue
-    int currentSceneIndex;    // Track current scene
+    int currentSceneIndex;    
     int TotalScene;
     int numChoices;
     char *choiceLeftSon;

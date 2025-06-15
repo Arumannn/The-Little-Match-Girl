@@ -36,7 +36,7 @@ void InitAssetsMenu() {
     BGMusic.looping = true;
 
     // =================================== MENU STATE 0 ===================================
-    MenuButtons[0] = LoadTexture("Assets/BackSprites/customstorymenu.png");
+    MenuButtons[0] = LoadTexture("Assets/mainmenu/customstorymenu.png");
     MenuButtons[1] = LoadTexture("Assets/mainmenu/Start.png");
     MenuButtons[2] = LoadTexture("Assets/mainmenu/Studio_Game.png");
     MenuButtons[3] = LoadTexture("Assets/mainmenu/About.png");
