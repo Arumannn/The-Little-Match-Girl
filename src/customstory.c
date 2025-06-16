@@ -150,15 +150,26 @@ void MakeCustomStory(CustomSceneTree *ThisSlot, int SlotNumber)
     char Convo[128];
     int selectedsprite = 0;
     int control = CHOOSINGBACKGROUND;
+    CustomSceneTree TempTree;
+    SceneList TempScene;
 
-    InitializeStoryTree(ThisSlot);
+    if (*ThisSlot == NULL)
+    {
+        InitializeStoryTree(ThisSlot);
+        TempTree = *ThisSlot;
+        TempScene = TempTree->NodeContents;
+        TempScene->Data.Background = NULL;
+        TempScene->Data.Character = NULL;
+        TempScene->Data.Convo = NULL;
+    }
 
-    CustomSceneTree TempTree = *ThisSlot;
-    SceneList TempScene = TempTree->NodeContents;
-    TempScene->Data.Background = NULL;
-    TempScene->Data.Character = NULL;
-    TempScene->Data.Convo = NULL;
-    
+    else
+    {
+        TempTree = *ThisSlot;
+        TempScene = TempTree->NodeContents;
+        control = MODE_REVIEW_SCENE;
+    }
+
     while (control != ALLDONE)
     {
         switch (control)
@@ -911,13 +922,12 @@ void InitiateAssets()
 }
 
 void PrintTree(CustomSceneTree *ThisSlot) {
-    CustomSceneTree root = *ThisSlot;
-    if (!root) 
-    {
-        printf("Tree is empty.\n");
+    if (ThisSlot == NULL || *ThisSlot == NULL) {
+        printf("Tree is empty or NULL.\n");
         return;
     }
 
+    CustomSceneTree root = *ThisSlot;
     printf("===== DEBUG TREE LOG START =====\n");
 
     TempQueueNode *front = NULL, *rear = NULL;
@@ -938,6 +948,7 @@ void PrintTree(CustomSceneTree *ThisSlot) {
             printf("     Background: %s\n", scene->Data.Background ? scene->Data.Background : "(none)");
             printf("     Character : %s\n", scene->Data.Character ? scene->Data.Character : "(none)");
             printf("     Dialogue  : %s\n", scene->Data.Convo ? scene->Data.Convo : "(none)");
+            printf("     Position  : %d\n", scene->Data.charPosition);
             scene = scene->Next;
             sceneIndex++;
         }
@@ -1269,6 +1280,11 @@ CustomSceneTree DeserializeTreeNode(FILE *file, CustomSceneTree parent) {
 }
 
 void SaveTreeToFile(CustomSceneTree tree, const char* filename) {
+    if (tree == NULL) {
+        printf("Error: Cannot save NULL tree\n");
+        return;
+    }
+
     FILE *file = fopen(filename, "wb");
     if (file == NULL) {
         printf("Error: Could not open file '%s' for writing.\n", filename);
@@ -1277,10 +1293,14 @@ void SaveTreeToFile(CustomSceneTree tree, const char* filename) {
     
     // Write a file header/version for future compatibility
     char header[16] = "VSTORY_V1.0";
-    fwrite(header, sizeof(char), 16, file);
+    if (fwrite(header, sizeof(char), 16, file) != 16) {
+        printf("Error: Failed to write file header\n");
+        fclose(file);
+        return;
+    }
     
     // Debug: Print tree before saving
-    printf("===== SAVING TREE =====\n");
+    printf("===== SAVING TREE CONTENTS =====\n");
     PrintTree(&tree);
     
     // Serialize the entire tree
@@ -1348,7 +1368,14 @@ void SaveSlotToFile(CustomSceneTree *ThisSlot, int slotNumber) {
         system("mkdir -p saves");
     #endif
     
+    // Debug print before saving
+    printf("===== SAVING TREE TO SLOT %d =====\n", slotNumber);
+    PrintTree(ThisSlot);
+    
+    // Save the tree
     SaveTreeToFile(*ThisSlot, filename);
+    
+    printf("Story tree saved to '%s' successfully.\n", filename);
 }
 
 /**
@@ -1384,7 +1411,7 @@ void SaveSlot(CustomSceneTree *ThisSlot) {
     printf("===========================\n");
 }
 
-void LoadSlot(CustomSceneTree *ThisSlot) {
+void LoadSlot(CustomSceneTree *ThisSlot, int slotnumber) {
     if (ThisSlot != NULL && *ThisSlot != NULL) {
         // Clean up existing tree first
         DeleteTreeNode(ThisSlot);
@@ -1392,7 +1419,7 @@ void LoadSlot(CustomSceneTree *ThisSlot) {
     
     // For now, load from slot 1 by default
     // You can modify this to ask user for slot number
-    *ThisSlot = LoadSlotFromFile(1);
+    *ThisSlot = LoadSlotFromFile(slotnumber);
     
     if (*ThisSlot != NULL) {
         printf("===== LOAD SUCCESSFUL =====\n");
@@ -1407,6 +1434,7 @@ void LoadSlot(CustomSceneTree *ThisSlot) {
         // Create a new empty tree if load failed
         InitializeStoryTree(ThisSlot);
     }
+    MakeCustomStory(ThisSlot, slotnumber);
 }
 
 void SaveCustomStoryProgress(const char *filename, int node, int scene) {

@@ -99,31 +99,20 @@ int main() {
                 break;
 
             case GAME_STATE_EDIT_SLOT_1:
-                currentCustomSlot = 0;
-                if (customStorySlots[0] != NULL) {
-                    MakeCustomStory(&customStorySlots[0], 1);
-                }
-                currentGameState = GAME_STATE_MAIN_MENU;
-                InitButtonRects(currentGameState);
-                break;
+            LoadSlot(&customStorySlots[0], 1);
+            currentGameState = GAME_STATE_MAIN_MENU;
+            break;
 
             case GAME_STATE_EDIT_SLOT_2:
-                currentCustomSlot = 1;
-                if (customStorySlots[1] != NULL) {
-                    MakeCustomStory(&customStorySlots[1], 2);
-                }
-                currentGameState = GAME_STATE_MAIN_MENU;
-                InitButtonRects(currentGameState);
-                break;
+            LoadSlot(&customStorySlots[1], 2);
+            currentGameState = GAME_STATE_MAIN_MENU;
+            break;
 
             case GAME_STATE_EDIT_SLOT_3:
-                currentCustomSlot = 2;
-                if (customStorySlots[2] != NULL) {
-                    MakeCustomStory(&customStorySlots[2], 3);
-                }
-                currentGameState = GAME_STATE_MAIN_MENU;
-                InitButtonRects(currentGameState);
-                break;
+            LoadSlot(&customStorySlots[2], 3);
+            currentGameState = GAME_STATE_MAIN_MENU;
+                //InitButtonRects(currentGameState);
+            break;
 
             case GAME_STATE_DELETE_SLOT_1:
                 if (customStorySlots[0] != NULL) {
