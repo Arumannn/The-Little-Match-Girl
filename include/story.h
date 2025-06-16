@@ -8,8 +8,8 @@
 #define MAX_NODE_TREE 28
 
 // External declarations for story state
+extern int storyCurrentNode;
 extern int storyCurrentScene;
-extern int storyCurrentFrame;
 
 typedef enum {
     CHAR_POS_NONE,
@@ -31,7 +31,6 @@ typedef struct {
 typedef struct {
     int id;
     Scene scenes[MAX_SCENE];  // Array of scenes instead of Queue
-    int currentSceneIndex;    
     int TotalScene;
     int numChoices;
     char *choiceLeftSon;

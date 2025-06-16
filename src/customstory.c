@@ -21,11 +21,6 @@ int storedKeyPad;  // For storing branch direction
 bool warning = false;  // For error states and warnings
 
 // Helper functions for PrintTree
-typedef struct TempQueueNode {
-    CustomSceneTree treeNode;
-    int level;
-    struct TempQueueNode *next;
-} TempQueueNode;
 
 static void Enqueue(TempQueueNode **front, TempQueueNode **rear, CustomSceneTree treeNode, int level) {
     TempQueueNode *newNode = (TempQueueNode *)malloc(sizeof(TempQueueNode));

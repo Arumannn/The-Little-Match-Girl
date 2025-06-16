@@ -61,7 +61,7 @@ extern int selectedMenu;
 extern GameState currentGameState;
 
 // Declare extern variables to be used in menu logic
+extern int storyCurrentNode;
 extern int storyCurrentScene;
-extern int storyCurrentFrame;
 
 #endif

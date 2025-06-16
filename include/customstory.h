@@ -14,7 +14,7 @@
 #define MAX_DIALOG_LENGTH 1024
 
 #define CHARA_AMMOUNT 11
-#define BACKGROUND_AMMOUNT 23
+#define BACKGROUND_AMMOUNT 50
 #define AUDIO_AMMOUNT 6
 
 #define SCREEN_WIDTH 1920
@@ -81,6 +81,13 @@ typedef struct Tree
     struct Tree *Right;
     struct Tree *Parent;
 }*CustomSceneTree;
+
+typedef struct TempQueueNode {
+    CustomSceneTree treeNode;
+    int level;
+    struct TempQueueNode *next;
+} TempQueueNode;
+
 
 //extern CustomSceneTree *Current;
 
