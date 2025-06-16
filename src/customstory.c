@@ -509,6 +509,10 @@ void MakeCustomStory(CustomSceneTree *ThisSlot, int SlotNumber)
                             control = ALLDONE;
                             break;
 
+                        case KEY_BACKSPACE:
+                            HandleDeleteCurrentNode(&TempTree, &TempScene, &control, &selectedsprite);
+                            break;
+
                         case KEY_SLASH:
                             control = MODE_REVIEW_SCENE;
                             break;
@@ -844,7 +848,7 @@ void AddLeftChild(CustomSceneTree *TempTree, SceneList *TempScene, int *selected
         (*TempScene)->Data.Background = NULL;
         (*TempScene)->Data.Character = NULL;
         (*TempScene)->Data.Convo = NULL;
-        (*TempScene)->Data.SFX = NULL;  // Initialize SFX to NULL
+        (*TempScene)->Data.SFX = NULL; 
         (*TempScene)->Data.charPosition = CHAR_POS_CENTER;
         *control = CHOOSINGBACKGROUND;
     }
@@ -1109,7 +1113,7 @@ void HandleDeleteCurrentNode(CustomSceneTree *TempTree, SceneList *TempScene, in
     }
 
     // Confirmation message
-    *selectedsprite = 5; // "Scene successfully deleted"
+    *selectedsprite = 6; // "Scene successfully deleted"
     *control = CONFIRMATION;
 
     RenderTimer = 2.0f;

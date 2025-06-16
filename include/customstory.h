@@ -26,7 +26,7 @@ typedef enum
     CHOOSINGCHARA,
     CHOOSINGCHARPOSITION,
     CHOOSINGDIALOGUE,
-    CHOOSINGCHOICETEXT,  // New state for setting choice text
+    CHOOSINGCHOICETEXT,
     CONFIRMATION,
     ALLDONE,
     ADDFIRSTSCENE,
@@ -75,14 +75,12 @@ typedef struct Tree
 {
     int ID;
     SceneList NodeContents;
-    char *TextLeft;      // Text to show for left choice button
-    char *TextRight;     // Text to show for right choice button
+    char *TextLeft;
+    char *TextRight;
     struct Tree *Left;
     struct Tree *Right;
     struct Tree *Parent;
 }*CustomSceneTree;
-
-//extern CustomSceneTree *Current;
 
 extern CharaArr FileChara[CHARA_AMMOUNT];
 extern BackgroundArr FileBackground[BACKGROUND_AMMOUNT];
