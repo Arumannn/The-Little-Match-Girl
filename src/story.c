@@ -386,7 +386,7 @@ void InitDataCerita(TreeStory *SceneTree) {
         SceneTree[16].scenes[i] = scenes16[i];
     }
 
-      // Node 17 Ending Eat with homeless man
+      // Node 17 Ending Eat soup
     SceneTree[17].id = 17;
     SceneTree[17].TotalScene = 6;
     SceneTree[17].numChoices = 0;
@@ -561,6 +561,28 @@ void InitDataCerita(TreeStory *SceneTree) {
     }
 
 
+     // Node 27 Ending Eat with homeless man
+    SceneTree[27].id = 27;
+    SceneTree[27].TotalScene = 6;
+    SceneTree[27].numChoices = 0;
+    SceneTree[27].choiceLeftSon = NULL;
+    SceneTree[27].choiceRightSon = NULL;
+    SceneTree[27].IdLeftSon = -1;
+    SceneTree[27].IdRightSon = -1;
+
+    Scene scenes27[] = {
+        {NULL, "Girl : Excuse me sir, would you like to buy some matches?", "Assets/Endings/endingeatsoup1.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {NULL, "Officer : Oh…That would be nice", "Assets/Endings/endingeatsoup2.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {NULL, "Officer : Here the money for the match", "Assets/Endings/endingeatsoup3.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {NULL, "Girl : Thank you officer", "Assets/Endings/endingeatsoup3.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {NULL, NULL, "Assets/Endings/endingeatsoup4.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {"Assets/Music/endingGoodMusic1.mp3", NULL, "Assets/Endings/endingeatsoup5.png", NULL, {0}, {0}, CHAR_POS_NONE}
+
+    };
+    for (int i = 0; i < SceneTree[27].TotalScene; i++) {
+        SceneTree[27].scenes[i] = scenes27[i];
+    }
+
     // Node 23
     SceneTree[23].id = 23;
     SceneTree[23].TotalScene = 3;
@@ -597,6 +619,28 @@ void InitDataCerita(TreeStory *SceneTree) {
     };
     for (int i = 0; i < SceneTree[24].TotalScene; i++) {
         SceneTree[24].scenes[i] = scenes24[i];
+    }
+
+     // Node 28 Ending Business
+    SceneTree[28].id = 28;
+    SceneTree[28].TotalScene = 5;
+    SceneTree[28].numChoices = 0;
+    SceneTree[28].choiceLeftSon = NULL;
+    SceneTree[28].choiceRightSon = NULL;
+    SceneTree[28].IdLeftSon = -1;
+    SceneTree[28].IdRightSon = -1;
+
+    Scene scenes28[] = {
+        {NULL, "Girl : Excuse me sir, would you like to buy some matches?", "Assets/Endings/endingbusinessman1.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {"Assets/Music/angry no.mp3", "Business man : The fuck you want, Chicago sox just lost and that means i lose that 100 dollars debt, now GET OUT!", "Assets/Endings/endingbusinessman2.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {"Assets/Music/slap.mp3", ".......", "Assets/Endings/endingbusinessman3.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {NULL, "Girl : Why my life become like this", "Assets/Endings/endingbusinessman4.png", NULL, {0}, {0}, CHAR_POS_NONE},
+        {"Assets/Music/endingSadMusic2.mp3", NULL, "Assets/Endings/endingbusinessman4.png", NULL, {0}, {0}, CHAR_POS_NONE},
+
+
+    };
+    for (int i = 0; i < SceneTree[28].TotalScene; i++) {
+        SceneTree[28].scenes[i] = scenes28[i];
     }
 }
 

@@ -5,7 +5,7 @@
 #include "mainmenu.h"
 
 #define MAX_SCENE 10
-#define MAX_NODE_TREE 28
+#define MAX_NODE_TREE 29
 
 // External declarations for story state
 extern int storyCurrentNode;
