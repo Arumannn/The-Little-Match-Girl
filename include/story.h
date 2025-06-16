@@ -7,7 +7,6 @@
 #define MAX_SCENE 10
 #define MAX_NODE_TREE 29
 
-// External declarations for story state
 extern int storyCurrentNode;
 extern int storyCurrentScene;
 
@@ -30,7 +29,7 @@ typedef struct {
 
 typedef struct {
     int id;
-    Scene scenes[MAX_SCENE];  // Array of scenes instead of Queue
+    Scene scenes[MAX_SCENE];  
     int TotalScene;
     int numChoices;
     char *choiceLeftSon;
