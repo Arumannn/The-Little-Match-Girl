@@ -2435,22 +2435,6 @@ void LoadCustomStorySlots(CustomSceneTree customStorySlots[]) {
     }
 }
 
-void CleanupCustomStorySlots(CustomSceneTree customStorySlots[]) {
-    for (int i = 0; i < 3; i++) {
-        if (customStorySlots[i] != NULL) {
-            DeleteTreeNode(&customStorySlots[i]);
-        }
-    }
-}
-
-void LoadCustomStorySlots(CustomSceneTree customStorySlots[]) {
-    for (int i = 0; i < 3; i++) {
-        customStorySlots[i] = LoadSlotFromFile(i + 1);
-        if (customStorySlots[i] != NULL) {
-            printf("Loaded custom story slot %d\n", i + 1);
-        }
-    }
-}
 
 void CleanupCustomStorySlots(CustomSceneTree customStorySlots[]) {
     for (int i = 0; i < 3; i++) {
