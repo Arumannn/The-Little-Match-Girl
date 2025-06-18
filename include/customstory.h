@@ -150,6 +150,7 @@ void ClearSlotFromMemory(int slotNumber);
 
 // Create save directories function declaration
 void CreateSaveDirectories(void);
+void DrawOpeningTitle();
 
 // Function to load all custom story slots
 void LoadCustomStorySlots(CustomSceneTree customStorySlots[]);

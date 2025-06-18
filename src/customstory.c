@@ -2443,4 +2443,83 @@ void CleanupCustomStorySlots(CustomSceneTree customStorySlots[]) {
     }
 }
 
+void LoadCustomStorySlots(CustomSceneTree customStorySlots[]) {
+    for (int i = 0; i < 3; i++) {
+        customStorySlots[i] = LoadSlotFromFile(i + 1);
+        if (customStorySlots[i] != NULL) {
+            printf("Loaded custom story slot %d\n", i + 1);
+        }
+    }
+}
+
+void CleanupCustomStorySlots(CustomSceneTree customStorySlots[]) {
+    for (int i = 0; i < 3; i++) {
+        if (customStorySlots[i] != NULL) {
+            DeleteTreeNode(&customStorySlots[i]);
+        }
+    }
+}
+
+void DrawOpeningTitle()
+{
+    Music bgMusic = LoadMusicStream("Assets/mainmenu/Backround music - Electro beat - neutral.mp3");
+    PlayMusicStream(bgMusic);
+    Vector2 bgTex;
+    Texture2D opening1, opening2, opening3;
+    float RenderTimer = 4.0f;
+    opening1 = LoadTexture("Assets/mainmenu/openingtitlenvidia.png");
+    opening2 = LoadTexture("Assets/mainmenu/openingtitledigitalhappiness.png");
+    opening3 = LoadTexture("Assets/mainmenu/openingtitle.png");
+    opening1.height = SCREEN_HEIGHT;
+    opening1.width = SCREEN_WIDTH;
+    opening2.height = SCREEN_HEIGHT;
+    opening2.width = SCREEN_WIDTH;
+    opening3.height = SCREEN_HEIGHT;
+    opening3.width = SCREEN_WIDTH;
+    while (RenderTimer > 0.0f)
+    {
+        UpdateMusicStream(bgMusic); 
+        BeginDrawing();
+        ClearBackground(BLACK);
+        DrawTexture(opening1, 0, 0, WHITE);
+        EndDrawing();
+        RenderTimer -= GetFrameTime();
+    }
+    RenderTimer = 4.0f;
+    while (RenderTimer > 0.0f)
+    {
+        UpdateMusicStream(bgMusic);
+        BeginDrawing();
+        ClearBackground(BLACK);
+        DrawTexture(opening1, 0, 0, WHITE);
+        EndDrawing();
+        RenderTimer -= GetFrameTime();
+    }
+    RenderTimer = 4.0f;
+    while (RenderTimer > 0.0f)
+    {
+        UpdateMusicStream(bgMusic);
+        BeginDrawing();
+        ClearBackground(BLACK);
+        DrawTexture(opening2, 0, 0, WHITE);
+        EndDrawing();
+        RenderTimer -= GetFrameTime();
+    }
+    RenderTimer = 4.0f;
+    while (RenderTimer > 0.0f)
+    {
+        UpdateMusicStream(bgMusic);
+        BeginDrawing();
+        ClearBackground(BLACK);
+        DrawTexture(opening3, 0, 0, WHITE);
+        EndDrawing();
+        RenderTimer -= GetFrameTime();
+    }
+    UnloadTexture(opening1);
+    UnloadTexture(opening2);
+    UnloadTexture(opening3);
+    StopMusicStream(bgMusic);
+    UnloadMusicStream(bgMusic);
+    return;
+}
 
