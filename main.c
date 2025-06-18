@@ -25,6 +25,7 @@ int storyCurrentScene = 0;
 
 int customCurrentNode = 0;
 int customCurrentScene = 0;
+int opening = 0;
 
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "The Little Match Girl");
@@ -45,8 +46,12 @@ int main() {
     }
 
     
-    
     while (!WindowShouldClose() && !exitProgram) {
+    if (opening == 0)
+    {
+        DrawOpeningTitle();
+        opening = 1;
+    }
          
         
         BeginDrawing();

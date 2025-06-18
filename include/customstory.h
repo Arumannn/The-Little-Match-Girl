@@ -150,5 +150,6 @@ void ClearSlotFromMemory(int slotNumber);
 
 // Create save directories function declaration
 void CreateSaveDirectories(void);
+void DrawOpeningTitle();
 
 #endif

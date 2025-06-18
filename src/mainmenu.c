@@ -417,6 +417,7 @@ bool CheckMenuClick(int index, GameState *currentGameState) {
                     break;
                 case 6: // Custom Game
                     *currentGameState = GAME_STATE_NEW_CONTINUE_CUSTOM;
+                    //LoadCustomStoryProgressBySlot();
                     break;
                 case 15: // Back
                     *currentGameState = GAME_STATE_MAIN_MENU;
