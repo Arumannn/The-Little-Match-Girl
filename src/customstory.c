@@ -140,8 +140,8 @@ void CustomStoryGUI(int state, int currentsprite, char *Dialogue, char *BackSpri
                             SCREEN_WIDTH/2 - MeasureText("--> Create Right Branch (Set choice text first)", 25)/2, 100, 25, WHITE);
                 }
                 
-                DrawText("Up Arrow: Go To Parent | /: Review Scenes", 
-                        SCREEN_WIDTH/2 - MeasureText("Up Arrow: Go To Parent | /: Review Scenes", 25)/2, 130, 25, WHITE);
+                DrawText("Up Arrow: Go To Parent | /: Review Scenes | BACKSPACE : Delete Tree", 
+                        SCREEN_WIDTH/2 - MeasureText("Up Arrow: Go To Parent | /: Review Scenes | BACKSPACE : Delete Tree", 25)/2, 130, 25, WHITE);
                 DrawText("A: Delete Last Scene | S: Delete First Scene", 
                         SCREEN_WIDTH/2 - MeasureText("A: Delete Last Scene | S: Delete First Scene", 25)/2, 160, 25, WHITE);
                 DrawText("D: Add Scene As First | F: Add Scene As Last", 
@@ -177,8 +177,8 @@ void CustomStoryGUI(int state, int currentsprite, char *Dialogue, char *BackSpri
                             SCREEN_WIDTH/2 - MeasureText("--> Create Right Branch (Set choice text first)", 25)/2, 100, 25, WHITE);
                 }
                 
-                DrawText("Up Arrow: Go To Parent | /: Review Scenes", 
-                        SCREEN_WIDTH/2 - MeasureText("Up Arrow: Go To Parent | /: Review Scenes", 25)/2, 130, 25, WHITE);
+                DrawText("Up Arrow: Go To Parent | /: Review Scenes | BACKSPACE : Delete Tree", 
+                        SCREEN_WIDTH/2 - MeasureText("Up Arrow: Go To Parent | /: Review Scenes | BACKSPACE : Delete Tree", 25)/2, 130, 25, WHITE);
                 DrawText("A: Delete Last Scene | S: Delete First Scene", 
                         SCREEN_WIDTH/2 - MeasureText("A: Delete Last Scene | S: Delete First Scene", 25)/2, 160, 25, WHITE);
                 DrawText("D: Add Scene As First | F: Add Scene As Last", 
@@ -213,8 +213,8 @@ void CustomStoryGUI(int state, int currentsprite, char *Dialogue, char *BackSpri
                             SCREEN_WIDTH/2 - MeasureText("--> Create Right Branch (Set choice text first)", 25)/2, 100, 25, WHITE);
                 }
                 
-                DrawText("Up Arrow: Go To Parent | /: Review Scenes", 
-                        SCREEN_WIDTH/2 - MeasureText("Up Arrow: Go To Parent | /: Review Scenes", 25)/2, 130, 25, WHITE);
+                DrawText("Up Arrow: Go To Parent | /: Review Scenes | BACKSPACE : Delete Tree", 
+                        SCREEN_WIDTH/2 - MeasureText("Up Arrow: Go To Parent | /: Review Scenes | BACKSPACE : Delete Tree", 25)/2, 130, 25, WHITE);
                 DrawText("A: Delete Last Scene | S: Delete First Scene", 
                         SCREEN_WIDTH/2 - MeasureText("A: Delete Last Scene | S: Delete First Scene", 25)/2, 160, 25, WHITE);
                 DrawText("D: Add Scene As First | F: Add Scene As Last", 
@@ -248,8 +248,8 @@ void CustomStoryGUI(int state, int currentsprite, char *Dialogue, char *BackSpri
                             SCREEN_WIDTH/2 - MeasureText("--> Create Right Branch (Set choice text first)", 25)/2, 150, 25, WHITE);
                 }
                 
-                DrawText("Up Arrow: Go To Parent | /: Review Scenes", 
-                        SCREEN_WIDTH/2 - MeasureText("Up Arrow: Go To Parent | /: Review Scenes", 25)/2, 190, 25, WHITE);
+                DrawText("Up Arrow: Go To Parent | /: Review Scenes | BACKSPACE : Delete Tree", 
+                        SCREEN_WIDTH/2 - MeasureText("Up Arrow: Go To Parent | /: Review Scenes | BACKSPACE : Delete Tree", 25)/2, 190, 25, WHITE);
                 DrawText("A: Delete Last Scene | S: Delete First Scene", 
                         SCREEN_WIDTH/2 - MeasureText("A: Delete Last Scene | S: Delete First Scene", 25)/2, 220, 25, WHITE);
                 DrawText("D: Add Scene As First | F: Add Scene As Last", 
@@ -2462,6 +2462,10 @@ void DrawOpeningTitle()
     opening3.width = SCREEN_WIDTH;
     while (RenderTimer > 0.0f)
     {
+        if (IsKeyPressed(KEY_ENTER))
+        {
+            return;
+        }
         UpdateMusicStream(bgMusic); 
         BeginDrawing();
         ClearBackground(BLACK);
@@ -2472,6 +2476,10 @@ void DrawOpeningTitle()
     RenderTimer = 4.0f;
     while (RenderTimer > 0.0f)
     {
+        if (IsKeyPressed(KEY_ENTER))
+        {
+            return;
+        }
         UpdateMusicStream(bgMusic);
         BeginDrawing();
         ClearBackground(BLACK);
@@ -2482,6 +2490,10 @@ void DrawOpeningTitle()
     RenderTimer = 4.0f;
     while (RenderTimer > 0.0f)
     {
+        if (IsKeyPressed(KEY_ENTER))
+        {
+            return;
+        }
         UpdateMusicStream(bgMusic);
         BeginDrawing();
         ClearBackground(BLACK);
@@ -2492,6 +2504,10 @@ void DrawOpeningTitle()
     RenderTimer = 4.0f;
     while (RenderTimer > 0.0f)
     {
+        if (IsKeyPressed(KEY_ENTER))
+        {
+            return;
+        }
         UpdateMusicStream(bgMusic);
         BeginDrawing();
         ClearBackground(BLACK);
