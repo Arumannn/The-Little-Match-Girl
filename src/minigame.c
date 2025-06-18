@@ -68,7 +68,6 @@ void InitMiniGameStack() {
     currentChoiceCount = 0;
     memoryDisplayTimer = 0;
     
-    // Load music once
     minigameMusic = LoadMusicStream("Assets/Music/Melody of Memories.mp3");
     SetMusicVolume(minigameMusic, 0.5f);
     PlayMusicStream(minigameMusic);
@@ -94,7 +93,7 @@ void InitMiniGameStack() {
 // IS: State minigame belum diperbarui
 // FS: State minigame berhasil diperbarui sesuai input user
 void UpdateMiniGameStack(GameState *currentGameState) {
-    UpdateMusicStream(minigameMusic);  // Update existing music stream
+    UpdateMusicStream(minigameMusic);  
     if (!minigameActive) return;
 
     static Stack TempStack; // Stack sementara untuk perbandingan dengan Pop

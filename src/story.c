@@ -730,7 +730,6 @@ void DrawCurrentNodeScreen(TreeStory SceneTree[]) {
 
 
     
-    // Draw current scene assets
     if (current->backgroundTex.id != 0) {
         DrawTexture(current->backgroundTex, 0, 0, WHITE);
     }
@@ -738,20 +737,17 @@ void DrawCurrentNodeScreen(TreeStory SceneTree[]) {
         DrawCharacterAtPosition(current->characterTex, current->CharPosition);
     }
 
-    // Draw dialogue
     if (current->dialogue != NULL) {
         DrawRectangle(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, Fade(BLACK, 1.0f));
         DrawRectangleLines(50, SCREEN_HEIGHT - 200, SCREEN_WIDTH - 100, 250, WHITE);
         DrawText(current->dialogue, 70, SCREEN_HEIGHT - 180, 30, WHITE);
     }
 
-    // Draw choice buttons if this is the final scene and there are choices
     if (storyCurrentScene == node->TotalScene - 1 && node->numChoices == 2) {
         int choiceButtonWidth = 400;
         int choiceButtonHeight = 60;
         int choiceStartY = SCREEN_HEIGHT / 2 + 275;
 
-        // Draw left choice
         Rectangle choiceRectLeft = {
             SCREEN_WIDTH / 2 - choiceButtonWidth / 2 - 715,
             choiceStartY,
@@ -791,13 +787,11 @@ void DrawCurrentNodeScreen(TreeStory SceneTree[]) {
             node->id
             );
     
-    // Calculate position to center the text
-    int textWidth = MeasureText(debugText, 20);
-    int textX = (SCREEN_WIDTH - textWidth) / 2;
-    int textY = SCREEN_HEIGHT / 2;
+    // int textWidth = MeasureText(debugText, 20);
+    // int textX = (SCREEN_WIDTH - textWidth) / 2;
+    // int textY = SCREEN_HEIGHT / 2;
     
-    // Draw the debug text in red
-    DrawText(debugText, textX, textY, 20, RED);
+    // DrawText(debugText, textX, textY, 20, RED);
 }
 
 // IS: Cerita belum diperbarui
@@ -812,17 +806,13 @@ void UpdateCerita(TreeStory SceneTree[], GameState *gameState) {
 
     static char* lastSoundPath = NULL;
 
-    // Handle audio transitions
     if (current->soundPath != NULL) {
-        // Only load new music if it's different from the last one
         if (lastSoundPath == NULL || strcmp(lastSoundPath, current->soundPath) != 0) {
-            // Stop and unload previous music if playing
             if (isMusicPlaying) {
                 StopMusicStream(currentSceneMusic);
                 UnloadMusicStream(currentSceneMusic);
                 isMusicPlaying = false;
             }
-            // Load and play new music
             currentSceneMusic = LoadMusicStream(current->soundPath);
             SetMusicVolume(currentSceneMusic, 0.5f);
             PlayMusicStream(currentSceneMusic);
@@ -830,12 +820,10 @@ void UpdateCerita(TreeStory SceneTree[], GameState *gameState) {
             currentSceneMusic.looping = false;
             lastSoundPath = current->soundPath;
         }
-        // Update music if it's playing
         if (isMusicPlaying) {
             UpdateMusicStream(currentSceneMusic);
         }
     } else {
-        // If current scene has no audio, stop and unload any playing music
         if (isMusicPlaying) {
             StopMusicStream(currentSceneMusic);
             UnloadMusicStream(currentSceneMusic);
@@ -856,7 +844,6 @@ void UpdateCerita(TreeStory SceneTree[], GameState *gameState) {
      node->id == 13 || node->id == 16 || node->id == 17 || node->id == 20 || node->id == 21 ||
      node->id == 24 || node->id == 25 || node->id == 23 || node->id == 27 || node->id == 28) {
         
-        // Check for space key press first, independent of frame timer
         if (storyCurrentScene == node->TotalScene - 1 && IsKeyPressed(KEY_SPACE)) {
             UnloadNodeAssets(SceneTree, storyCurrentNode);
             *gameState = GAME_STATE_MAIN_MENU;
@@ -871,7 +858,6 @@ void UpdateCerita(TreeStory SceneTree[], GameState *gameState) {
             if (storyCurrentScene < node->TotalScene - 1) {
                 storyCurrentScene++;
             } else {
-                // For ending scenes, wait until music finishes
                 if (isMusicPlaying) {
                     UpdateMusicStream(currentSceneMusic);
                     if (!IsMusicStreamPlaying(currentSceneMusic)) {

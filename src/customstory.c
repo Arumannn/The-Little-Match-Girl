@@ -2126,9 +2126,7 @@ int UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene,
                 node = node->Left;
                 *currentNode = node->ID;
                 *currentScene = 0;
-                // Save progress when making a choice
-                SaveCustomStoryProgressBySlot(currentSlot, *currentNode, *currentScene);
-                return GAME_STATE_PLAY_CUSTOM_STORY;
+                return GAME_STATE_PLAY_CUSTOM;
             }
         }
 
@@ -2145,9 +2143,7 @@ int UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene,
                 node = node->Right;
                 *currentNode = node->ID;
                 *currentScene = 0;
-                // Save progress when making a choice
-                SaveCustomStoryProgressBySlot(currentSlot, *currentNode, *currentScene);
-                return GAME_STATE_PLAY_CUSTOM_STORY;
+                return GAME_STATE_PLAY_CUSTOM;
             }
         }
     } else {
@@ -2155,8 +2151,6 @@ int UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene,
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
             if (scene->Next != NULL) {
                 (*currentScene)++;
-                // Save progress when advancing scene
-                SaveCustomStoryProgressBySlot(currentSlot, *currentNode, *currentScene);
             } else if (node->Left == NULL && node->Right == NULL) {
                 // End of story - return to main menu
                 return GAME_STATE_MAIN_MENU;
@@ -2169,31 +2163,25 @@ int UpdateCustomStory(CustomSceneTree tree, int *currentNode, int *currentScene,
         node = node->Left;
         *currentNode = node->ID;
         *currentScene = 0;
-        SaveCustomStoryProgressBySlot(currentSlot, *currentNode, *currentScene);
     } else if (IsKeyPressed(KEY_RIGHT) && node->Right != NULL) {
         node = node->Right;
         *currentNode = node->ID;
         *currentScene = 0;
-        SaveCustomStoryProgressBySlot(currentSlot, *currentNode, *currentScene);
     }
     
     // Navigasi scene dengan keyboard
     if (IsKeyPressed(KEY_UP) && scene && scene->Before != NULL) {
         (*currentScene)--;
-        SaveCustomStoryProgressBySlot(currentSlot, *currentNode, *currentScene);
     } else if (IsKeyPressed(KEY_DOWN) && scene && scene->Next != NULL) {
         (*currentScene)++;
-        SaveCustomStoryProgressBySlot(currentSlot, *currentNode, *currentScene);
     }
     
-    // Keluar dan save progress
+    // Keluar tanpa save progress
     if (IsKeyPressed(KEY_ESCAPE)) {
-        SaveCustomStoryProgressBySlot(currentSlot, *currentNode, *currentScene);
-        printf("DEBUG: Progress saved before exit\n");
         return GAME_STATE_MAIN_MENU;
     }
     
-    return GAME_STATE_PLAY_CUSTOM_STORY;
+    return GAME_STATE_PLAY_CUSTOM;
 }
 
 void DrawCustomStoryScreen(CustomSceneTree tree, int currentNode, int currentScene) {
@@ -2435,6 +2423,23 @@ void ChoosingChoiceText(char *LeftText, char *RightText, int *selectedsprite, Cu
         }
 
         EndDrawing();
+    }
+}
+
+void LoadCustomStorySlots(CustomSceneTree customStorySlots[]) {
+    for (int i = 0; i < 3; i++) {
+        customStorySlots[i] = LoadSlotFromFile(i + 1);
+        if (customStorySlots[i] != NULL) {
+            printf("Loaded custom story slot %d\n", i + 1);
+        }
+    }
+}
+
+void CleanupCustomStorySlots(CustomSceneTree customStorySlots[]) {
+    for (int i = 0; i < 3; i++) {
+        if (customStorySlots[i] != NULL) {
+            DeleteTreeNode(&customStorySlots[i]);
+        }
     }
 }
 
